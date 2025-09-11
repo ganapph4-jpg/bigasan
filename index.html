@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rice Negosyo POS + Bluetooth Printer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {font-family: system-ui, Arial, sans-serif; margin:0; background:#f7f7f7; color:#111;}
+    .container {max-width:100%; margin:auto; background:#fff; padding:12px; min-height:100vh;}
+    h1 {text-align:center; font-size:20px; margin:8px 0;}
+    h2, h3 {font-size:15px; margin:10px 0 6px;}
+    label {display:block; margin:4px 0 2px; font-size:13px; font-weight:600;}
+    input {width:100%; padding:8px; margin-bottom:6px; border-radius:6px; border:1px solid #ccc; font-size:14px;}
+    table {width:100%; border-collapse:collapse; margin-top:12px; font-size:13px;}
+    th, td {border:1px solid #ddd; padding:6px; text-align:center;}
+    th {background:#f0f0f0;}
+    .btn {padding:8px 12px; border:none; border-radius:6px; cursor:pointer; font-size:14px; margin-top:6px;}
+    .btn-add {background:#2b7a78; color:#fff; width:100%;}
+    .btn-submit {background:#444; color:#fff; width:100%;}
+    .btn-remove {background:#e74c3c; color:#fff; font-size:11px; padding:4px 6px;}
+    .totals {text-align:right; margin-top:8px; font-weight:700; font-size:16px;}
+    .settings {position:fixed; top:10px; right:10px; cursor:pointer; font-size:22px; background:#eee; border-radius:50%; padding:6px;}
+    /* Modal */
+    .modal {display:none; position:fixed; z-index:1000; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6);}
+    .modal-card {background:#fff; margin:10% auto; padding:16px; border-radius:12px; max-width:420px; text-align:center;}
+    .close {float:right; cursor:pointer; font-size:20px;}
+    .device-list {list-style:none; padding:0; margin:10px 0; max-height:160px; overflow-y:auto; border:1px solid #ccc; border-radius:5px;}
+    .device-item {padding:8px; border-bottom:1px solid #eee; cursor:pointer; font-size:14px;}
+    .device-item:hover {background:#f7f7f7;}
+    .log {background:#f3f6fb; padding:10px; border-radius:8px; overflow:auto; max-height:140px; font-size:12px; text-align:left;}
+  </style>
+</head>
+<body>
+<div class="container">
+  <span class="settings" onclick="openModal('settingsModal')">⚙️</span>
+  <h1>Rice Negosyo POS</h1>
+
+  <!-- Form Input -->
+  <label>Customer Name:</label>
+  <input type="text" id="customerName" placeholder="Enter customer name">
+  <label>Rice Variety:</label>
+  <input type="text" id="riceVariety" placeholder="e.g. Dinorado">
+  <label>Quantity (Sacks/Kg):</label>
+  <input type="number" id="quantity" placeholder="e.g. 2">
+  <label>Price per Sack/Kg (₱):</label>
+  <input type="number" id="price" placeholder="e.g. 1200">
+  <button class="btn btn-add" onclick="addItem()">➕ Add to Cart</button>
+
+  <!-- Cart -->
+  <table id="cartTable">
+    <thead><tr><th>Variety</th><th>Qty</th><th>Price</th><th>Total</th><th>❌</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="totals">Grand Total: <span id="grandTotal">₱0.00</span></div>
+  <button class="btn btn-submit" onclick="submitOrder()">✅ Submit & Print</button>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+  <div class="modal-card">
+    <span class="close" onclick="closeModal('settingsModal')">&times;</span>
+    <h2>Printer Settings</h2>
+    <button id="connectBtn" class="btn btn-add">🔌 Connect Printer</button>
+    <button id="disconnectBtn" class="btn" disabled>Disconnect</button>
+    <h3>Available Characteristics</h3>
+    <select id="charSelect" disabled></select>
+    <button id="testPrint" class="btn btn-submit" disabled>🖨 Test Print</button>
+    <h3>Log</h3>
+    <pre id="log" class="log">Ready.</pre>
+  </div>
+</div>
+
+<script>
+let grandTotal = 0;
+let device=null, server=null, writeChar=null;
+const connectBtn=document.getElementById('connectBtn');
+const disconnectBtn=document.getElementById('disconnectBtn');
+const charSelect=document.getElementById('charSelect');
+const logEl=document.getElementById('log');
+function log(m){logEl.textContent+='\n'+m;logEl.scrollTop=logEl.scrollHeight;}
+
+// POS Add Item
+function addItem(){
+  const variety=document.getElementById('riceVariety').value.trim();
+  const qty=parseFloat(document.getElementById('quantity').value);
+  const price=parseFloat(document.getElementById('price').value);
+  if(!variety||!qty||!price){alert("⚠️ Fill all fields");return;}
+  const total=qty*price;
+  const row=document.createElement("tr");
+  row.innerHTML=`<td>${variety}</td><td>${qty}</td><td>₱${price.toFixed(2)}</td><td>₱${total.toFixed(2)}</td>
+  <td><button class="btn-remove" onclick="removeItem(this,${total})">X</button></td>`;
+  document.querySelector("#cartTable tbody").appendChild(row);
+  grandTotal+=total;
+  document.getElementById('grandTotal').innerText=`₱${grandTotal.toFixed(2)}`;
+  document.getElementById('riceVariety').value="";document.getElementById('quantity').value="";document.getElementById('price').value="";
+}
+function removeItem(btn,total){btn.parentElement.parentElement.remove();grandTotal-=total;document.getElementById('grandTotal').innerText=`₱${grandTotal.toFixed(2)}`;}
+
+// Submit & Print
+function submitOrder(){
+  const customer=document.getElementById('customerName').value.trim();
+  if(!customer){alert("⚠️ Enter customer name");return;}
+  let orderText=`RICE NEGOSYO RECEIPT\nCustomer: ${customer}\n\nVariety   Qty   Price   Total\n-----------------------------\n`;
+  const rows=document.querySelectorAll("#cartTable tbody tr");
+  rows.forEach(r=>{
+    const c=r.querySelectorAll("td");
+    orderText+=`${c[0].innerText}  ${c[1].innerText}  ${c[2].innerText}  ${c[3].innerText}\n`;
+  });
+  orderText+=`-----------------------------\nGrand Total: ₱${grandTotal.toFixed(2)}\nThank you!\n\n`;
+  if(writeChar){sendBytes(new TextEncoder().encode(orderText));log("✅ Receipt sent to printer");}
+  else {window.print();}
+}
+
+// Bluetooth Logic
+async function connect(){
+  try{
+    log('Requesting Bluetooth device...');
+    device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:['generic_access']});
+    device.addEventListener('gattserverdisconnected',onDisconnected);
+    server=await device.gatt.connect();
+    log('Connected. Discovering services...');
+    const services=await server.getPrimaryServices();
+    charSelect.innerHTML='';
+    for(const s of services){
+      const chars=await s.getCharacteristics();
+      for(const c of chars){
+        const opt=document.createElement('option');
+        opt.value=s.uuid+'|'+c.uuid;
+        opt.textContent=`${s.uuid} → ${c.uuid}`;
+        charSelect.appendChild(opt);
+      }
+    }
+    if(charSelect.options.length>0){charSelect.disabled=false;document.getElementById('testPrint').disabled=false;}
+    connectBtn.disabled=true;disconnectBtn.disabled=false;
+  }catch(e){log('Error: '+e);}
+}
+function onDisconnected(){log('Device disconnected.');connectBtn.disabled=false;disconnectBtn.disabled=true;charSelect.disabled=true;}
+async function disconnect(){if(device&&device.gatt.connected){device.gatt.disconnect();}}
+charSelect.addEventListener('change',async()=>{
+  const [sUuid,cUuid]=charSelect.value.split('|');
+  const service=await server.getPrimaryService(sUuid);
+  writeChar=await service.getCharacteristic(cUuid);
+  log('Selected write characteristic: '+cUuid);
+});
+async function sendBytes(bytes){if(!writeChar){log('No char selected');return;}await writeChar.writeValue(bytes);log('Sent '+bytes.length+' bytes');}
+document.getElementById('testPrint').onclick=()=>sendBytes(new TextEncoder().encode("Test Print\n\n"));
+connectBtn.onclick=connect;disconnectBtn.onclick=disconnect;
+
+// Modal handling
+function openModal(id){document.getElementById(id).style.display="block";}
+function closeModal(id){document.getElementById(id).style.display="none";}
+</script>
+</body>
+</html>
