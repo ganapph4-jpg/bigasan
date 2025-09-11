@@ -558,13 +558,13 @@ async function connectToPos5() { // <-- NEW "STRAIGHT TO THE POINT" FUNCTION
             showToast(`Connected to ${bleDevice.name}.`, 'success');
             closeModal('settingsModal');
         } else {
-            showToast('No printable service found on POS5.', 'error');
+            showToast('No printable service found on POS58D.', 'error');
             bleDevice.gatt.disconnect();
         }
 
     } catch (err) {
         if (err.name === 'NotFoundError') {
-            showToast('POS5 printer not found.', 'error');
+            showToast('POS58D printer not found.', 'error');
         } else {
             showToast('Bluetooth error. See console.', 'error');
             log(`Error: ${err}`);
