@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>POS System - Compact UI</title>
+<!-- Google Fonts: Roboto and Material Symbols -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+<style>
+  /* --- Compact & Vibrant UI Redesign --- */
+  :root {
+    --primary-color: #0ea5e9; /* Sky Blue */
+    --primary-color-dark: #0284c7;
+    --success-color: #22c55e; /* Green */
+    --error-color: #ef4444;   /* Red */
+    --background-color: #f8fafc; /* Slate 50 (Off-white) */
+    --surface-color: #ffffff;    /* White */
+    --text-color: #1e293b;      /* Slate 800 */
+    --muted-text-color: #64748b;/* Slate 500 */
+    --border-color: #e2e8f0;    /* Slate 200 */
+    --shadow-color: rgba(0,0,0,0.08);
+  }
+
+  /* --- Base & Typography --- */
+  html { box-sizing: border-box; }
+  *, *:before, *:after { box-sizing: inherit; }
+  body {
+    margin: 0;
+    background: var(--background-color);
+    font-family: 'Roboto', sans-serif;
+    color: var(--text-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- Layout (Compressed) --- */
+  .app-bar {
+    background: var(--surface-color);
+    padding: 10px 16px; /* Reduced padding */
+    box-shadow: 0 2px 4px var(--shadow-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .app-title {
+    font-size: 1.125rem; /* Reduced size */
+    font-weight: 700;
+    color: var(--text-color);
+  }
+  .wrap {
+    padding: 12px; /* Reduced padding */
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* --- Card & Content (Compressed) --- */
+  .card {
+    background: var(--surface-color);
+    border-radius: 12px;
+    padding: 12px; /* Reduced padding */
+    margin-top: 12px; /* Reduced margin */
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 2px var(--shadow-color);
+  }
+  .card-title {
+    font-size: 1rem; /* Reduced size */
+    font-weight: 500;
+    margin: 0 0 12px 0; /* Reduced margin */
+  }
+
+  /* --- Form Grid (Compressed) --- */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile-first */
+    gap: 12px; /* Reduced gap */
+  }
+
+  /* --- Input Field (Compressed) --- */
+  .input-field {
+    position: relative;
+    background: #fdfdfe;
+    border-radius: 6px 6px 0 0;
+    padding: 18px 10px 6px 10px; /* Reduced padding for shorter height */
+    border-bottom: 2px solid var(--border-color);
+    transition: border-color 0.2s ease;
+  }
+  .input-field:focus-within { border-bottom-color: var(--primary-color); }
+  .input-field input {
+    background: none; border: none; outline: none;
+    width: 100%; font-size: 0.95rem; /* Reduced font size */
+    color: var(--text-color);
+  }
+  .input-field label {
+    position: absolute; left: 10px; top: 14px; /* Adjusted position */
+    color: var(--muted-text-color);
+    pointer-events: none;
+    transition: all 0.2s ease;
+  }
+  .input-field input:focus + label,
+  .input-field input:not(:placeholder-shown) + label {
+    top: 4px;
+    font-size: 0.7rem; /* Reduced font size */
+    color: var(--primary-color);
+  }
+
+  /* --- Buttons (Compressed) --- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 8px 16px; /* Reduced padding */
+    border-radius: 16px; /* Reduced radius */
+    border: 1px solid transparent; cursor: pointer;
+    font-weight: 700; font-size: 0.8rem; /* Reduced font size */
+    transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
+    text-transform: uppercase;
+  }
+  .btn .material-symbols-outlined { font-size: 1rem; }
+  
+  .btn-filled { background-color: var(--primary-color); color: #fff; }
+  .btn-filled:hover { background-color: var(--primary-color-dark); box-shadow: 0 1px 3px var(--shadow-color); }
+  
+  .btn-tonal { background-color: #f0f9ff; color: var(--primary-color); border-color: #bae6fd; }
+  .btn-tonal:hover { background-color: #e0f2fe; border-color: #7dd3fc; }
+
+  .btn-text { background: none; color: var(--primary-color); }
+  .btn-text:hover { background: #f0f9ff; }
+  
+  .btn-danger { background: var(--error-color); color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+
+  /* --- Cart Table (Compressed) --- */
+  .cart-table-wrapper { overflow-x: auto; }
+  .cart-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .cart-table th, .cart-table td {
+    padding: 10px; /* Reduced padding */
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+  }
+  .cart-table th { color: var(--muted-text-color); }
+
+  /* --- Totals & Status (Compressed) --- */
+  .totals { margin-top: 12px; text-align: right; }
+  .grand-total { font-size: 1.25rem; font-weight: 700; color: var(--text-color); }
+  
+  .status-indicator {
+    font-size: 0.75rem; padding: 4px 10px; border-radius: 16px;
+    background: var(--background-color); color: var(--muted-text-color);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .status-indicator .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-text-color); }
+  .status-indicator .dot.connected { background: var(--success-color); }
+
+  /* --- Modals (Dialogs) --- */
+  .modal {
+    display: none; position: fixed; z-index: 2000;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(30, 41, 59, 0.5); /* Slate 800 with opacity */
+    align-items: center; justify-content: center;
+  }
+  .modal.active { display: flex; }
+  .modal-card {
+    background: var(--surface-color); padding: 24px;
+    border-radius: 28px; width: 90%; max-width: 480px;
+    box-shadow: 0 4px 20px var(--shadow-color);
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px;
+  }
+  .modal-header strong { font-size: 1.25rem; }
+  .modal-close-btn { background:none; border:0; font-size:24px; cursor:pointer; color:var(--muted-text-color); }
+  .modal-body { padding: 16px 0; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; }
+
+  /* --- Device List Styles --- */
+  .device-list {
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+  }
+  .device-item, .device-list-message {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+  }
+  .device-item { cursor: pointer; }
+  .device-item:hover { background-color: #f0f9ff; }
+  .device-item:last-child, .device-list-message:last-child { border-bottom: none; }
+  .device-list-message { color: var(--muted-text-color); text-align: center; }
+
+  /* --- Toast Notification --- */
+  #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; }
+  .toast {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    border-radius: 20px; color: #fff;
+    box-shadow: 0 2px 6px var(--shadow-color); opacity: 0;
+    transform: translateY(20px); transition: all 0.3s ease;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background-color: var(--success-color); }
+  .toast.error { background-color: var(--error-color); }
+  .toast.info { background-color: #334155; } /* Slate 700 */
+
+  /* --- Responsive Design --- */
+  @media (min-width: 768px) {
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .wrap { padding: 24px; }
+    .card { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+  <div id="toast-container"></div>
+  
+  <header class="app-bar">
+    <div class="app-title">POS System</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div id="printerStatus" class="status-indicator">
+        <div id="printerDot" class="dot"></div>
+        <span id="printerName">Offline</span>
+      </div>
+      <button class="btn-text" onclick="openModal('settingsModal')" aria-label="Settings">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="card" id="posCard">
+      <h2 class="card-title">Create Order</h2>
+      <div class="form-grid">
+        <div class="input-field">
+          <input id="customerName" type="text" placeholder=" ">
+          <label for="customerName">Customer Name</label>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="input-field">
+          <input id="riceVariety" type="text" placeholder=" ">
+          <label for="riceVariety">Item/Variety</label>
+        </div>
+        <div class="input-field">
+          <input id="quantity" type="number" min="0" step="0.01" placeholder=" ">
+          <label for="quantity">Quantity</label>
+        </div>
+        <div class="input-field">
+          <input id="price" type="number" min="0" step="0.01" placeholder=" ">
+          <label for="price">Price per unit (₱)</label>
+        </div>
+        <button class="btn btn-tonal" onclick="addItem()" style="align-self: end;">
+          <span class="material-symbols-outlined">add_shopping_cart</span> Add Item
+        </button>
+      </div>
+      
+      <h3 class="card-title" style="margin-top: 20px;">Cart</h3>
+      <div class="cart-table-wrapper">
+        <table class="cart-table" id="cartTable">
+          <thead>
+            <tr><th>Variety</th><th>Qty</th><th>Price</th><th>Total</th><th>Action</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="totals">
+        <div class="muted">Items: <span id="itemCount">0</span></div>
+        <div class="grand-total" id="grandTotal">₱0.00</div>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+        <button class="btn btn-text" style="color:var(--muted-text-color);" onclick="clearCart()">Clear Cart</button>
+        <button class="btn btn-filled" onclick="submitOrder()">
+          <span class="material-symbols-outlined">print</span> Submit & Print
+        </button>
+      </div>
+    </div>
+  </main>
+    
+  <!-- Settings modal -->
+  <div id="settingsModal" class="modal" onclick="if(event.target===this) closeModal('settingsModal')">
+    <div class="modal-card">
+      <header class="modal-header">
+        <strong>Settings</strong>
+        <button onclick="closeModal('settingsModal')" class="modal-close-btn">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div style="display:flex; flex-direction:column; gap: 16px;">
+          <div class="input-field">
+            <input type="text" id="businessNameInput" placeholder=" ">
+            <label for="businessNameInput">Shop Name</label>
+          </div>
+          <div class="input-field">
+            <input type="text" id="addressInput" placeholder=" ">
+            <label for="addressInput">Address</label>
+          </div>
+          <div class="input-field">
+            <input type="text" id="contactInput" placeholder=" ">
+            <label for="contactInput">Contact Number</label>
+          </div>
+        </div>
+        
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border-color);">
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-tonal" onclick="discoverAndList()" style="flex:1;">
+            <span class="material-symbols-outlined">bluetooth_searching</span> Scan
+          </button>
+          <button class="btn btn-danger" onclick="disconnectPrinter()">Disconnect</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-text" onclick="closeModal('settingsModal')">Cancel</button>
+        <button class="btn btn-filled" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+    
+  <!-- Devices Modal -->
+  <div id="devicesModal" class="modal" onclick="if(event.target===this) closeModal('devicesModal')">
+    <div class="modal-card">
+      <header class="modal-header"><strong>Select a Printer</strong></header>
+      <div class="modal-body">
+          <div id="devicesContainer" class="device-list">
+              <!-- Discovered devices will be listed here -->
+          </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-text" onclick="closeModal('devicesModal')">Close</button>
+      </div>
+    </div>
+  </div>
+  
+<script>
+/* ---- STATE & SETTINGS ---- */
+let cart = [];
+let grandTotal = 0;
+let selectedCharacteristic = null;
+let bleDevice = null;
+let bleServer = null;
+let settings = {
+  businessName: 'My Rice Store',
+  address: 'Mcll Catumbal Cabaluay, Teacher Village',
+  contact: '0917-123-4567'
+};
+
+/* ---- UI HELPERS ---- */
+function log(msg){ console.log(`[${new Date().toLocaleTimeString()}] ${msg}`); }
+function currency(n){ return '₱' + Number(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+/* --- TOAST NOTIFICATION --- */
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    
+    setTimeout(() => { toast.classList.add('show'); }, 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => container.removeChild(toast), 500);
+    }, 3000);
+}
+
+/* ---- SETTINGS FUNCTIONS ---- */
+function saveSettings() {
+    const newName = document.getElementById('businessNameInput').value.trim();
+    const newAddress = document.getElementById('addressInput').value.trim();
+    const newContact = document.getElementById('contactInput').value.trim();
+
+    if (newName && newAddress && newContact) {
+        settings.businessName = newName;
+        settings.address = newAddress;
+        settings.contact = newContact;
+        localStorage.setItem('posSettings', JSON.stringify(settings));
+        showToast('Settings saved!', 'success');
+        closeModal('settingsModal');
+    } else {
+        showToast('Please fill in all shop fields.', 'error');
+    }
+}
+
+function loadSettings() {
+    const savedSettings = localStorage.getItem('posSettings');
+    if (savedSettings) {
+        settings = JSON.parse(savedSettings);
+    }
+    document.getElementById('businessNameInput').value = settings.businessName;
+    document.getElementById('addressInput').value = settings.address;
+    document.getElementById('contactInput').value = settings.contact;
+}
+
+/* ---- CART FUNCTIONS ---- */
+function addItem(){
+  const variety = document.getElementById('riceVariety').value.trim();
+  const qty = parseFloat(document.getElementById('quantity').value);
+  const price = parseFloat(document.getElementById('price').value);
+
+  if(!variety || !qty || !price || qty <= 0 || price <= 0){
+    showToast('Please enter valid item details.', 'error');
+    return;
+  }
+
+  const existing = cart.find(c => c.variety.toLowerCase() === variety.toLowerCase());
+  if(existing){
+    existing.qty += qty;
+    existing.total = existing.qty * existing.price;
+  } else {
+    cart.push({ variety, qty, price, total: qty*price });
+  }
+  renderCart();
+  
+  document.getElementById('riceVariety').value = '';
+  document.getElementById('quantity').value = '';
+  document.getElementById('price').value = '';
+  document.getElementById('riceVariety').focus();
+  showToast(`${variety} added to cart.`, 'success');
+}
+
+function renderCart(){
+  const tbody = document.querySelector('#cartTable tbody');
+  tbody.innerHTML = '';
+  grandTotal = 0;
+  if (cart.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: var(--muted-text-color);">Cart is empty</td></tr>`;
+  } else {
+    cart.forEach((item, idx) => {
+      grandTotal += item.total;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(item.variety)}</td>
+                      <td>${item.qty}</td>
+                      <td>${currency(item.price)}</td>
+                      <td>${currency(item.total)}</td>
+                      <td><button class="btn-text" style="color:var(--error-color);" onclick="removeItem(${idx})">Remove</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  document.getElementById('grandTotal').innerText = currency(grandTotal);
+  document.getElementById('itemCount').innerText = cart.length;
+}
+
+function removeItem(index){
+  cart.splice(index,1);
+  renderCart();
+  showToast('Item removed from cart.', 'info');
+}
+
+function clearCart(){
+  if(cart.length > 0 && confirm('Are you sure you want to clear the cart?')){
+      cart = [];
+      renderCart();
+      showToast('Cart cleared.', 'info');
+  }
+}
+
+/* ---- 58mm RECEIPT LAYOUT BUILDER ---- */
+function generateReceiptText(customerName) {
+    const lines = [];
+    const width = 32;
+    const separator = '-'.repeat(width);
+    const centerText = (text) => text.padStart(Math.floor((width + text.length) / 2), ' ').padEnd(width, ' ');
+    function wrapText(text, maxWidth) {
+        const words = text.split(' ');
+        const wrappedLines = [];
+        let currentLine = words.shift() || '';
+        for (const word of words) {
+            if ((currentLine + ' ' + word).length > maxWidth) {
+                wrappedLines.push(currentLine);
+                currentLine = word;
+            } else { currentLine += ' ' + word; }
+        }
+        wrappedLines.push(currentLine);
+        return wrappedLines;
+    }
+    lines.push(centerText(settings.businessName));
+    wrapText(settings.address, width).forEach(line => lines.push(centerText(line)));
+    lines.push(centerText(settings.contact));
+    lines.push(separator);
+    lines.push(`Customer: ${customerName || 'N/A'}`.substring(0, width));
+    lines.push(`Date: ${new Date().toLocaleDateString()}`);
+    lines.push(separator);
+    lines.push('Item'.padEnd(18) + 'Qty'.padEnd(5) + 'Total'.padStart(9));
+    lines.push(separator);
+    cart.forEach(it => {
+        const name = it.variety.length > 17 ? it.variety.substring(0, 17) + '.' : it.variety;
+        const qty = String(it.qty);
+        const total = String(Math.round(it.total));
+        lines.push(name.padEnd(18) + qty.padEnd(5) + total.padStart(9));
+    });
+    lines.push(separator);
+    const totalLabel = 'GRAND TOTAL:';
+    const totalValue = currency(grandTotal);
+    lines.push(totalLabel + totalValue.padStart(width - totalLabel.length));
+    lines.push('');
+    lines.push(centerText('Thank you!'));
+    lines.push('\n\n\n');
+    return lines.join('\n');
+}
+
+/* ---- ESC/POS BUILD HELPERS ---- */
+function esc(cmdArray){ return new Uint8Array(cmdArray); }
+function buildEscPosReceipt(customerName){
+  const encoder = new TextEncoder();
+  const receiptText = generateReceiptText(customerName);
+  const init = esc([0x1B, 0x40]);
+  const content = encoder.encode(receiptText);
+  const cut = esc([0x1D, 0x56, 0x41, 0x10]);
+  const full = new Uint8Array(init.length + content.length + 3 + cut.length);
+  full.set(init);
+  full.set(content, init.length);
+  full.set(esc([0x0A, 0x0A, 0x0A]), init.length + content.length);
+  full.set(cut, init.length + content.length + 3);
+  return full;
+}
+
+/* ---- ROBUST BLE & PRINTING LOGIC ---- */
+async function discoverAndList(){
+  const devicesContainer = document.getElementById('devicesContainer');
+  devicesContainer.innerHTML = '<div class="device-list-message">Scanning...</div>';
+  openModal('devicesModal');
+  showToast('Scanning for printers...', 'info');
+
+  try {
+    log('Requesting Bluetooth device...');
+    bleDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [] });
+    
+    devicesContainer.innerHTML = `<div class="device-list-message">Connecting to ${bleDevice.name || 'device'}...</div>`;
+    log(`Device selected: ${bleDevice.name || 'Unknown Device'}`);
+    
+    bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+    bleServer = await bleDevice.gatt.connect();
+    log('GATT Server connected. Discovering services...');
+    
+    devicesContainer.innerHTML = `<div class="device-list-message">Checking services...</div>`;
+    const services = await bleServer.getPrimaryServices();
+    log(`Found ${services.length} services.`);
+    
+    devicesContainer.innerHTML = ''; // Clear for new device list
+    let characteristicsFound = false;
+
+    for(const service of services){
+      const characteristics = await service.getCharacteristics();
+      for(const characteristic of characteristics){
+        if(characteristic.properties.write || characteristic.properties.writeWithoutResponse){
+          characteristicsFound = true;
+          const label = `${bleDevice.name || 'BT Device'} (Print Service)`;
+          const div = document.createElement('div');
+          div.className = 'device-item';
+          div.textContent = label;
+          div.onclick = () => {
+            selectedCharacteristic = characteristic; // Assign the actual characteristic object
+            document.getElementById('printerName').innerText = bleDevice.name || 'BT Device';
+            document.getElementById('printerDot').classList.add('connected');
+            showToast(`Printer connected.`, 'success');
+            closeModal('devicesModal');
+          };
+          devicesContainer.appendChild(div);
+        }
+      }
+    }
+
+    if (!characteristicsFound) {
+      devicesContainer.innerHTML = '<div class="device-list-message">No printable services found on this device.</div>';
+      showToast('Printer has no printable services.', 'error');
+      bleDevice.gatt.disconnect();
+    }
+  } catch(err) {
+    if (err.name === 'NotFoundError') {
+      showToast('Scan cancelled.', 'info');
+      closeModal('devicesModal');
+    } else {
+      showToast('Bluetooth error. See console.', 'error');
+      log(`Error: ${err}`);
+      devicesContainer.innerHTML = `<div class="device-list-message">Error: ${err.message}.</div>`;
+    }
+  }
+}
+
+function onDisconnected(e){
+  log('Device disconnected.');
+  showToast('Printer disconnected.', 'info');
+  document.getElementById('printerName').innerText = 'Offline';
+  document.getElementById('printerDot').classList.remove('connected');
+  selectedCharacteristic = null;
+  bleDevice = null;
+  bleServer = null;
+}
+
+async function disconnectPrinter(){
+  try{
+    if(bleDevice?.gatt?.connected){ 
+      bleDevice.gatt.disconnect(); 
+    } else { 
+      showToast('No device is connected.', 'info'); 
+    }
+  } catch(err) { 
+    showToast('Error disconnecting.', 'error'); 
+  }
+}
+
+async function writeInChunks(buffer, chunkSize = 100){
+  if(!selectedCharacteristic) throw new Error('No characteristic selected.');
+  const writeMethod = selectedCharacteristic.properties.writeWithoutResponse ? 'writeValueWithoutResponse' : 'writeValue';
+  for(let i = 0; i < buffer.length; i += chunkSize){
+    await selectedCharacteristic[writeMethod](buffer.slice(i, i + chunkSize));
+    await sleep(20);
+  }
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function submitOrder(){
+  const customer = document.getElementById('customerName').value.trim();
+  if(!customer){ showToast('Enter customer name.', 'error'); return; }
+  if(cart.length === 0){ showToast('Cart is empty.', 'error'); return; }
+
+  const data = buildEscPosReceipt(customer);
+  if(selectedCharacteristic){
+    try{
+      log('Printing via BLE...');
+      await writeInChunks(data);
+      showToast('Order sent to printer.', 'success');
+      cart = []; renderCart();
+      document.getElementById('customerName').value = '';
+    } catch(err) {
+      showToast('Print failed. Device may have disconnected.', 'error');
+      log(`Print error: ${err}`);
+    }
+  } else {
+    showToast('No printer connected. Using browser print.', 'info');
+    buildFallbackPrintable(customer);
+    cart = []; renderCart();
+    document.getElementById('customerName').value = '';
+  }
+}
+
+function buildFallbackPrintable(customer){
+  const receiptText = generateReceiptText(customer);
+  const win = window.open('','_blank');
+  win.document.write(`<html><head><title>Receipt</title></head><body><pre style="font-family:monospace;font-size:14px;white-space:pre-wrap;">${receiptText}</pre></body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 250);
+}
+
+/* ---- UTIL & MODAL HELPERS ---- */
+function escapeHtml(s){ return s.replace(/[&<>"'`=\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[c]); }
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+
+/* ---- Initialize ---- */
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    renderCart();
+    log('POS ready. Use Settings to configure and connect a printer.');
+});
+</script>
+</body>
+</html>
