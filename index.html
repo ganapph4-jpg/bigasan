@@ -175,6 +175,23 @@
   .modal-body { padding: 16px 0; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; }
 
+  /* --- Device List Styles --- */
+  .device-list {
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+  }
+  .device-item, .device-list-message {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+  }
+  .device-item { cursor: pointer; }
+  .device-item:hover { background-color: #f0f9ff; }
+  .device-item:last-child, .device-list-message:last-child { border-bottom: none; }
+  .device-list-message { color: var(--muted-text-color); text-align: center; }
+
   /* --- Receipt Preview Style --- */
   #receiptPreviewContent {
     background-color: #f9f9f9;
@@ -304,8 +321,8 @@
         <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border-color);">
 
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-tonal" onclick="connectToPos5()" style="flex:1;">
-            <span class="material-symbols-outlined">bluetooth_drive</span> Connect to POS5
+          <button class="btn btn-tonal" onclick="discoverAndList()" style="flex:1;">
+            <span class="material-symbols-outlined">bluetooth_searching</span> Scan for Devices
           </button>
           <button class="btn btn-danger" onclick="disconnectPrinter()">Disconnect</button>
         </div>
@@ -317,6 +334,21 @@
     </div>
   </div>
     
+  <!-- Devices Modal -->
+  <div id="devicesModal" class="modal" onclick="if(event.target===this) closeModal('devicesModal')">
+    <div class="modal-card">
+      <header class="modal-header"><strong>Select a Printer</strong></header>
+      <div class="modal-body">
+          <div id="devicesContainer" class="device-list">
+              <!-- Discovered devices will be listed here -->
+          </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-text" onclick="closeModal('devicesModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Receipt Preview Modal -->
   <div id="receiptModal" class="modal" onclick="if(event.target===this) closeModal('receiptModal')">
     <div class="modal-card">
@@ -475,7 +507,7 @@ function generateReceiptText(customerName) {
         return wrappedLines;
     }
 
-    lines.push(centerText('** OFFICIAL RECEIPT **')); // <-- UPDATED
+    lines.push(centerText('** OFFICIAL RECEIPT **'));
     lines.push(separator);
     lines.push(centerText(settings.businessName));
     wrapText(settings.address, width).forEach(line => lines.push(centerText(line)));
@@ -498,7 +530,7 @@ function generateReceiptText(customerName) {
     lines.push(totalLabel + totalValue.padStart(width - totalLabel.length));
     lines.push('');
     lines.push(centerText('Thank you!'));
-    lines.push('\n\n'); // <-- COMPRESSED
+    lines.push('\n\n');
     return lines.join('\n');
 }
 
@@ -519,19 +551,24 @@ function buildEscPosReceipt(customerName){
 }
 
 /* ---- ROBUST BLE & PRINTING LOGIC ---- */
-async function connectToPos5() { // <-- NEW "STRAIGHT TO THE POINT" FUNCTION
-    showToast('Searching for POS5...', 'info');
+async function discoverAndList() { // <-- RESTORED FUNCTION
+    const devicesContainer = document.getElementById('devicesContainer');
+    devicesContainer.innerHTML = '<div class="device-list-message">Scanning...</div>';
+    openModal('devicesModal');
+    showToast('Scanning for printers...', 'info');
+
     try {
-        log('Requesting Bluetooth device with name POS5...');
-        // Request device with a filter for the name "POS5"
-        bleDevice = await navigator.bluetooth.requestDevice({
-            filters: [{ name: 'POS5' }],
-            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] // Generic Attribute Service
+        log('Requesting Bluetooth device...');
+        // Let user pick any device
+        const device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] // A common service, can be adjusted
         });
-
-        showToast(`Found ${bleDevice.name}. Connecting...`, 'info');
+        
+        bleDevice = device; // Store the selected device
+        devicesContainer.innerHTML = `<div class="device-list-message">Connecting to ${bleDevice.name || 'device'}...</div>`;
         log(`Device selected: ${bleDevice.name || 'Unknown Device'}`);
-
+        
         bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
         const server = await bleDevice.gatt.connect();
         log('GATT Server connected. Discovering services...');
@@ -539,38 +576,50 @@ async function connectToPos5() { // <-- NEW "STRAIGHT TO THE POINT" FUNCTION
         const services = await server.getPrimaryServices();
         log(`Found ${services.length} services.`);
         
-        let foundCharacteristic = false;
+        // Clear container to populate with clickable service list
+        devicesContainer.innerHTML = '';
+        let characteristicsFound = false;
+
         for (const service of services) {
             const characteristics = await service.getCharacteristics();
             for (const characteristic of characteristics) {
                 if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
-                    selectedCharacteristic = characteristic; // Assign the actual characteristic object
-                    foundCharacteristic = true;
-                    break;
+                    characteristicsFound = true;
+                    const label = `${bleDevice.name || 'BT Device'} (Print Service)`;
+                    const div = document.createElement('div');
+                    div.className = 'device-item';
+                    div.textContent = label;
+                    // When user clicks this item, the connection is finalized
+                    div.onclick = () => {
+                        selectedCharacteristic = characteristic;
+                        document.getElementById('printerName').innerText = bleDevice.name || 'BT Device';
+                        document.getElementById('printerDot').classList.add('connected');
+                        showToast(`Printer connected.`, 'success');
+                        closeModal('devicesModal');
+                        closeModal('settingsModal'); // Also close settings
+                    };
+                    devicesContainer.appendChild(div);
                 }
             }
-            if (foundCharacteristic) break;
         }
 
-        if (foundCharacteristic) {
-            document.getElementById('printerName').innerText = bleDevice.name || 'BT Device';
-            document.getElementById('printerDot').classList.add('connected');
-            showToast(`Connected to ${bleDevice.name}.`, 'success');
-            closeModal('settingsModal');
-        } else {
-            showToast('No printable service found on POS58D.', 'error');
+        if (!characteristicsFound) {
+            devicesContainer.innerHTML = '<div class="device-list-message">No printable services found on this device.</div>';
+            showToast('Printer has no printable services.', 'error');
             bleDevice.gatt.disconnect();
         }
-
     } catch (err) {
         if (err.name === 'NotFoundError') {
-            showToast('POS58D printer not found.', 'error');
+            showToast('Scan cancelled.', 'info');
+            closeModal('devicesModal');
         } else {
             showToast('Bluetooth error. See console.', 'error');
             log(`Error: ${err}`);
+            devicesContainer.innerHTML = `<div class="device-list-message">Error: ${err.message}.</div>`;
         }
     }
 }
+
 
 function onDisconnected(e){
   log('Device disconnected.');
@@ -603,18 +652,17 @@ async function writeInChunks(buffer, chunkSize = 100){
 }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-function submitOrder(){ // <-- UPDATED to show preview
+function submitOrder(){
   const customer = document.getElementById('customerName').value.trim();
   if(!customer){ showToast('Enter customer name.', 'error'); return; }
   if(cart.length === 0){ showToast('Cart is empty.', 'error'); return; }
 
-  // Generate receipt and show in preview modal
   const receiptText = generateReceiptText(customer);
   document.getElementById('receiptPreviewContent').textContent = receiptText;
   openModal('receiptModal');
 }
 
-async function confirmAndPrint() { // <-- NEW function for printing after confirmation
+async function confirmAndPrint() {
     const customer = document.getElementById('customerName').value.trim();
     const data = buildEscPosReceipt(customer);
     
@@ -660,4 +708,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-</html>
+</html>```
