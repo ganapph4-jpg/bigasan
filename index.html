@@ -1,711 +1,1967 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>POS System - Updated UI</title>
-<!-- Google Fonts: Roboto and Material Symbols -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-<style>
-  /* --- Fresh & Vibrant UI Redesign --- */
-  :root {
-    --primary-color: #0ea5e9; /* Sky Blue */
-    --primary-color-dark: #0284c7;
-    --success-color: #22c55e; /* Green */
-    --error-color: #ef4444;   /* Red */
-    --background-color: #f8fafc; /* Slate 50 (Off-white) */
-    --surface-color: #ffffff;    /* White */
-    --text-color: #1e293b;      /* Slate 800 */
-    --muted-text-color: #64748b;/* Slate 500 */
-    --border-color: #e2e8f0;    /* Slate 200 */
-    --shadow-color: rgba(0,0,0,0.08);
-  }
-
-  /* --- Base & Typography --- */
-  html { box-sizing: border-box; }
-  *, *:before, *:after { box-sizing: inherit; }
-  body {
-    margin: 0;
-    background: var(--background-color);
-    font-family: 'Roboto', sans-serif;
-    color: var(--text-color);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* --- Layout --- */
-  .app-bar {
-    background: var(--surface-color);
-    padding: 12px 16px;
-    box-shadow: 0 2px 4px var(--shadow-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .app-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-color);
-  }
-  .wrap {
-    padding: 16px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  /* --- Card & Content --- */
-  .card {
-    background: var(--surface-color);
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 16px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 1px 2px var(--shadow-color);
-  }
-  .card-title {
-    font-size: 1.125rem;
-    font-weight: 500;
-    margin: 0 0 16px 0;
-  }
-
-  /* --- Form Grid --- */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* Mobile-first */
-    gap: 16px;
-  }
-
-  /* --- Android-Style Floating Label Input --- */
-  .input-field {
-    position: relative;
-    background: #fdfdfe;
-    border-radius: 8px 8px 0 0;
-    padding: 20px 12px 6px 12px;
-    border-bottom: 2px solid var(--border-color);
-    transition: border-color 0.2s ease;
-  }
-  .input-field:focus-within {
-    border-bottom-color: var(--primary-color);
-  }
-  .input-field input {
-    background: none; border: none; outline: none;
-    width: 100%; font-size: 1rem; color: var(--text-color);
-  }
-  .input-field label {
-    position: absolute; left: 12px; top: 16px;
-    color: var(--muted-text-color);
-    pointer-events: none;
-    transition: all 0.2s ease;
-  }
-  .input-field input:focus + label,
-  .input-field input:not(:placeholder-shown) + label {
-    top: 4px;
-    font-size: 0.75rem;
-    color: var(--primary-color);
-  }
-
-  /* --- Buttons --- */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 8px; padding: 10px 24px; border-radius: 20px;
-    border: 1px solid transparent; cursor: pointer;
-    font-weight: 700; font-size: 0.875rem;
-    transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
-    text-transform: uppercase;
-  }
-  .btn .material-symbols-outlined { font-size: 1.125rem; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rice Inventory Management System</title>
+  <meta name="description" content="A simple, offline-first system for managing rice sales, inventory, and profit tracking.">
   
-  .btn-filled { background-color: var(--primary-color); color: #fff; }
-  .btn-filled:hover { background-color: var(--primary-color-dark); box-shadow: 0 1px 3px var(--shadow-color); }
-  
-  .btn-tonal { background-color: #f0f9ff; color: var(--primary-color); border-color: #bae6fd; }
-  .btn-tonal:hover { background-color: #e0f2fe; border-color: #7dd3fc; }
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isBetween.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/localforage/dist/localforage.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-dayjs-3@latest/dist/chartjs-adapter-dayjs-3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 
-  .btn-text { background: none; color: var(--primary-color); }
-  .btn-text:hover { background: #f0f9ff; }
-  
-  .btn-danger { background: var(--error-color); color: #fff; }
-  .btn-danger:hover { background: #dc2626; }
 
-  /* --- Cart Table --- */
-  .cart-table-wrapper { overflow-x: auto; }
-  .cart-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-  .cart-table th, .cart-table td {
-    padding: 12px;
-    border-bottom: 1px solid var(--border-color);
-    text-align: center;
-  }
-  .cart-table th { color: var(--muted-text-color); }
+  <style>
+    /* Custom CSS Variables for easy theming */
+    :root {
+      --primary: #3b82f6; /* Blue-500 */
+      --secondary: #10b981; /* Green-500 */
+      --accent: #f59e0b; /* Amber-500 */
+      --light: #f8fafc; /* Slate-50 */
+      --dark: #1e293b; /* Slate-800 */
+    }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background-color: var(--light); 
+      color: #334155; /* Slate-700 */
+      margin: 0;
+    }
+    
+    /* View Transition Styling */
+    .main-view { 
+      display: none; 
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .main-view.active { 
+      display: block; 
+    }
 
-  /* --- Totals & Status --- */
-  .totals { margin-top: 16px; text-align: right; }
-  .grand-total { font-size: 1.5rem; font-weight: 700; color: var(--text-color); }
-  
-  .status-indicator {
-    font-size: 0.875rem; padding: 6px 12px; border-radius: 16px;
-    background: var(--background-color); color: var(--muted-text-color);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .status-indicator .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-text-color); }
-  .status-indicator .dot.connected { background: var(--success-color); }
+    /* --- ENHANCED: Modern & Professional Table Styling --- */
+    .professional-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 14px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
 
-  /* --- Modals (Dialogs) --- */
-  .modal {
-    display: none; position: fixed; z-index: 2000;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(30, 41, 59, 0.5); /* Slate 800 with opacity */
-    align-items: center; justify-content: center;
-  }
-  .modal.active { display: flex; }
-  .modal-card {
-    background: var(--surface-color); padding: 24px;
-    border-radius: 28px; width: 90%; max-width: 480px;
-    box-shadow: 0 4px 20px var(--shadow-color);
-  }
-  .modal-header {
-    display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px;
-  }
-  .modal-header strong { font-size: 1.25rem; }
-  .modal-close-btn { background:none; border:0; font-size:24px; cursor:pointer; color:var(--muted-text-color); }
-  .modal-body { padding: 16px 0; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; }
+    .professional-table thead tr {
+        background-color: #f8fafc; /* Slate-50 */
+        color: #334155; /* Slate-700 */
+        text-align: center;
+        font-weight: 600;
+        border-bottom: 2px solid #e2e8f0; /* Slate-200 */
+    }
+    
+    /* --- Sticky Table Header --- */
+    .professional-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background-color: #f8fafc;
+    }
 
-  /* --- Device List Styles --- */
-  .device-list {
-    max-height: 280px;
-    overflow: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-  }
-  .device-item, .device-list-message {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.2s;
-  }
-  .device-item { cursor: pointer; }
-  .device-item:hover { background-color: #f0f9ff; }
-  .device-item:last-child, .device-list-message:last-child { border-bottom: none; }
-  .device-list-message { color: var(--muted-text-color); text-align: center; }
+    .professional-table th,
+    .professional-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e2e8f0; /* Slate-200 */
+    }
+    
+    /* Align numbers to the right for easier reading */
+    .professional-table td:not(:first-child),
+    .professional-table th:not(:first-child) {
+        text-align: right;
+    }
 
-  /* --- Receipt Preview Style --- */
-  #receiptPreviewContent {
-    background-color: #f9f9f9;
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
-    padding: 16px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.8rem;
-    white-space: pre-wrap;
-    max-height: 400px;
-    overflow-y: auto;
-  }
+    .professional-table td:first-child,
+    .professional-table th:first-child {
+        text-align: left;
+    }
 
-  /* --- Toast Notification --- */
-  #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; }
-  .toast {
-    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-    border-radius: 20px; color: #fff;
-    box-shadow: 0 2px 6px var(--shadow-color); opacity: 0;
-    transform: translateY(20px); transition: all 0.3s ease;
-  }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  .toast.success { background-color: var(--success-color); }
-  .toast.error { background-color: var(--error-color); }
-  .toast.info { background-color: #334155; } /* Slate 700 */
+    /* Remove bottom border from last row for cleaner look */
+    .professional-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* --- Modern Category Header Styling --- */
+    .category-header td {
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #fff;
+        border: none;
+        text-align: left;
+        padding-left: 1.5rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+    
+    .category-header-25-KG { background-color: #3b82f6; }
+    .category-header-10-KG { background-color: #10b981; }
+    .category-header-5-KG { background-color: #8b5cf6; }
+    .category-header-Per-Kilo { background-color: #f59e0b; }
 
-  /* --- Responsive Design --- */
-  @media (min-width: 768px) {
-    .form-grid { grid-template-columns: 1fr 1fr; }
-    .wrap { padding: 24px; }
-    .card { padding: 24px; }
-  }
-</style>
+    /* --- Category Subheader for Alignment --- */
+    .category-subheader th {
+        background-color: #f1f5f9; /* Slate-100 */
+        padding: 10px 15px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569; /* Slate-600 */
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    /* --- ENHANCED: Footer Row Styling --- */
+    .category-total-row {
+        font-weight: 700;
+        background-color: #f1f5f9; /* Slate-100 */
+    }
+
+    .grand-total-row {
+        font-size: 1.125rem;
+        font-weight: 700;
+        background-color: #1e293b; /* Slate-800 */
+        color: #fff;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+    .grand-total-row td {
+        border-bottom: none;
+    }
+
+
+    /* Input Styling */
+    input[type="number"], input[type="text"], input[type="password"], input[type="date"], select { 
+      width: 100%; 
+      padding: 6px; 
+      font-size: 13px; 
+      box-sizing: border-box; 
+      border-radius: 4px; 
+      border: 1px solid #cbd5e1; /* Slate-300 */
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    }
+    
+    input[type="number"]:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, select:focus {
+      outline: none;
+    }
+    
+    /* --- Color-coded input boxes for easy identification --- */
+    .new-stock-input {
+        background-color: #eff6ff; /* Blue-50 */
+        border-color: #93c5fd; /* Blue-300 */
+    }
+    .new-stock-input:focus {
+        background-color: #ffffff; /* Revert to white on focus for better text visibility */
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+    
+    .open-sacks-add-input {
+        background-color: #fffbeb; /* Amber-50 */
+        border-color: #fcd34d; /* Amber-300 */
+    }
+    .open-sacks-add-input:focus {
+        background-color: #ffffff;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    .end-input {
+        background-color: #f0fdf4; /* Green-50 */
+        border-color: #86efac; /* Green-300 */
+    }
+    .end-input:focus {
+        background-color: #ffffff;
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    input.invalid {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+    }
+    
+    input:disabled { 
+      background-color: #f8fafc;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      cursor: not-allowed; 
+    }
+    
+    /* Loader Animation */
+    .loader { 
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary); 
+      border-radius: 50%; 
+      width: 30px; 
+      height: 30px; 
+      animation: spin 1s linear infinite; 
+      margin: 0 auto; 
+    }
+    
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
+    
+    #settings-panel { 
+      transition: transform 0.3s ease-in-out; 
+      transform: translateX(100%);
+      box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    }
+    
+    #settings-panel.open { 
+      transform: translateX(0); 
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    }
+    
+    .nav-tab {
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .nav-tab.active {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .settings-tab {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid #e2e8f0;
+      background-color: #f8fafc;
+      color: #475569;
+    }
+
+    .settings-tab:hover {
+      background-color: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .settings-tab.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .analytics-tab {
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s;
+        cursor: pointer;
+        user-select: none;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        color: #475569;
+    }
+
+    .analytics-tab:hover {
+        background-color: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .analytics-tab.active {
+        background-color: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2563eb;
+    }
+    
+    .btn-success {
+      background-color: var(--secondary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn-success:hover {
+      background-color: #059669;
+    }
+    
+    .stat-card {
+      padding: 20px;
+      border-left: 4px solid;
+    }
+    
+    .category-25 { border-left-color: #3b82f6; }
+    .category-10 { border-left-color: #10b981; }
+    .category-5 { border-left-color: #8b5cf6; }
+    .category-kg { border-left-color: #f59e0b; }
+
+    .small-edit-btn {
+        background-color: #64748b;
+        color: white;
+        padding: 2px 8px;
+        font-size: 0.7rem;
+        border-radius: 4px;
+        transition: background-color 0.2s ease-in-out;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    .small-edit-btn:hover {
+        background-color: #475569;
+    }
+    
+    .row-has-sales {
+        background-color: #f0fdf4;
+    }
+    .row-has-sales:hover {
+        background-color: #dcfce7;
+    }
+
+    .row-low-stock {
+        background-color: #fff1f2 !important;
+        border-left: 4px solid #f43f5e;
+    }
+    .row-low-stock:hover {
+        background-color: #ffe4e6 !important;
+    }
+
+    .row-negative-stock {
+        background-color: #fecaca !important;
+        border-left: 4px solid #dc2626 !important;
+        font-weight: 600;
+    }
+    .row-negative-stock:hover {
+      background-color: #fca5a5 !important;
+    }
+    .row-negative-stock input {
+        border-color: #dc2626 !important;
+    }
+    
+    /* --- Style for rows with a calculation/logic error --- */
+    .row-logic-error {
+        background-color: #fffbeb !important; /* Amber-50 */
+        border-left: 4px solid #f59e0b !important; /* Amber-500 */
+    }
+    .row-logic-error:hover {
+        background-color: #fef3c7 !important; /* Amber-100 */
+    }
+
+    .active-row {
+        background-color: #dbeafe !important;
+        outline: 2px solid var(--primary);
+        outline-offset: -2px;
+    }
+
+    @media (max-width: 768px) {
+      .professional-table {
+        font-size: 12px;
+      }
+      
+      .professional-table th, .professional-table td {
+        padding: 6px 8px;
+      }
+
+      /* --- MOBILE OPTIMIZATION for Sales/Profit Columns --- */
+      .total-sales-val, .profit-val {
+        padding: 6px 4px !important; /* Reduce padding on mobile */
+        font-size: 11px !important; /* Make font slightly smaller */
+        word-break: break-word;
+      }
+      
+      .card {
+        margin-bottom: 16px;
+      }
+      .settings-tab, .analytics-tab {
+        flex-grow: 1;
+        text-align: center;
+      }
+    }
+  </style>
 </head>
-<body>
-  <div id="toast-container"></div>
-  
-  <header class="app-bar">
-    <div class="app-title">POS System</div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <div id="printerStatus" class="status-indicator">
-        <div id="printerDot" class="dot"></div>
-        <span id="printerName">Offline</span>
+<body class="p-4">
+
+  <!-- Shared Header -->
+  <div class="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-center gap-4" role="banner">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Rice Inventory Management</h1>
+      <p class="text-sm text-slate-500" id="header-subtitle">Current Working Day</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+        <span id="current-date-display" aria-live="polite"></span>
       </div>
-      <button class="btn-text" onclick="openModal('settingsModal')" aria-label="Settings">
-        <span class="material-symbols-outlined">settings</span>
+      <button onclick="showHistory()" title="Report History" aria-label="View Report History" class="text-slate-600 hover:text-blue-600 p-2 transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+      </button>
+      <button onclick="openSettingsWithPassword()" title="Settings" aria-label="Open Settings" class="text-slate-600 hover:text-blue-600 p-2 transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
       </button>
     </div>
-  </header>
+  </div>
 
-  <main class="wrap">
-    <div class="card" id="posCard">
-      <h2 class="card-title">Create Order</h2>
-      <div class="form-grid">
-        <div class="input-field">
-          <input id="customerName" type="text" placeholder=" ">
-          <label for="customerName">Customer Name</label>
-        </div>
+  <!-- Navigation Tabs -->
+  <nav class="max-w-7xl mx-auto mb-6 bg-white rounded-lg p-1 shadow-sm flex" aria-label="Main Navigation">
+    <button class="nav-tab active" role="tab" aria-selected="true" aria-controls="dashboard-view" onclick="showView('dashboard-view')">Dashboard</button>
+    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="daily-report-view" onclick="showCurrentDayReport()">Daily Report</button>
+  </nav>
+
+  <!-- VIEW 1: Dashboard -->
+  <main id="dashboard-view" class="main-view active max-w-7xl mx-auto" role="main">
+      <div id="dashboard-header" class="mb-6">
+        <h2 id="dashboard-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+        <p class="text-sm text-slate-500" id="dashboard-date"></p>
       </div>
-      <div class="form-grid" style="margin-top:16px;">
-        <div class="input-field">
-          <input id="riceVariety" type="text" placeholder=" ">
-          <label for="riceVariety">Item/Variety</label>
-        </div>
-        <div class="input-field">
-          <input id="quantity" type="number" min="0" step="0.01" placeholder=" ">
-          <label for="quantity">Quantity</label>
-        </div>
-        <div class="input-field">
-          <input id="price" type="number" min="0" step="0.01" placeholder=" ">
-          <label for="price">Price per unit (₱)</label>
-        </div>
-        <button class="btn btn-tonal" onclick="addItem()" style="align-self: end; height: 58px;">
-          <span class="material-symbols-outlined">add_shopping_cart</span> Add Item
-        </button>
+      <div id="dashboard-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Content generated by renderDashboard() -->
+        <div class="col-span-full text-center p-8"><div class="loader" role="status" aria-label="Loading dashboard"></div></div>
       </div>
-      
-      <h3 class="card-title" style="margin-top: 24px;">Cart</h3>
-      <div class="cart-table-wrapper">
-        <table class="cart-table" id="cartTable">
+  </main>
+
+
+  <!-- VIEW 2: Daily Report / Inventory -->
+  <div id="daily-report-view" class="main-view max-w-7xl mx-auto" role="main" aria-labelledby="report-title">
+    <div class="mb-6 p-5 bg-white rounded-lg shadow-sm flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-4">
+        <h2 id="report-title" class="text-xl font-bold text-slate-800">Daily Inventory Report</h2>
+      </div>
+    </div>
+    
+    <div class="overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="professional-table" aria-live="polite" aria-atomic="true">
           <thead>
-            <tr><th>Variety</th><th>Qty</th><th>Price</th><th>Total</th><th>Action</th></tr>
+            <tr>
+              <th>PRODUCT</th>
+              <th>BEGIN <br><button class="small-edit-btn mt-1" onclick="promptForCategoryThenEdit('begin')" aria-label="Edit all beginning stock">EDIT ALL</button></th>
+              <th>NEW STOCK</th>
+              <th>OPEN SACKS</th>
+              <th>ENDING</th>
+              <th>SOLD</th>
+              <th>PRICE (₱) <br><button class="small-edit-btn mt-1" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
+              <th>TOTAL SALES (₱)</th>
+              <th>PROFIT (₱)</th>
+            </tr>
           </thead>
-          <tbody></tbody>
+          <tbody id="inventory-tbody">
+            <tr><td colspan="9" class="text-center p-4"><div class="loader" role="status" aria-label="Loading inventory report"></div></td></tr>
+          </tbody>
         </table>
       </div>
-
-      <div class="totals">
-        <div>Items: <span id="itemCount">0</span></div>
-        <div class="grand-total" id="grandTotal">₱0.00</div>
-      </div>
-
-      <div style="margin-top:24px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-        <button class="btn btn-text" style="color:var(--muted-text-color);" onclick="clearCart()">Clear Cart</button>
-        <button class="btn btn-filled" onclick="submitOrder()">
-          <span class="material-symbols-outlined">print</span> Submit & Print
-        </button>
-      </div>
     </div>
-  </main>
+  </div>
+
+  <!-- VIEW 5: Report History -->
+  <div id="history-view" class="main-view max-w-7xl mx-auto" role="region" aria-labelledby="history-title">
+    <div class="mb-6 flex items-center gap-4">
+      <h2 id="history-title" class="text-xl font-bold text-slate-700">Report History</h2>
+    </div>
     
-  <!-- Settings modal -->
-  <div id="settingsModal" class="modal" onclick="if(event.target===this) closeModal('settingsModal')">
-    <div class="modal-card">
-      <header class="modal-header">
-        <strong>Settings</strong>
-        <button onclick="closeModal('settingsModal')" class="modal-close-btn">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </header>
-      <div class="modal-body">
-        <div style="display:flex; flex-direction:column; gap: 16px;">
-          <div class="input-field">
-            <input type="text" id="businessNameInput" placeholder=" ">
-            <label for="businessNameInput">Shop Name</label>
-          </div>
-          <div class="input-field">
-            <input type="text" id="addressInput" placeholder=" ">
-            <label for="addressInput">Address</label>
-          </div>
-          <div class="input-field">
-            <input type="text" id="contactInput" placeholder=" ">
-            <label for="contactInput">Contact Number</label>
-          </div>
+    <div class="mb-4 flex flex-col sm:flex-row items-center gap-4">
+      <input type="text" id="history-search" placeholder="Search reports by date or content..." class="border border-slate-300 rounded-md py-2 px-3 flex-grow" oninput="filterHistory()" aria-label="Search report history">
+      <select id="history-sort" class="border border-slate-300 rounded-md py-2 px-3" onchange="filterHistory()" aria-label="Sort report history">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+      </select>
+    </div>
+    
+    <div id="history-list" class="bg-white rounded-lg shadow divide-y" aria-live="polite" aria-atomic="true">
+      <div class="p-4 text-center text-slate-500"><div class="loader" role="status" aria-label="Loading reports"></div></div>
+    </div>
+  </div>
+  
+  <!-- Settings Panel -->
+  <div id="settings-panel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-lg z-50 p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
+    <div class="flex justify-between items-center mb-6">
+      <h2 id="settings-title" class="text-2xl font-bold text-slate-800">Settings</h2>
+      <button onclick="closeSettingsPanel()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close settings panel">&times;</button>
+    </div>
+    
+    <!-- Settings Tabs -->
+    <div class="mb-6 flex flex-wrap gap-2" role="tablist">
+      <button id="tab-product-management" class="settings-tab active" role="tab" aria-selected="true" aria-controls="settings-product-management-content" onclick="showSettingsTab('settings-product-management-content')">Product Management</button>
+      <button id="tab-security" class="settings-tab" role="tab" aria-selected="false" aria-controls="settings-security-content" onclick="showSettingsTab('settings-security-content')">Security</button>
+      <button id="tab-analytics" class="settings-tab" role="tab" aria-selected="false" aria-controls="settings-analytics-content" onclick="showSettingsTab('settings-analytics-content')">Analytics</button>
+      <button id="tab-data-management" class="settings-tab" role="tab" aria-selected="false" aria-controls="settings-data-management-content" onclick="showSettingsTab('settings-data-management-content')">Data Management</button>
+    </div>
+
+    <!-- Settings Content Sections -->
+    <div id="settings-product-management-content" class="settings-tab-content" role="tabpanel" aria-labelledby="tab-product-management">
+      <div class="p-4 border rounded-lg mb-6">
+        <h3 class="text-lg font-semibold mb-3 sr-only">Product Management</h3>
+        <div id="product-list-container" class="space-y-2 mb-4 max-h-64 overflow-y-auto border p-2 rounded bg-slate-50" aria-live="polite" aria-atomic="true">
+          <p class="text-center text-slate-500">No products added yet.</p>
         </div>
         
-        <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border-color);">
-
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-tonal" onclick="discoverAndList()" style="flex:1;">
-            <span class="material-symbols-outlined">bluetooth_searching</span> Scan for Devices
-          </button>
-          <button class="btn btn-danger" onclick="disconnectPrinter()">Disconnect</button>
+        <div class="p-3 bg-slate-50 rounded border">
+          <h4 id="product-form-title" class="font-semibold mb-2">Add New Product</h4>
+          <input type="hidden" id="product-id">
+          <div class="space-y-3">
+            <div>
+              <label for="product-name" class="block text-sm font-medium text-slate-700 mb-1">Product Name</label>
+              <input id="product-name" type="text" placeholder="e.g., Kylo" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
+            </div>
+            <div>
+              <label for="product-price" class="block text-sm font-medium text-slate-700 mb-1">Selling Price (₱)</label>
+              <input id="product-price" type="number" step="0.01" placeholder="e.g., 1300.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
+            </div>
+            <div>
+              <label for="product-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (₱)</label>
+              <input id="product-cost" type="number" step="0.01" placeholder="e.g., 1150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
+            </div>
+            <div>
+              <label for="product-minstock" class="block text-sm font-medium text-slate-700 mb-1">Minimum Stock Level</label>
+              <input id="product-minstock" type="number" placeholder="e.g., 5" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this, true)" aria-required="true">
+            </div>
+            <div>
+              <label for="product-category" class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <select id="product-category" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
+                <option value="25 KG">25 KG</option>
+                <option value="10 KG">10 KG</option>
+                <option value="5 KG">5 KG</option>
+                <option value="Per Kilo">Per Kilo</option>
+              </select>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="saveProduct()" class="btn-success flex-1">Save Product</button>
+              <button onclick="clearProductForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="btn btn-text" onclick="closeModal('settingsModal')">Cancel</button>
-        <button class="btn btn-filled" onclick="saveSettings()">Save</button>
-      </div>
     </div>
-  </div>
     
-  <!-- Devices Modal -->
-  <div id="devicesModal" class="modal" onclick="if(event.target===this) closeModal('devicesModal')">
-    <div class="modal-card">
-      <header class="modal-header"><strong>Select a Printer</strong></header>
-      <div class="modal-body">
-          <div id="devicesContainer" class="device-list">
-              <!-- Discovered devices will be listed here -->
+    <div id="settings-security-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-security">
+      <div class="p-4 border rounded-lg mb-6">
+        <h3 class="text-lg font-semibold mb-3 sr-only">Security</h3>
+        <div class="space-y-3">
+          <div>
+            <label for="currentPassword" class="block text-sm font-medium text-slate-700 mb-1">Current Password</label>
+            <input id="currentPassword" type="password" class="border border-slate-300 p-2 w-full rounded-md" autocomplete="current-password">
           </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-text" onclick="closeModal('devicesModal')">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Receipt Preview Modal -->
-  <div id="receiptModal" class="modal" onclick="if(event.target===this) closeModal('receiptModal')">
-    <div class="modal-card">
-      <header class="modal-header"><strong>Confirm Receipt</strong></header>
-      <div class="modal-body">
-          <pre id="receiptPreviewContent"></pre>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-text" onclick="closeModal('receiptModal')">Cancel</button>
-        <button class="btn btn-filled" onclick="confirmAndPrint()">
-          <span class="material-symbols-outlined">print</span> Confirm & Print
-        </button>
+          <div>
+            <label for="newPassword" class="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+            <input id="newPassword" type="password" class="border border-slate-300 p-2 w-full rounded-md" autocomplete="new-password">
+          </div>
+          <div>
+            <label for="confirmPassword" class="block text-sm font-medium text-slate-700 mb-1">Confirm New Password</label>
+            <input id="confirmPassword" type="password" class="border border-slate-300 p-2 w-full rounded-md" autocomplete="new-password">
+          </div>
+        </div>
+        <button onclick="savePassword()" class="btn-primary w-full mt-4">Change Password</button>
       </div>
     </div>
-  </div>
-  
-<script>
-/* ---- STATE & SETTINGS ---- */
-let cart = [];
-let grandTotal = 0;
-let selectedCharacteristic = null;
-let bleDevice = null;
-let settings = {
-  businessName: 'My Rice Store',
-  address: 'Mcll Catumbal Cabaluay, Teacher Village',
-  contact: '0917-123-4567'
-};
-
-/* ---- UI HELPERS ---- */
-function log(msg){ console.log(`[${new Date().toLocaleTimeString()}] ${msg}`); }
-function currency(n){ return '₱' + Number(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-
-/* --- TOAST NOTIFICATION --- */
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
     
-    setTimeout(() => { toast.classList.add('show'); }, 100);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => container.removeChild(toast), 500);
-    }, 3000);
-}
+    <!-- Analytics Content (Moved back into settings) -->
+    <div id="settings-analytics-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-analytics">
+      <div class="mb-6 flex items-center gap-4">
+        <h3 class="text-xl font-bold text-slate-700">Sales Analytics</h3>
+      </div>
 
-/* ---- SETTINGS FUNCTIONS ---- */
-function saveSettings() {
-    const newName = document.getElementById('businessNameInput').value.trim();
-    const newAddress = document.getElementById('addressInput').value.trim();
-    const newContact = document.getElementById('contactInput').value.trim();
+      <!-- Analytics Sub-Tabs -->
+      <div class="mb-6 flex flex-wrap gap-2" role="tablist">
+        <button id="tab-analytics-overview" class="analytics-tab active" role="tab" aria-selected="true" aria-controls="analytics-overview-content" onclick="showAnalyticsSubTab('analytics-overview-content')">Overview</button>
+        <button id="tab-analytics-charts" class="analytics-tab" role="tab" aria-selected="false" aria-controls="analytics-charts-content" onclick="showAnalyticsSubTab('analytics-charts-content')">Charts</button>
+        <button id="tab-analytics-products" class="analytics-tab" role="tab" aria-selected="false" aria-controls="analytics-products-content" onclick="showAnalyticsSubTab('analytics-products-content')">Products</button>
+      </div>
+      
+      <!-- Analytics Content: Overview Sub-Tab -->
+      <div id="analytics-overview-content" class="analytics-tab-content" role="tabpanel" aria-labelledby="tab-analytics-overview">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="card p-6">
+            <h4 class="text-lg font-bold text-slate-800 mb-4">Report Options</h4>
+            <div class="space-y-3">
+              <div>
+                <label for="analytics-mode-select" class="block text-sm font-medium text-slate-700 mb-1">Select Report Type</label>
+                <select id="analytics-mode-select" class="w-full border border-slate-300 rounded-md py-2 px-3" onchange="toggleAnalyticsDateInputs()">
+                  <option value="daily">Daily Breakdown</option>
+                  <option value="range">Date Range Report</option>
+                </select>
+              </div>
 
-    if (newName && newAddress && newContact) {
-        settings.businessName = newName;
-        settings.address = newAddress;
-        settings.contact = newContact;
-        localStorage.setItem('posSettings', JSON.stringify(settings));
-        showToast('Settings saved!', 'success');
-        closeModal('settingsModal');
-    } else {
-        showToast('Please fill in all shop fields.', 'error');
-    }
-}
+              <div id="daily-date-input">
+                <label for="analytics-single-date" class="block text-sm font-medium text-slate-700 mb-1">Select Date</label>
+                <input type="date" id="analytics-single-date" class="w-full border border-slate-300 rounded-md py-2 px-3">
+              </div>
 
-function loadSettings() {
-    const savedSettings = localStorage.getItem('posSettings');
-    if (savedSettings) {
-        settings = JSON.parse(savedSettings);
-    }
-    document.getElementById('businessNameInput').value = settings.businessName;
-    document.getElementById('addressInput').value = settings.address;
-    document.getElementById('contactInput').value = settings.contact;
-}
+              <div id="range-date-inputs" class="hidden">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label for="analytics-from-date" class="block text-sm font-medium text-slate-700 mb-1">From Date</label>
+                    <input type="date" id="analytics-from-date" class="w-full border border-slate-300 rounded-md py-2 px-3">
+                  </div>
+                  <div>
+                    <label for="analytics-to-date" class="block text-sm font-medium text-slate-700 mb-1">To Date</label>
+                    <input type="date" id="analytics-to-date" class="w-full border border-slate-300 rounded-md py-2 px-3">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button onclick="loadAnalytics()" class="w-full btn-primary mt-4">Generate Report</button>
+          </div>
+          
+          <div class="card p-6" aria-live="polite" aria-atomic="true">
+            <h4 class="text-lg font-bold text-slate-800 mb-4">Summary</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Total Sales</span>
+                <span id="analytics-total-sales" class="font-semibold">₱0.00</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Total Profit</span>
+                <span id="analytics-total-profit" class="font-semibold">₱0.00</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Average Daily Sales</span>
+                <span id="analytics-avg-sales" class="font-semibold">₱0.00</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Average Profit Margin</span>
+                <span id="analytics-avg-margin" class="font-semibold">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-/* ---- CART FUNCTIONS ---- */
-function addItem(){
-  const variety = document.getElementById('riceVariety').value.trim();
-  const qty = parseFloat(document.getElementById('quantity').value);
-  const price = parseFloat(document.getElementById('price').value);
+      <!-- Analytics Content: Charts Sub-Tab -->
+      <div id="analytics-charts-content" class="analytics-tab-content hidden" role="tabpanel" aria-labelledby="tab-analytics-charts">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="card p-6">
+            <h4 class="text-lg font-bold text-slate-800 mb-4">Sales by Category</h4>
+            <canvas id="categoryChart" height="250" role="img" aria-label="Sales by Category Chart"></canvas>
+          </div>
+          
+          <div class="card p-6">
+            <h4 class="text-lg font-bold text-slate-800 mb-4">Daily Sales Trend</h4>
+            <canvas id="salesTrendChart" height="250" role="img" aria-label="Daily Sales Trend Chart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Analytics Content: Products Sub-Tab -->
+      <div id="analytics-products-content" class="analytics-tab-content hidden" role="tabpanel" aria-labelledby="tab-analytics-products">
+        <div class="card p-6">
+          <h4 class="text-lg font-bold text-slate-800 mb-4">Top Performing Products</h4>
+          <div id="analytics-top-products" class="space-y-3">
+            <p class="text-center text-slate-500 py-4">Select a date range to view analytics</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  if(!variety || !qty || !price || qty <= 0 || price <= 0){
-    showToast('Please enter valid item details.', 'error');
-    return;
-  }
+    <div id="settings-data-management-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-data-management">
+      <div class="p-4 border rounded-lg mb-6">
+        <h3 class="text-lg font-semibold mb-3 sr-only">Data Management</h3>
+        <div class="space-y-3">
+          <button onclick="exportAllData()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">
+            Export All Data
+          </button>
+          <button onclick="importData()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">
+            Import Data
+          </button>
+          <button onclick="resetData()" class="w-full bg-red-100 text-red-700 hover:bg-red-200 py-2 px-4 rounded transition">
+            Reset All Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  const existing = cart.find(c => c.variety.toLowerCase() === variety.toLowerCase());
-  if(existing){
-    existing.qty += qty;
-    existing.total = existing.qty * existing.price;
-  } else {
-    cart.push({ variety, qty, price, total: qty*price });
-  }
-  renderCart();
-  
-  document.getElementById('riceVariety').value = '';
-  document.getElementById('quantity').value = '';
-  document.getElementById('price').value = '';
-  document.getElementById('riceVariety').focus();
-  showToast(`${variety} added to cart.`, 'success');
-}
+  <script>
+    // --- Constants ---
+    const RICE_CATEGORIES = ['25 KG', '10 KG', '5 KG', 'Per Kilo'];
+    const LOCAL_FORAGE_KEYS = {
+        PRODUCTS: 'rice_shop_products',
+        REPORTS_PREFIX: 'report_',
+        REPORT_INDEX: 'report_index',
+        PASSWORD: 'app_password_hash',
+        WORKING_DATE: 'current_working_date'
+    };
+    const HASH_SALT = 'rice-inventory-management-salt'; 
+    
+    // Day.js setup
+    dayjs.extend(dayjs_plugin_isBetween);
 
-function renderCart(){
-  const tbody = document.querySelector('#cartTable tbody');
-  tbody.innerHTML = '';
-  grandTotal = 0;
-  if (cart.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: var(--muted-text-color);">Cart is empty</td></tr>`;
-  } else {
-    cart.forEach((item, idx) => {
-      grandTotal += item.total;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${escapeHtml(item.variety)}</td>
-                      <td>${item.qty}</td>
-                      <td>${currency(item.price)}</td>
-                      <td>${currency(item.total)}</td>
-                      <td><button class="btn-text" style="color:var(--error-color);" onclick="removeItem(${idx})">Remove</button></td>`;
-      tbody.appendChild(tr);
+    // SweetAlert2 Toast configuration
+    const Toast = Swal.mixin({ 
+        toast: true, 
+        position: 'top-end', 
+        showConfirmButton: false, 
+        timer: 3000, 
+        timerProgressBar: true 
     });
-  }
-  document.getElementById('grandTotal').innerText = currency(grandTotal);
-  document.getElementById('itemCount').innerText = cart.length;
-}
 
-function removeItem(index){
-  cart.splice(index,1);
-  renderCart();
-  showToast('Item removed from cart.', 'info');
-}
+    // Global variables for application state
+    let shopProducts = [];
+    let todayDateString; // This is the CURRENT WORKING DATE
+    let categoryChartInstance = null;
+    let salesTrendChartInstance = null;
+    let currentDailyReportCategory = null; 
+    let calculationTimeout; // For debouncing calculations
 
-function clearCart(){
-  if(cart.length > 0 && confirm('Are you sure you want to clear the cart?')){
-      cart = [];
-      renderCart();
-      showToast('Cart cleared.', 'info');
-  }
-}
+    // --- Utility Functions ---
 
-/* ---- 58mm RECEIPT LAYOUT BUILDER ---- */
-function generateReceiptText(customerName) {
-    const lines = [];
-    const width = 32;
-    const separator = '-'.repeat(width);
-    const centerText = (text) => text.padStart(Math.floor((width + text.length) / 2), ' ').padEnd(width, ' ');
-    function wrapText(text, maxWidth) {
-        const words = text.split(' ');
-        const wrappedLines = [];
-        let currentLine = words.shift() || '';
-        for (const word of words) {
-            if ((currentLine + ' ' + word).length > maxWidth) {
-                wrappedLines.push(currentLine);
-                currentLine = word;
-            } else { currentLine += ' ' + word; }
+    /**
+     * Initializes the application by loading products, setting up views.
+     */
+    async function initializeApp() {
+        let workingDate = await localforage.getItem(LOCAL_FORAGE_KEYS.WORKING_DATE);
+        if (!workingDate || !dayjs(workingDate).isValid()) {
+            workingDate = dayjs().format('YYYY-MM-DD');
+            await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, workingDate);
         }
-        wrappedLines.push(currentLine);
-        return wrappedLines;
+        todayDateString = workingDate;
+        
+        document.getElementById('current-date-display').textContent = dayjs(todayDateString).format('MMMM D, YYYY');
+        document.getElementById('header-subtitle').textContent = `Current Working Day`;
+
+        await loadProducts(); 
+        renderProductList(); 
+
+        // Set initial dates for analytics view
+        document.getElementById('analytics-single-date').value = todayDateString;
+        document.getElementById('analytics-from-date').value = dayjs(todayDateString).subtract(7, 'day').format('YYYY-MM-DD');
+        document.getElementById('analytics-to-date').value = todayDateString;
+        toggleAnalyticsDateInputs(); 
+
+        showView('dashboard-view');
     }
 
-    lines.push(centerText('** OFFICIAL RECEIPT **'));
-    lines.push(separator);
-    lines.push(centerText(settings.businessName));
-    wrapText(settings.address, width).forEach(line => lines.push(centerText(line)));
-    lines.push(centerText(settings.contact));
-    lines.push(separator);
-    lines.push(`Customer: ${customerName || 'N/A'}`.substring(0, width));
-    lines.push(`Date: ${new Date().toLocaleDateString()}`);
-    lines.push(separator);
-    lines.push('Item'.padEnd(18) + 'Qty'.padEnd(5) + 'Total'.padStart(9));
-    lines.push(separator);
-    cart.forEach(it => {
-        const name = it.variety.length > 17 ? it.variety.substring(0, 17) + '.' : it.variety;
-        const qty = String(it.qty);
-        const total = String(it.total.toFixed(2));
-        lines.push(name.padEnd(18) + qty.padEnd(5) + total.padStart(9));
-    });
-    lines.push(separator);
-    const totalLabel = 'GRAND TOTAL:';
-    const totalValue = currency(grandTotal);
-    lines.push(totalLabel + totalValue.padStart(width - totalLabel.length));
-    lines.push('');
-    lines.push(centerText('Thank you!'));
-    lines.push('\n\n');
-    return lines.join('\n');
-}
+    /**
+     * Validates a number input field.
+     */
+    function validateNumberInput(inputElement, allowZero = false) {
+        if (inputElement.value.trim() === '') {
+            inputElement.classList.remove('invalid');
+            return true;
+        }
+        const value = parseFloat(inputElement.value);
+        if (isNaN(value) || value < 0 || (!allowZero && value === 0)) {
+            inputElement.classList.add('invalid');
+            return false;
+        } else {
+            inputElement.classList.remove('invalid');
+            return true;
+        }
+    }
 
-/* ---- ESC/POS BUILD HELPERS ---- */
-function esc(cmdArray){ return new Uint8Array(cmdArray); }
-function buildEscPosReceipt(customerName){
-  const encoder = new TextEncoder();
-  const receiptText = generateReceiptText(customerName);
-  const init = esc([0x1B, 0x40]); // Initialize Printer
-  const content = encoder.encode(receiptText);
-  const cut = esc([0x1D, 0x56, 0x41, 0x10]); // Full cut
-  const full = new Uint8Array(init.length + content.length + 3 + cut.length);
-  full.set(init);
-  full.set(content, init.length);
-  full.set(esc([0x0A, 0x0A, 0x0A]), init.length + content.length); // Feed lines
-  full.set(cut, init.length + content.length + 3);
-  return full;
-}
+    /**
+     * Formats a number to a currency string.
+     */
+    function formatCurrency(amount) {
+        return parseFloat(amount).toFixed(2);
+    }
+    
+    /**
+     * Hashes a password using CryptoJS SHA256.
+     */
+    function hashPassword(password) {
+        return CryptoJS.SHA256(password + HASH_SALT).toString();
+    }
 
-/* ---- ROBUST BLE & PRINTING LOGIC ---- */
-async function discoverAndList() { // <-- RESTORED FUNCTION
-    const devicesContainer = document.getElementById('devicesContainer');
-    devicesContainer.innerHTML = '<div class="device-list-message">Scanning...</div>';
-    openModal('devicesModal');
-    showToast('Scanning for printers...', 'info');
 
-    try {
-        log('Requesting Bluetooth device...');
-        // Let user pick any device
-        const device = await navigator.bluetooth.requestDevice({
-            acceptAllDevices: true,
-            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] // A common service, can be adjusted
+    // --- Data Management Functions (LocalForage) ---
+
+    /**
+     * Loads product data from localforage or initializes with defaults.
+     */
+    async function loadProducts() {
+        let savedProducts = await localforage.getItem(LOCAL_FORAGE_KEYS.PRODUCTS);
+        if (!savedProducts || savedProducts.length === 0) {
+            // Default products
+            savedProducts = [ 
+                {id: 'prod_1', name: 'KYLO', price: 1300, cost: 1150, category: '25 KG', minStock: 5}, 
+                {id: 'prod_2', name: 'HASMIN AROMA', price: 1350, cost: 1200, category: '25 KG', minStock: 5}, 
+                {id: 'prod_3', name: 'ALAS', price: 1250, cost: 1100, category: '25 KG', minStock: 5}, 
+                {id: 'prod_4', name: 'YOUNG MASTER', price: 1280, cost: 1130, category: '25 KG', minStock: 5}, 
+                {id: 'prod_5', name: 'BLUE HARVEST', price: 1320, cost: 1170, category: '25 KG', minStock: 5}, 
+                {id: 'prod_6', name: 'PRINCESS BEA', price: 1270, cost: 1120, category: '25 KG', minStock: 5}, 
+                {id: 'prod_7', name: 'ALAS', price: 550, cost: 480, category: '10 KG', minStock: 10}, 
+                {id: 'prod_8', name: 'HASMIN AROMA', price: 580, cost: 510, category: '10 KG', minStock: 10}, 
+                {id: 'prod_9', name: 'BLUE HARVEST', price: 570, cost: 500, category: '10 KG', minStock: 10}, 
+                {id: 'prod_10', name: 'YOUNG MASTER', price: 560, cost: 490, category: '10 KG', minStock: 10}, 
+                {id: 'prod_11', name: 'PRINCESS BEA', price: 540, cost: 470, category: '10 KG', minStock: 10}, 
+                {id: 'prod_12', name: 'YOUNG MASTER', price: 280, cost: 240, category: '5 KG', minStock: 15}, 
+                {id: 'prod_13', name: 'HASMIN AROMA', price: 290, cost: 250, category: '5 KG', minStock: 15}, 
+                {id: 'prod_14', name: 'ALAS', price: 270, cost: 230, category: '5 KG', minStock: 15}, 
+                {id: 'prod_15', name: 'BLUE HARVEST', price: 285, cost: 245, category: '5 KG', minStock: 15}, 
+                {id: 'prod_16', name: 'PRINCESS BEA', price: 260, cost: 220, category: '5 KG', minStock: 15}, 
+                {id: 'prod_17', name: 'KYLO', price: 55, cost: 48, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_18', name: 'HASMIN AROMA', price: 60, cost: 52, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_19', name: 'ALAS', price: 50, cost: 45, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_20', name: 'YOUNG MASTER', price: 53, cost: 46, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_21', name: 'BLUE HARVEST', price: 57, cost: 50, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_22', name: 'PRINCESS BEA', price: 49, cost: 43, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_23', name: 'JAZZY', price: 52, cost: 45, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_24', name: 'BIGANTE', price: 48, cost: 41, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_25', name: 'FARNALIZA', price: 51, cost: 44, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_26', name: 'PILIT', price: 47, cost: 40, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_27', name: 'BH YELLOW', price: 54, cost: 47, category: 'Per Kilo', minStock: 20}, 
+                {id: 'prod_28', name: 'SWEET RICE', price: 65, cost: 58, category: 'Per Kilo', minStock: 20} 
+            ];
+            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
+        } else {
+            // Ensure minStock property exists for old data
+            savedProducts = savedProducts.map(p => ({ ...p, minStock: p.minStock !== undefined ? p.minStock : 0 }));
+            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
+        }
+        shopProducts = savedProducts;
+    }
+
+    /**
+     * Initiates a new daily report if one doesn't exist.
+     */
+    async function startDay(dateString) {
+        let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+        if (report) {
+            return report;
+        }
+
+        const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []).sort().reverse();
+        const lastReportDate = reportIndex.length > 0 ? reportIndex[0] : null;
+        const lastReport = lastReportDate ? await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${lastReportDate}`) : null;
+        
+        const newReportData = {};
+        shopProducts.forEach(p => {
+            const lastEndStock = lastReport?.data[p.id]?.end || 0;
+            newReportData[p.id] = { 
+                begin: lastEndStock, 
+                newStock: 0, 
+                openedSacks: 0,
+                end: lastEndStock, 
+                price: p.price, 
+                cost: p.cost 
+            };
+        });
+
+        report = { date: dateString, data: newReportData };
+        await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
+        Toast.fire({ icon: 'success', title: `Report for ${dayjs(dateString).format('MMM D')} Started!` });
+        return report;
+    }
+
+    /**
+     * Saves updated inventory data for a specific product.
+     */
+    async function saveInventoryData(dateString, productId, data) {
+        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+        if (report) {
+            if (!report.data[productId]) {
+                 const productInfo = shopProducts.find(p => p.id === productId);
+                 if (productInfo) {
+                    report.data[productId] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: productInfo.price, cost: productInfo.cost };
+                 } else {
+                    return;
+                 }
+            }
+            Object.assign(report.data[productId], data);
+            await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
+        }
+    }
+
+    /**
+     * Finalizes report and reloads the page to reflect the new working day.
+     */
+    async function finalizeReport() {
+        const submittedDate = todayDateString;
+        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`);
+        if (!report) {
+            Toast.fire({ icon: 'error', title: "No report to submit." });
+            return;
+        }
+        
+        await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`, report);
+        
+        let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
+        if (!reportIndex.includes(submittedDate)) {
+            reportIndex.push(submittedDate);
+            await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex);
+        }
+
+        const tomorrowDateString = dayjs(submittedDate).add(1, 'day').format('YYYY-MM-DD');
+        const newTomorrowData = {};
+        shopProducts.forEach(p => {
+            const todayEndStock = report.data[p.id]?.end || 0;
+            newTomorrowData[p.id] = {
+                begin: todayEndStock,
+                newStock: 0,
+                openedSacks: 0,
+                end: todayEndStock,
+                price: p.price,
+                cost: p.cost
+            };
+        });
+        const newTomorrowReport = { date: tomorrowDateString, data: newTomorrowData };
+        await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${tomorrowDateString}`, newTomorrowReport);
+        
+        await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, tomorrowDateString);
+
+        await Swal.fire({
+            title: 'Report Saved!',
+            text: `Today's data is saved. The app will now advance to the next day.`,
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
         });
         
-        bleDevice = device; // Store the selected device
-        devicesContainer.innerHTML = `<div class="device-list-message">Connecting to ${bleDevice.name || 'device'}...</div>`;
-        log(`Device selected: ${bleDevice.name || 'Unknown Device'}`);
-        
-        bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
-        const server = await bleDevice.gatt.connect();
-        log('GATT Server connected. Discovering services...');
-        
-        const services = await server.getPrimaryServices();
-        log(`Found ${services.length} services.`);
-        
-        // Clear container to populate with clickable service list
-        devicesContainer.innerHTML = '';
-        let characteristicsFound = false;
+        location.reload();
+    }
 
-        for (const service of services) {
-            const characteristics = await service.getCharacteristics();
-            for (const characteristic of characteristics) {
-                if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
-                    characteristicsFound = true;
-                    const label = `${bleDevice.name || 'BT Device'} (Print Service)`;
-                    const div = document.createElement('div');
-                    div.className = 'device-item';
-                    div.textContent = label;
-                    // When user clicks this item, the connection is finalized
-                    div.onclick = () => {
-                        selectedCharacteristic = characteristic;
-                        document.getElementById('printerName').innerText = bleDevice.name || 'BT Device';
-                        document.getElementById('printerDot').classList.add('connected');
-                        showToast(`Printer connected.`, 'success');
-                        closeModal('devicesModal');
-                        closeModal('settingsModal'); // Also close settings
-                    };
-                    devicesContainer.appendChild(div);
-                }
+
+    // --- UI Rendering Functions ---
+
+    /**
+     * Updates the active state of the main navigation tabs.
+     */
+    function updateNavTabs(activeTabId) {
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            if (tab.getAttribute('aria-controls') === activeTabId) {
+                tab.classList.add('active');
+                tab.setAttribute('aria-selected', 'true');
+            } else {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            }
+        });
+    }
+
+    /**
+     * Controls which main application view is currently visible.
+     */
+    function showView(viewId) {
+        document.querySelectorAll('.main-view').forEach(view => view.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        updateNavTabs(viewId);
+        
+        if (viewId === 'dashboard-view') {
+            renderDashboard();
+        }
+    }
+    
+    /**
+     * Displays the inventory table for the current working day.
+     */
+    function showCurrentDayReport() {
+        showInventory(null, todayDateString);
+    }
+    
+    /**
+     * Displays the inventory table for a given date.
+     */
+    async function showInventory(category = null, dateString) {
+        currentDailyReportCategory = category;
+        showView('daily-report-view');
+        
+        let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+        if (!report && dateString === todayDateString) {
+            report = await startDay(dateString);
+        }
+        
+        renderInventoryTable(category, dateString);
+    }
+
+    /**
+     * Helper function to get total sales and profit for a specific date.
+     */
+    async function getDailySummary(dateString) {
+        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+        let totalSales = 0;
+        let totalProfit = 0;
+
+        if (report && report.data) {
+            for (const productId in report.data) {
+                const product = shopProducts.find(p => p.id === productId);
+                if (!product) continue;
+
+                const item = report.data[productId];
+                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
+                const sales = Math.max(0, sold) * item.price;
+                const profit = sales - (Math.max(0, sold) * item.cost);
+
+                totalSales += sales;
+                totalProfit += profit;
             }
         }
+        return { totalSales, totalProfit };
+    }
 
-        if (!characteristicsFound) {
-            devicesContainer.innerHTML = '<div class="device-list-message">No printable services found on this device.</div>';
-            showToast('Printer has no printable services.', 'error');
-            bleDevice.gatt.disconnect();
+
+    /**
+     * Renders the daily inventory report table.
+     */
+    async function renderInventoryTable(category, dateString) {
+        const inventoryTbody = document.getElementById('inventory-tbody');
+        inventoryTbody.innerHTML = '<tr><td colspan="9" class="text-center p-4"><div class="loader" role="status"></div></td></tr>';
+
+        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+        if (!report) {
+            inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600">Report for ${dayjs(dateString).format('MMMM D, YYYY')} not found!</td></tr>`;
+            return;
         }
-    } catch (err) {
-        if (err.name === 'NotFoundError') {
-            showToast('Scan cancelled.', 'info');
-            closeModal('devicesModal');
+        
+        const isEditable = (dateString === todayDateString);
+        document.getElementById('report-title').textContent = `Daily Report - ${dayjs(dateString).format('MMMM D, YYYY')}`;
+        
+        const productsToRender = category 
+            ? shopProducts.filter(p => p.category === category) 
+            : shopProducts.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+        
+        if (productsToRender.length === 0) {
+            inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-slate-500">No products found. Add products in settings.</td></tr>`;
+            return;
+        }
+        
+        let tableHtml = '';
+
+        const groupedProducts = {};
+        const categoriesToLoop = category ? [category] : RICE_CATEGORIES;
+        categoriesToLoop.forEach(cat => groupedProducts[cat] = []);
+        productsToRender.forEach(p => {
+             if (groupedProducts[p.category]) {
+                groupedProducts[p.category].push(p);
+             }
+        });
+
+        let overallTotalSold = 0;
+        let overallTotalSales = 0;
+        let overallTotalProfit = 0;
+        let hasProductsInAnyCategory = false; 
+        
+        categoriesToLoop.forEach((cat, index) => {
+            const productsInCategory = groupedProducts[cat].sort((a, b) => a.name.localeCompare(b.name));
+            if (productsInCategory.length > 0) {
+                hasProductsInAnyCategory = true;
+                
+                if (!category) {
+                    const cleanCatClass = cat.replace(/\s+/g, '-');
+                    tableHtml += `
+                    <tr class="category-header category-header-${cleanCatClass}">
+                        <td colspan="9">${cat}</td>
+                    </tr>`;
+                    if(index > 0) {
+                        tableHtml += `
+                        <tr class="category-subheader">
+                            <th>PRODUCT</th><th>BEGIN</th><th>NEW</th><th>OPEN SACKS</th><th>ENDING</th><th>SOLD</th><th>PRICE(₱)</th><th>SALES(₱)</th><th>PROFIT(₱)</th>
+                        </tr>`;
+                    }
+                }
+
+                let categoryTotalSold = 0;
+                let categoryTotalSales = 0;
+                let categoryTotalProfit = 0;
+
+                productsInCategory.forEach(product => {
+                    const data = report.data[product.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: product.price, cost: product.cost };
+                    const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
+                    const totalSales = Math.max(0, sold) * data.price;
+                    const profit = totalSales - (Math.max(0, sold) * data.cost);
+
+                    categoryTotalSold += sold > 0 ? sold : 0;
+                    categoryTotalSales += totalSales;
+                    categoryTotalProfit += profit;
+                    
+                    const rowClasses = [];
+                    if (sold > 0) rowClasses.push('row-has-sales');
+                    if (sold < 0) rowClasses.push('row-logic-error');
+
+                    if (data.end < 0) {
+                        rowClasses.push('row-negative-stock');
+                    } else if (product.minStock > 0 && data.end <= product.minStock) {
+                        rowClasses.push('row-low-stock');
+                    }
+                    
+                    const isOpenSacksEditable = isEditable && product.category === '25 KG';
+
+                    tableHtml += `<tr data-id="${product.id}" class="${rowClasses.join(' ')}">
+                        <td class="font-medium">${product.name}</td>
+                        <td><input type="number" value="${data.begin}" class="begin-val" disabled /></td>
+                        <td><input type="number" value="${data.newStock}" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
+                        <td class="!p-1">
+                            ${isOpenSacksEditable ? `
+                                <div class="flex items-center gap-1">
+                                    <input type="number" placeholder="Add Sacks" class="open-sacks-add-input flex-grow" oninput="validateNumberInput(this, true);"/>
+                                    <button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs" onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button>
+                                </div>
+                            ` : `<span class="text-slate-400">-</span>`}
+                        </td>
+                        <td><input type="number" value="${data.end}" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
+                        <td><input type="number" value="${sold}" class="sold-val" disabled /></td>
+                        <td><input type="number" step="0.01" value="${formatCurrency(data.price)}" class="price-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedUpdatePrice(this, '${dateString}');" /></td>
+                        <td class="total-sales-val font-semibold" aria-live="polite">${formatCurrency(totalSales)}</td>
+                        <td class="profit-val font-semibold text-green-600" aria-live="polite">${formatCurrency(profit)}</td>
+                    </tr>`;
+                });
+
+                const cleanCat = cat.replace(' ', '-');
+                tableHtml += `
+                <tr class="category-total-row">
+                    <td colspan="5" class="text-right p-3">Total for ${cat}</td>
+                    <td id="category-total-sold-${cleanCat}" class="p-3">${categoryTotalSold}</td>
+                    <td></td>
+                    <td id="category-total-sales-${cleanCat}" class="p-3">₱${formatCurrency(categoryTotalSales)}</td>
+                    <td id="category-total-profit-${cleanCat}" class="p-3 text-green-600">₱${formatCurrency(categoryTotalProfit)}</td>
+                </tr>`;
+                
+                overallTotalSold += categoryTotalSold;
+                overallTotalSales += categoryTotalSales;
+                overallTotalProfit += categoryTotalProfit;
+            }
+        });
+
+        if (!hasProductsInAnyCategory) {
+            inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-slate-500">No products found.</td></tr>`;
+            return;
+        }
+
+        if (!category && hasProductsInAnyCategory) {
+             tableHtml += `
+             <tr class="grand-total-row">
+                <td colspan="5" class="text-right p-4">OVERALL GRAND TOTAL</td>
+                <td id="overall-total-sold" class="p-4">${overallTotalSold}</td>
+                <td></td>
+                <td id="overall-total-sales" class="p-4">₱${formatCurrency(overallTotalSales)}</td>
+                <td id="overall-total-profit" class="p-4 text-green-400">₱${formatCurrency(overallTotalProfit)}</td>
+             </tr>`;
+        }
+
+        if (isEditable) {
+            tableHtml += `<tr><td colspan="9" class="p-4 bg-white"><div class="flex justify-center"><button onclick="showReviewModal()" class="btn-success">Save Today & Start Next Day</button></div></td></tr>`;
         } else {
-            showToast('Bluetooth error. See console.', 'error');
-            log(`Error: ${err}`);
-            devicesContainer.innerHTML = `<div class="device-list-message">Error: ${err.message}.</div>`;
+            tableHtml += `<tr><td colspan="9" class="p-4 bg-slate-50 text-center"><p class="font-medium text-slate-600">Viewing a past report. Click the Daily Report tab for the current day.</p></td></tr>`;
         }
+
+        inventoryTbody.innerHTML = tableHtml;
     }
-}
 
+    /**
+     * Recalculates and updates the grand total rows in the inventory table.
+     */
+    function updateInventoryTableTotals() {
+        const categories = {};
+        RICE_CATEGORIES.forEach(cat => categories[cat] = { sold: 0, sales: 0, profit: 0 });
 
-function onDisconnected(e){
-  log('Device disconnected.');
-  showToast('Printer disconnected.', 'info');
-  document.getElementById('printerName').innerText = 'Offline';
-  document.getElementById('printerDot').classList.remove('connected');
-  selectedCharacteristic = null;
-  bleDevice = null;
-}
+        let overallSold = 0;
+        let overallSales = 0;
+        let overallProfit = 0;
 
-async function disconnectPrinter(){
-  try{
-    if(bleDevice?.gatt?.connected){ 
-      bleDevice.gatt.disconnect(); 
-    } else { 
-      showToast('No device is connected.', 'info'); 
+        const rows = document.querySelectorAll('#inventory-tbody tr[data-id]');
+        rows.forEach(row => {
+            const productId = row.dataset.id;
+            const product = shopProducts.find(p => p.id === productId);
+            if (!product) return;
+
+            const sold = parseInt(row.querySelector('.sold-val').value) || 0;
+            const sales = parseFloat(row.querySelector('.total-sales-val').textContent.replace(/[₱,]/g, '')) || 0;
+            const profit = parseFloat(row.querySelector('.profit-val').textContent.replace(/[₱,]/g, '')) || 0;
+
+            if (categories[product.category]) {
+                categories[product.category].sold += sold > 0 ? sold : 0;
+                categories[product.category].sales += sales;
+                categories[product.category].profit += profit;
+            }
+
+            overallSold += sold > 0 ? sold : 0;
+            overallSales += sales;
+            overallProfit += profit;
+        });
+
+        for (const cat in categories) {
+            const cleanCat = cat.replace(' ', '-');
+            const soldEl = document.getElementById(`category-total-sold-${cleanCat}`);
+            const salesEl = document.getElementById(`category-total-sales-${cleanCat}`);
+            const profitEl = document.getElementById(`category-total-profit-${cleanCat}`);
+            if (soldEl) soldEl.textContent = categories[cat].sold;
+            if (salesEl) salesEl.textContent = `₱${formatCurrency(categories[cat].sales)}`;
+            if (profitEl) profitEl.textContent = `₱${formatCurrency(categories[cat].profit)}`;
+        }
+
+        const overallSoldEl = document.getElementById('overall-total-sold');
+        const overallSalesEl = document.getElementById('overall-total-sales');
+        const overallProfitEl = document.getElementById('overall-total-profit');
+        if (overallSoldEl) overallSoldEl.textContent = overallSold;
+        if (overallSalesEl) overallSalesEl.textContent = `₱${formatCurrency(overallSales)}`;
+        if (overallProfitEl) overallProfitEl.textContent = `₱${formatCurrency(overallProfit)}`;
     }
-  } catch(err) { 
-    showToast('Error disconnecting.', 'error'); 
-  }
-}
 
-async function writeInChunks(buffer, chunkSize = 100){
-  if(!selectedCharacteristic) throw new Error('No characteristic selected.');
-  const writeMethod = selectedCharacteristic.properties.writeWithoutResponse ? 'writeValueWithoutResponse' : 'writeValue';
-  for(let i = 0; i < buffer.length; i += chunkSize){
-    await selectedCharacteristic[writeMethod](buffer.slice(i, i + chunkSize));
-    await sleep(20); // Small delay to prevent buffer overflow on some printers
-  }
-}
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-function submitOrder(){
-  const customer = document.getElementById('customerName').value.trim();
-  if(!customer){ showToast('Enter customer name.', 'error'); return; }
-  if(cart.length === 0){ showToast('Cart is empty.', 'error'); return; }
+    /**
+     * Calculates SOLD units and total sales for a row based on input changes.
+     */
+    async function calculate(inputElement, dateString) {
+        if (inputElement.classList.contains('invalid')) return;
 
-  const receiptText = generateReceiptText(customer);
-  document.getElementById('receiptPreviewContent').textContent = receiptText;
-  openModal('receiptModal');
-}
+        const row = inputElement.closest('tr');
+        if (!row || !row.dataset.id) return;
 
-async function confirmAndPrint() {
-    const customer = document.getElementById('customerName').value.trim();
-    const data = buildEscPosReceipt(customer);
+        const productId = row.dataset.id;
+        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+        if (!report) return;
+
+        const data = report.data[productId];
+        if (!data) return;
+
+        const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
+        const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
+        const openedSacks = data.openedSacks || 0;
+        const end = parseFloat(row.querySelector('.end-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        const soldInput = row.querySelector('.sold-val');
+        
+        const sold = (begin + newStock) - openedSacks - end;
+        soldInput.value = sold;
+
+        const totalSales = Math.max(0, sold) * price;
+        const profit = totalSales - (Math.max(0, sold) * data.cost);
+        row.querySelector('.total-sales-val').textContent = formatCurrency(totalSales);
+        row.querySelector('.profit-val').textContent = formatCurrency(profit);
+        
+        const product = shopProducts.find(p => p.id === productId);
+        
+        row.classList.remove('row-negative-stock', 'row-low-stock', 'row-has-sales', 'row-logic-error');
+
+        if (sold < 0) {
+            row.classList.add('row-logic-error');
+        } else if (sold > 0) {
+            row.classList.add('row-has-sales');
+        }
+
+        if (end < 0) {
+            row.classList.add('row-negative-stock');
+        } else if (product?.minStock > 0 && end <= product.minStock) {
+            row.classList.add('row-low-stock');
+        }
+
+        await saveInventoryData(dateString, productId, { newStock, end, price });
+        
+        updateInventoryTableTotals();
+    }
     
-    closeModal('receiptModal');
-
-    if(selectedCharacteristic && bleDevice?.gatt?.connected){
-        try{
-            log('Printing via BLE...');
-            await writeInChunks(data);
-            showToast('Order sent to printer.', 'success');
-            cart = []; renderCart();
-            document.getElementById('customerName').value = '';
-        } catch(err) {
-            showToast('Print failed. Device may be disconnected.', 'error');
-            log(`Print error: ${err}`);
-        }
-    } else {
-        showToast('No printer connected. Using browser print.', 'info');
-        buildFallbackPrintable(customer);
-        cart = []; renderCart();
-        document.getElementById('customerName').value = '';
+    /** Debounces the calculation function to improve performance. */
+    function debouncedCalculate(inputElement, dateString) {
+        clearTimeout(calculationTimeout);
+        calculationTimeout = setTimeout(() => calculate(inputElement, dateString), 300);
     }
-}
+    
+    /**
+     * Handles the submission of newly opened sacks without a full table refresh.
+     */
+    async function submitOpenSack(buttonElement, productId, dateString) {
+        const parentDiv = buttonElement.parentElement;
+        const addSacksInput = parentDiv.querySelector('.open-sacks-add-input');
+        const sacksToAdd = parseInt(addSacksInput.value) || 0;
 
-function buildFallbackPrintable(customer){
-  const receiptText = generateReceiptText(customer);
-  const win = window.open('','_blank');
-  win.document.write(`<html><head><title>Receipt</title></head><body><pre style="font-family:monospace;font-size:14px;white-space:pre-wrap;">${receiptText}</pre></body></html>`);
-  win.document.close();
-  setTimeout(() => win.print(), 250);
-}
+        if (sacksToAdd <= 0) {
+            return Toast.fire({ icon: 'info', title: 'Enter a positive number of sacks to add.' });
+        }
 
-/* ---- UTIL & MODAL HELPERS ---- */
-function escapeHtml(s){ return s.replace(/[&<>"'`=\/]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[c]); }
-function openModal(id){ document.getElementById(id).classList.add('active'); }
-function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+        const sourceProduct = shopProducts.find(p => p.id === productId);
+        if (!sourceProduct || sourceProduct.category !== '25 KG') return;
 
-/* ---- Initialize ---- */
-document.addEventListener('DOMContentLoaded', () => {
-    loadSettings();
-    renderCart();
-    log('POS ready. Use Settings to configure and connect a printer.');
-});
-</script>
+        const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
+        if (!targetProduct) {
+            return Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}.`, 'error');
+        }
+
+        const kilosToAdd = sacksToAdd * 25;
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'Confirm Transfer',
+            html: `This will add <b>${sacksToAdd} sack(s)</b> (${kilosToAdd} kg) to <b>${targetProduct.name} (Per Kilo)</b> inventory. Are you sure?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, transfer it!',
+        });
+
+        if (isConfirmed) {
+            try {
+                const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+                if (!report) return;
+
+                if (!report.data[sourceProduct.id]) report.data[sourceProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
+                if (!report.data[targetProduct.id]) report.data[targetProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
+
+                report.data[sourceProduct.id].openedSacks = (report.data[sourceProduct.id].openedSacks || 0) + sacksToAdd;
+                report.data[targetProduct.id].begin = (report.data[targetProduct.id].begin || 0) + kilosToAdd;
+                report.data[targetProduct.id].end = (report.data[targetProduct.id].end || 0) + kilosToAdd;
+
+                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
+
+                // --- Live UI Update (No Reload) ---
+                addSacksInput.value = ''; // Clear the input
+                
+                const sourceRow = document.querySelector(`tr[data-id="${sourceProduct.id}"]`);
+                if (sourceRow) {
+                    await recalculateRow(sourceProduct.id, dateString);
+                }
+                
+                const targetRow = document.querySelector(`tr[data-id="${targetProduct.id}"]`);
+                if (targetRow) {
+                    targetRow.querySelector('.begin-val').value = report.data[targetProduct.id].begin;
+                    targetRow.querySelector('.end-input').value = report.data[targetProduct.id].end;
+                    await recalculateRow(targetProduct.id, dateString);
+                }
+                
+                updateInventoryTableTotals();
+                Toast.fire({ icon: 'success', title: 'Stock transferred!' });
+
+            } catch (error) {
+                console.error("Error submitting open sack:", error);
+                Swal.fire('Error', 'An unexpected error occurred while saving the data.', 'error');
+            }
+        }
+    }
+
+    /**
+     * Helper function to trigger calculation for a specific row by its ID.
+     */
+    async function recalculateRow(productId, dateString) {
+        const row = document.querySelector(`tr[data-id="${productId}"]`);
+        if (!row) return;
+        const triggerInput = row.querySelector('.end-input'); // Any input in the row works
+        if (triggerInput) {
+            await calculate(triggerInput, dateString);
+        }
+    }
+
+
+    /**
+     * Updates the price for a product and recalculates the row.
+     */
+    async function updatePrice(priceInputElement, dateString) {
+        if (priceInputElement.classList.contains('invalid')) return;
+        
+        const row = priceInputElement.closest('tr');
+        if (!row) return;
+
+        const productId = row.dataset.id;
+        const newPrice = parseFloat(priceInputElement.value) || 0;
+        
+        const productInShop = shopProducts.find(p => p.id === productId);
+        if (productInShop) {
+            productInShop.price = newPrice;
+            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+        }
+        
+        await calculate(priceInputElement, dateString);
+    }
+
+    /** Debounces the price update function. */
+    function debouncedUpdatePrice(inputElement, dateString) {
+        clearTimeout(calculationTimeout);
+        calculationTimeout = setTimeout(() => updatePrice(inputElement, dateString), 350);
+    }
+    
+    /**
+     * Displays a modal for reviewing and modifying the report before submission.
+     */
+    async function showReviewModal() {
+        const { isConfirmed } = await Swal.fire({
+            title: `Confirm & Finalize Report?`,
+            text: `This will save today's report and set up the next working day. This action cannot be undone.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            confirmButtonText: 'Yes, Finalize It!'
+        });
+
+        if(isConfirmed) {
+            await finalizeReport();
+        }
+    }
+
+    // --- History View Functions ---
+
+    /**
+     * Displays the report history view.
+     */
+    async function showHistory() {
+        showView('history-view');
+        const historyList = document.getElementById('history-list');
+        historyList.innerHTML = '<div class="p-4 text-center"><div class="loader" role="status"></div></div>';
+        const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []).sort().reverse();
+        if (reportIndex.length === 0) {
+            historyList.innerHTML = '<p class="p-4 text-center text-slate-500">No saved reports found.</p>';
+        } else {
+            renderHistoryList(reportIndex);
+        }
+    }
+    
+    /**
+     * Renders the list of historical reports.
+     */
+    function renderHistoryList(reportIndex) {
+        document.getElementById('history-list').innerHTML = reportIndex.map(dateString => `
+            <div class="p-4 hover:bg-slate-50 transition-colors history-item" data-date="${dateString}">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                    <div>
+                        <div class="font-medium">${dayjs(dateString).format('dddd, MMMM D, YYYY')}</div>
+                        <div class="text-sm text-slate-500" aria-hidden="true">${dateString}</div>
+                    </div>
+                    <div class="flex gap-2 mt-2 sm:mt-0">
+                        <button onclick="showInventory(null, '${dateString}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Report</button>
+                        <button onclick="deleteReport('${dateString}')" class="text-red-600 hover:text-red-800 text-sm font-medium">Delete Report</button>
+                    </div>
+                </div>
+            </div>`).join('');
+    }
+    
+    /**
+     * Filters and sorts the displayed report history.
+     */
+    function filterHistory() {
+        const searchTerm = document.getElementById('history-search').value.toLowerCase();
+        const sortOrder = document.getElementById('history-sort').value;
+        let items = Array.from(document.querySelectorAll('.history-item'));
+        
+        items.forEach(item => {
+            const dateText = item.dataset.date.toLowerCase();
+            const displayText = item.querySelector('.font-medium').textContent.toLowerCase();
+            item.style.display = (displayText.includes(searchTerm) || dateText.includes(searchTerm)) ? 'block' : 'none';
+        });
+
+        const visibleItems = items.filter(item => item.style.display !== 'none');
+        visibleItems.sort((a, b) => {
+            const dateA = a.dataset.date;
+            const dateB = b.dataset.date;
+            return sortOrder === 'oldest' ? dateA.localeCompare(dateB) : dateB.localeCompare(a.dataset.date);
+        });
+        const container = document.getElementById('history-list');
+        visibleItems.forEach(item => container.appendChild(item));
+    }
+    
+    /**
+     * Deletes a specific report.
+     */
+    async function deleteReport(dateString) {
+        const { isConfirmed } = await Swal.fire({ 
+            title: 'Delete Report?', 
+            text: `Are you sure you want to delete the report for ${dayjs(dateString).format('MMMM D, YYYY')}? This cannot be undone.`, 
+            icon: 'warning', 
+            showCancelButton: true, 
+            confirmButtonText: 'Yes, delete it!' 
+        });
+        if (isConfirmed) {
+            await localforage.removeItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+            let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
+            await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex.filter(date => date !== dateString));
+            Toast.fire({ icon: 'success', title: 'Report deleted!' });
+            showHistory();
+        }
+    }
+
+    // --- Analytics View Functions ---
+
+    function showAnalyticsSubTab(contentId) {
+        document.querySelectorAll('#settings-analytics-content .analytics-tab-content').forEach(content => { 
+            content.classList.add('hidden');
+            content.setAttribute('aria-hidden', 'true');
+        });
+
+        document.querySelectorAll('#settings-analytics-content .analytics-tab').forEach(tab => { 
+            tab.classList.remove('active');
+            tab.setAttribute('aria-selected', 'false');
+        });
+
+        const selectedContent = document.getElementById(contentId);
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+            selectedContent.setAttribute('aria-hidden', 'false');
+            const correspondingTab = document.querySelector(`#settings-analytics-content [aria-controls="${contentId}"]`);
+            if (correspondingTab) {
+                correspondingTab.classList.add('active');
+                correspondingTab.setAttribute('aria-selected', 'true');
+            }
+        }
+        if (contentId.startsWith('analytics-')) {
+            loadAnalytics(); 
+        }
+    }
+
+    function toggleAnalyticsDateInputs() {
+        const mode = document.getElementById('analytics-mode-select').value;
+        document.getElementById('daily-date-input').classList.toggle('hidden', mode !== 'daily');
+        document.getElementById('range-date-inputs').classList.toggle('hidden', mode !== 'range');
+    }
+
+    async function loadAnalytics() {
+        const mode = document.getElementById('analytics-mode-select').value;
+        let startDate, endDate;
+
+        if (mode === 'daily') {
+            startDate = document.getElementById('analytics-single-date').value;
+            endDate = startDate;
+        } else {
+            startDate = document.getElementById('analytics-from-date').value;
+            endDate = document.getElementById('analytics-to-date').value;
+        }
+
+        if (!startDate || !endDate) {
+            if (!document.getElementById('settings-analytics-content').classList.contains('hidden')) {
+                 Toast.fire({ icon: 'error', title: 'Please select valid dates.' });
+            }
+            return;
+        }
+        if (dayjs(startDate).isAfter(dayjs(endDate))) {
+            return Toast.fire({ icon: 'error', title: 'Start date cannot be after end date.' });
+        }
+
+        const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []);
+        let relevantDates = reportIndex.filter(date => dayjs(date).isBetween(startDate, endDate, 'day', '[]')).sort();
+
+        if (mode === 'daily' && !relevantDates.includes(startDate)) {
+             relevantDates = [startDate];
+        }
+
+        let totalSales = 0;
+        let totalProfit = 0;
+        const salesByCategory = {};
+        const salesTrend = {};
+        const productPerformance = {};
+
+        RICE_CATEGORIES.forEach(cat => salesByCategory[cat] = 0);
+        shopProducts.forEach(p => productPerformance[p.id] = { sold: 0, sales: 0, profit: 0, name: p.name, category: p.category });
+
+        const reports = await Promise.all(relevantDates.map(date => localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${date}`)));
+
+        let validReportCount = 0;
+        reports.forEach(report => {
+            if (!report || !report.data) return;
+            validReportCount++;
+
+            let daySales = 0;
+            for (const productId in report.data) {
+                const product = shopProducts.find(p => p.id === productId);
+                if (!product) continue;
+
+                const item = report.data[productId];
+                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
+                const sales = Math.max(0, sold) * item.price;
+                const profit = sales - (Math.max(0, sold) * item.cost);
+
+                totalSales += sales;
+                totalProfit += profit;
+                daySales += sales;
+
+                salesByCategory[product.category] += sales;
+
+                if (productPerformance[productId]) {
+                    productPerformance[productId].sold += sold;
+                    productPerformance[productId].sales += sales;
+                    productPerformance[productId].profit += profit;
+                }
+            }
+            salesTrend[report.date] = daySales;
+        });
+
+        const numDays = validReportCount;
+        const avgDailySales = numDays > 0 ? totalSales / numDays : 0;
+        const avgProfitMargin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+
+        document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`;
+        document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`;
+        document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(avgDailySales)}`;
+        document.getElementById('analytics-avg-margin').textContent = `${formatCurrency(avgProfitMargin)}%`;
+
+        const chartsContent = document.getElementById('analytics-charts-content');
+        if (chartsContent && !chartsContent.classList.contains('hidden')) {
+            renderCategoryChart(salesByCategory);
+            renderSalesTrendChart(salesTrend);
+        }
+        
+        renderTopPerformingProducts(productPerformance);
+    }
+
+    function renderCategoryChart(data) {
+        if (categoryChartInstance) categoryChartInstance.destroy();
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        categoryChartInstance = new Chart(ctx, { type: 'pie', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(139, 92, 246, 0.7)', 'rgba(245, 158, 11, 0.7)'], borderColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'], borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' }, tooltip: { callbacks: { label: (c) => `${c.label}: ₱${formatCurrency(c.parsed)}` } } } } });
+    }
+
+    function renderSalesTrendChart(data) {
+        if (salesTrendChartInstance) salesTrendChartInstance.destroy();
+        const ctx = document.getElementById('salesTrendChart').getContext('2d');
+        const labels = Object.keys(data).sort();
+        const values = labels.map(date => data[date]);
+        salesTrendChartInstance = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Daily Sales (₱)', data: values, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'day', tooltipFormat: 'MMM D, YYYY' } }, y: { beginAtZero: true, ticks: { callback: value => `₱${formatCurrency(value)}` } } }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ₱${formatCurrency(c.parsed.y)}` } } } } });
+    }
+
+    function renderTopPerformingProducts(productPerformance) {
+        const container = document.getElementById('analytics-top-products');
+        const top5 = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 5);
+        if (top5.length === 0) {
+            container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data found for the selected period.</p>';
+            return;
+        }
+        container.innerHTML = top5.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}">${i + 1}</div><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div></div><div class="text-right"><div class="font-semibold">₱${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">₱${formatCurrency(p.profit)} profit</div></div></div>`).join('');
+    }
+    
+    // --- Dashboard Functions ---
+    async function renderDashboard() {
+        const contentContainer = document.getElementById('dashboard-content');
+        contentContainer.innerHTML = '<div class="col-span-full text-center p-8"><div class="loader" role="status"></div></div>';
+        
+        const lastCompletedDateString = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
+        const lastReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${lastCompletedDateString}`);
+        
+        let dateToRender = lastReport ? lastCompletedDateString : todayDateString;
+        let isSummaryView = !!lastReport;
+        
+        document.getElementById('dashboard-title').textContent = isSummaryView ? "Last Completed Day's Summary" : "Today's Overview";
+        document.getElementById('dashboard-date').textContent = dayjs(dateToRender).format('MMMM D, YYYY');
+
+        let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToRender}`) || await startDay(dateToRender);
+
+        const { totalSales, totalProfit } = await getDailySummary(dateToRender);
+
+        const lowStockItems = shopProducts
+            .map(p => ({ ...p, stock: report.data[p.id]?.end }))
+            .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
+
+        const dashboardHTML = `
+            <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500"><div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Total Sales</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p></div></div>
+            <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500"><div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Estimated Profit</p><p class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p></div></div>
+            <div class="card p-6 col-span-1 md:col-span-2 bg-red-50 border-l-4 border-red-500"><h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3><div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">${lowStockItems.length > 0 ? lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('') : '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>'}</div></div>`;
+        contentContainer.innerHTML = dashboardHTML;
+    }
+
+
+    // --- Settings Panel Functions ---
+
+    function showSettingsTab(contentId) {
+        document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(contentId).classList.remove('hidden');
+        document.querySelector(`[aria-controls="${contentId}"]`).classList.add('active');
+        if (contentId === 'settings-analytics-content') showAnalyticsSubTab('analytics-overview-content');
+    }
+
+    async function openSettingsPanel() { 
+        document.getElementById('settings-panel').classList.add('open');
+        document.getElementById('settings-panel').focus();
+        showSettingsTab('settings-product-management-content');
+    }
+    
+    function closeSettingsPanel() { 
+        document.getElementById('settings-panel').classList.remove('open');
+        document.querySelector('[onclick="openSettingsWithPassword()"]')?.focus();
+    }
+    
+    async function openSettingsWithPassword() {
+        const storedPasswordHash = await localforage.getItem(LOCAL_FORAGE_KEYS.PASSWORD);
+        if (!storedPasswordHash) {
+            const { value: password } = await Swal.fire({ title: 'Set Your Settings Password', input: 'password', inputPlaceholder: 'Minimum 4 characters', inputAttributes: { minlength: 4 }, showCancelButton: true, validationMessage: 'Password must be at least 4 characters long.' });
+            if (password && password.length >= 4) {
+                await localforage.setItem(LOCAL_FORAGE_KEYS.PASSWORD, hashPassword(password));
+                Toast.fire({ icon: 'success', title: 'Password set!' });
+                openSettingsPanel();
+            } else if (password) {
+                Swal.fire('Password Not Set', 'Password must be at least 4 characters long.', 'error');
+            }
+        } else {
+            const { value: password } = await Swal.fire({ title: 'Enter Password to Access Settings', input: 'password', showCancelButton: true, inputAttributes: { autocomplete: 'current-password' } });
+            if (password && hashPassword(password) === storedPasswordHash) openSettingsPanel();
+            else if (password) Swal.fire('Incorrect Password', 'The password you entered is incorrect.', 'error');
+        }
+    }
+
+    function renderProductList() {
+        const container = document.getElementById('product-list-container');
+        if (shopProducts.length === 0) {
+            container.innerHTML = '<p class="text-center text-slate-500 py-4">No products added yet.</p>';
+            return;
+        }
+        container.innerHTML = shopProducts.sort((a,b) => a.name.localeCompare(b.name)).map(p => `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Min: ${p.minStock}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join('');
+    }
+
+    function clearProductForm() {
+        document.getElementById('product-form-title').textContent = 'Add New Product';
+        ['product-id', 'product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('product-category').value = '25 KG';
+        ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid'));
+    }
+
+    async function saveProduct() {
+        const nameInput = document.getElementById('product-name');
+        const priceInput = document.getElementById('product-price');
+        const costInput = document.getElementById('product-cost');
+        const minStockInput = document.getElementById('product-minstock');
+        const isValid = [validateNumberInput(priceInput), validateNumberInput(costInput), validateNumberInput(minStockInput, true), nameInput.value.trim() !== ''].every(Boolean);
+        if (!nameInput.value.trim()) nameInput.classList.add('invalid'); else nameInput.classList.remove('invalid');
+        if (!isValid) return Toast.fire({ icon: 'error', title: 'Please correct invalid inputs!' });
+        
+        const productData = { id: document.getElementById('product-id').value || 'prod_' + Date.now(), name: nameInput.value.trim().toUpperCase(), price: parseFloat(priceInput.value), cost: parseFloat(costInput.value), category: document.getElementById('product-category').value, minStock: parseInt(minStockInput.value) || 0 };
+        const index = shopProducts.findIndex(p => p.id === productData.id);
+        if (index > -1) {
+            shopProducts[index] = productData;
+            Toast.fire({ icon: 'success', title: 'Product updated!' });
+        } else {
+            if (shopProducts.find(p => p.name === productData.name && p.category === productData.category)) return Swal.fire('Duplicate Product', `A product named "${productData.name}" already exists in the "${productData.category}" category.`, 'error');
+            shopProducts.push(productData);
+            Toast.fire({ icon: 'success', title: 'Product added!' });
+        }
+        await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+        renderProductList(); clearProductForm(); renderInventoryTable(currentDailyReportCategory, todayDateString);
+    }
+
+    function editProduct(id) {
+        const product = shopProducts.find(p => p.id === id);
+        if (!product) return;
+        document.getElementById('product-form-title').textContent = `Edit Product: ${product.name}`;
+        document.getElementById('product-id').value = product.id;
+        document.getElementById('product-name').value = product.name;
+        document.getElementById('product-price').value = product.price;
+        document.getElementById('product-cost').value = product.cost;
+        document.getElementById('product-minstock').value = product.minStock;
+        document.getElementById('product-category').value = product.category;
+        ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid'));
+    }
+
+    async function deleteProduct(id) {
+        const productToDelete = shopProducts.find(p => p.id === id);
+        const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', html: `Delete <strong>${productToDelete.name} (${productToDelete.category})</strong>? This is irreversible.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!', confirmButtonColor: '#d33' });
+        if (isConfirmed) {
+            shopProducts = shopProducts.filter(p => p.id !== id);
+            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+            Toast.fire({ icon: 'success', title: 'Product deleted!' });
+            renderProductList(); renderInventoryTable(currentDailyReportCategory, todayDateString);
+        }
+    }
+    
+    async function savePassword() {
+        const current = document.getElementById('currentPassword').value;
+        const newPass = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const storedPasswordHash = await localforage.getItem(LOCAL_FORAGE_KEYS.PASSWORD);
+        if (hashPassword(current) !== storedPasswordHash) return Swal.fire('Error', 'Current password incorrect.', 'error');
+        if (newPass.length < 4) return Swal.fire('Error', 'New password must be at least 4 characters long.', 'error');
+        if (newPass !== confirm) return Swal.fire('Error', 'New passwords do not match.', 'error');
+        await localforage.setItem(LOCAL_FORAGE_KEYS.PASSWORD, hashPassword(newPass));
+        Swal.fire('Success', 'Password changed successfully!', 'success');
+        ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = '');
+    }
+    
+    async function promptForCategoryThenEdit(editType) {
+        const { value: selectedCategory } = await Swal.fire({
+            title: 'Select a Category to Edit',
+            html: `<select id="swal-category-select" class="swal2-select"><option value="all">All Categories</option>${RICE_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}</select>`,
+            focusConfirm: false, showCancelButton: true, confirmButtonText: 'Next &rarr;',
+            preConfirm: () => document.getElementById('swal-category-select').value
+        });
+        if (selectedCategory) {
+            const categoryFilter = selectedCategory === 'all' ? null : selectedCategory;
+            if (editType === 'begin') editBeginningStock(categoryFilter);
+            else if (editType === 'price') editPrices(categoryFilter);
+        }
+    }
+
+    async function editBeginningStock(categoryFilter = null) {
+        const dateToEdit = todayDateString;
+        let initialReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToEdit}`);
+        if (!initialReport) return Swal.fire('Cannot Edit', 'Can only edit beginning stock on the current day\'s report.', 'error');
+        
+        const storedPasswordHash = await localforage.getItem(LOCAL_FORAGE_KEYS.PASSWORD);
+        if (storedPasswordHash) {
+            const { value: password } = await Swal.fire({ title: 'Enter Password to Edit Beginning Stock', input: 'password', showCancelButton: true });
+            if (!password || hashPassword(password) !== storedPasswordHash) return password && Swal.fire('Incorrect Password', '', 'error');
+        }
+        
+        const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+        if (products.length === 0) return Swal.fire('No Products', 'No products found in this category.', 'info');
+        
+        let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">';
+        let currentCategory = '';
+        products.forEach(p => {
+            if (p.category !== currentCategory && !categoryFilter) {
+                currentCategory = p.category;
+                modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`;
+            }
+            modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="begin-stock-${p.id}" class="font-medium">${p.name}</label><input type="number" id="begin-stock-${p.id}" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded" oninput="validateNumberInput(this, true)"></div>`;
+        });
+        modalHtml += '</div>';
+
+        const { isConfirmed } = await Swal.fire({ 
+            title: `Edit Beginning Stock ${categoryFilter ? `for ${categoryFilter}` : ''}`, 
+            html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, 
+            preConfirm: async () => {
+                if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) {
+                    Swal.showValidationMessage('Please correct invalid inputs.');
+                    return false;
+                }
+                const freshReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToEdit}`);
+                document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => {
+                    const productId = row.dataset.productId;
+                    const newBegin = parseInt(row.querySelector('input').value) || 0;
+                    if (freshReport.data[productId]) {
+                        const diff = newBegin - (freshReport.data[productId].begin || 0);
+                        freshReport.data[productId].begin = newBegin;
+                        freshReport.data[productId].end = (freshReport.data[productId].end || 0) + diff;
+                    }
+                });
+                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToEdit}`, freshReport);
+            }
+        });
+        if (isConfirmed) {
+            Toast.fire({ icon: 'success', title: 'Beginning stock updated!' });
+            renderInventoryTable(currentDailyReportCategory, dateToEdit);
+        }
+    }
+
+    async function editPrices(categoryFilter = null) {
+        const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+        if (products.length === 0) return Swal.fire('No Products', 'No products found in this category.', 'info');
+        
+        let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">';
+        let currentCategory = '';
+        products.forEach(p => {
+            if (p.category !== currentCategory && !categoryFilter) {
+                currentCategory = p.category;
+                modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`;
+            }
+            modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="price-input-${p.id}" class="font-medium">${p.name}</label><input type="number" id="price-input-${p.id}" step="0.01" value="${p.price.toFixed(2)}" class="border p-1 w-full rounded" oninput="validateNumberInput(this)"></div>`;
+        });
+        modalHtml += '</div>';
+
+        const { isConfirmed } = await Swal.fire({ 
+            title: `Edit Selling Prices ${categoryFilter ? `for ${categoryFilter}` : ''}`, 
+            html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, 
+            preConfirm: async () => {
+                if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) {
+                    Swal.showValidationMessage('Please correct invalid inputs.'); return false;
+                }
+                const todayReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${todayDateString}`);
+                document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => {
+                    const productId = row.dataset.productId;
+                    const newPrice = parseFloat(row.querySelector('input').value) || 0;
+                    const productInShop = shopProducts.find(p => p.id === productId);
+                    if (productInShop) productInShop.price = newPrice;
+                    if(todayReport?.data[productId]) todayReport.data[productId].price = newPrice;
+                });
+                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+                if (todayReport) await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${todayDateString}`, todayReport);
+            }
+        });
+        if (isConfirmed) {
+            Toast.fire({ icon: 'success', title: 'Prices updated!' });
+            renderInventoryTable(currentDailyReportCategory, todayDateString);
+        }
+    }
+
+
+    async function exportAllData() {
+        try {
+            const allData = {};
+            const keys = await localforage.keys();
+            for (const key of keys) { allData[key] = await localforage.getItem(key); }
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `rice_inventory_backup_${dayjs().format('YYYY-MM-DD_HHmmss')}.json`;
+            a.click(); a.remove(); URL.revokeObjectURL(a.href);
+            Toast.fire({icon: 'success', title: 'Data exported successfully!'});
+        } catch (error) { 
+            Swal.fire('Export Failed', 'An error occurred during data export.', 'error'); 
+        }
+    }
+
+    async function importData() {
+        const { value: file } = await Swal.fire({ title: 'Select Backup File', html: `<strong>WARNING:</strong> This will overwrite ALL existing data.`, icon: 'warning', input: 'file', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, Import' });
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    await localforage.clear();
+                    for (const key in data) { await localforage.setItem(key, data[key]); }
+                    await Swal.fire('Import Successful', 'Data has been imported. The page will now reload.', 'success');
+                    location.reload();
+                } catch (error) { 
+                    Swal.fire('Import Failed', 'Invalid backup file or data format.', 'error'); 
+                }
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    async function resetData() {
+        const { isConfirmed } = await Swal.fire({ title: 'ARE YOU SURE?', html: `This will permanently delete ALL data. Type <strong>RESET</strong> to confirm.`, icon: 'warning', input: 'text', showCancelButton: true, confirmButtonColor: '#d33', preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('You must type "RESET" to confirm.') });
+        if (isConfirmed) {
+            await localforage.clear();
+            await Swal.fire('Data Reset', 'All data has been deleted. The page will reload.', 'success');
+            location.reload();
+        }
+    }
+
+    // --- Event Listeners ---
+    document.addEventListener('DOMContentLoaded', initializeApp);
+
+    const inventoryTbody = document.getElementById('inventory-tbody');
+    
+    inventoryTbody.addEventListener('focusin', (event) => {
+        if (event.target.matches('.new-stock-input, .end-input, .price-input, .open-sacks-add-input')) {
+            inventoryTbody.querySelectorAll('.active-row').forEach(row => row.classList.remove('active-row'));
+            event.target.closest('tr')?.classList.add('active-row');
+        }
+    });
+
+    inventoryTbody.addEventListener('focusout', (event) => {
+        if (event.target.matches('.new-stock-input, .end-input, .price-input, .open-sacks-add-input')) {
+            event.target.closest('tr')?.classList.remove('active-row');
+        }
+    });
+  </script>
 </body>
-</html>```
+</html>
