@@ -759,26 +759,36 @@
      * Initializes the application by loading products, setting up views.
      */
     async function initializeApp() {
-        let workingDate = await localforage.getItem(LOCAL_FORAGE_KEYS.WORKING_DATE);
-        if (!workingDate || !dayjs(workingDate).isValid()) {
-            workingDate = dayjs().format('YYYY-MM-DD');
-            await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, workingDate);
+        try {
+            let workingDate = await localforage.getItem(LOCAL_FORAGE_KEYS.WORKING_DATE);
+            if (!workingDate || !dayjs(workingDate).isValid()) {
+                workingDate = dayjs().format('YYYY-MM-DD');
+                await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, workingDate);
+            }
+            todayDateString = workingDate;
+            
+            document.getElementById('current-date-display').textContent = dayjs(todayDateString).format('MMMM D, YYYY');
+            document.getElementById('header-subtitle').textContent = `Current Working Day`;
+
+            await loadProducts(); 
+            renderProductList(); 
+
+            // Set initial dates for analytics view
+            document.getElementById('analytics-single-date').value = todayDateString;
+            document.getElementById('analytics-from-date').value = dayjs(todayDateString).subtract(7, 'day').format('YYYY-MM-DD');
+            document.getElementById('analytics-to-date').value = todayDateString;
+            toggleAnalyticsDateInputs(); 
+
+            showView('dashboard-view');
+        } catch (error) {
+            console.error("Critical Error during App Initialization:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Application Failed to Start',
+                text: 'Could not load essential data. Please clear your browser cache or contact support.',
+                allowOutsideClick: false
+            });
         }
-        todayDateString = workingDate;
-        
-        document.getElementById('current-date-display').textContent = dayjs(todayDateString).format('MMMM D, YYYY');
-        document.getElementById('header-subtitle').textContent = `Current Working Day`;
-
-        await loadProducts(); 
-        renderProductList(); 
-
-        // Set initial dates for analytics view
-        document.getElementById('analytics-single-date').value = todayDateString;
-        document.getElementById('analytics-from-date').value = dayjs(todayDateString).subtract(7, 'day').format('YYYY-MM-DD');
-        document.getElementById('analytics-to-date').value = todayDateString;
-        toggleAnalyticsDateInputs(); 
-
-        showView('dashboard-view');
     }
 
     /**
@@ -803,7 +813,9 @@
      * Formats a number to a currency string.
      */
     function formatCurrency(amount) {
-        return parseFloat(amount).toFixed(2);
+        // Fallback to 0 if amount is not a valid number
+        const num = parseFloat(amount);
+        return isNaN(num) ? '0.00' : num.toFixed(2);
     }
     
     /**
@@ -820,46 +832,52 @@
      * Loads product data from localforage or initializes with defaults.
      */
     async function loadProducts() {
-        let savedProducts = await localforage.getItem(LOCAL_FORAGE_KEYS.PRODUCTS);
-        if (!savedProducts || savedProducts.length === 0) {
-            // Default products
-            savedProducts = [ 
-                {id: 'prod_1', name: 'KYLO', price: 1300, cost: 1150, category: '25 KG', minStock: 5}, 
-                {id: 'prod_2', name: 'HASMIN AROMA', price: 1350, cost: 1200, category: '25 KG', minStock: 5}, 
-                {id: 'prod_3', name: 'ALAS', price: 1250, cost: 1100, category: '25 KG', minStock: 5}, 
-                {id: 'prod_4', name: 'YOUNG MASTER', price: 1280, cost: 1130, category: '25 KG', minStock: 5}, 
-                {id: 'prod_5', name: 'BLUE HARVEST', price: 1320, cost: 1170, category: '25 KG', minStock: 5}, 
-                {id: 'prod_6', name: 'PRINCESS BEA', price: 1270, cost: 1120, category: '25 KG', minStock: 5}, 
-                {id: 'prod_7', name: 'ALAS', price: 550, cost: 480, category: '10 KG', minStock: 10}, 
-                {id: 'prod_8', name: 'HASMIN AROMA', price: 580, cost: 510, category: '10 KG', minStock: 10}, 
-                {id: 'prod_9', name: 'BLUE HARVEST', price: 570, cost: 500, category: '10 KG', minStock: 10}, 
-                {id: 'prod_10', name: 'YOUNG MASTER', price: 560, cost: 490, category: '10 KG', minStock: 10}, 
-                {id: 'prod_11', name: 'PRINCESS BEA', price: 540, cost: 470, category: '10 KG', minStock: 10}, 
-                {id: 'prod_12', name: 'YOUNG MASTER', price: 280, cost: 240, category: '5 KG', minStock: 15}, 
-                {id: 'prod_13', name: 'HASMIN AROMA', price: 290, cost: 250, category: '5 KG', minStock: 15}, 
-                {id: 'prod_14', name: 'ALAS', price: 270, cost: 230, category: '5 KG', minStock: 15}, 
-                {id: 'prod_15', name: 'BLUE HARVEST', price: 285, cost: 245, category: '5 KG', minStock: 15}, 
-                {id: 'prod_16', name: 'PRINCESS BEA', price: 260, cost: 220, category: '5 KG', minStock: 15}, 
-                {id: 'prod_17', name: 'KYLO', price: 55, cost: 48, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_18', name: 'HASMIN AROMA', price: 60, cost: 52, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_19', name: 'ALAS', price: 50, cost: 45, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_20', name: 'YOUNG MASTER', price: 53, cost: 46, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_21', name: 'BLUE HARVEST', price: 57, cost: 50, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_22', name: 'PRINCESS BEA', price: 49, cost: 43, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_23', name: 'JAZZY', price: 52, cost: 45, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_24', name: 'BIGANTE', price: 48, cost: 41, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_25', name: 'FARNALIZA', price: 51, cost: 44, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_26', name: 'PILIT', price: 47, cost: 40, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_27', name: 'BH YELLOW', price: 54, cost: 47, category: 'Per Kilo', minStock: 20}, 
-                {id: 'prod_28', name: 'SWEET RICE', price: 65, cost: 58, category: 'Per Kilo', minStock: 20} 
-            ];
-            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
-        } else {
-            // Ensure minStock property exists for old data
-            savedProducts = savedProducts.map(p => ({ ...p, minStock: p.minStock !== undefined ? p.minStock : 0 }));
-            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
+        try {
+            let savedProducts = await localforage.getItem(LOCAL_FORAGE_KEYS.PRODUCTS);
+            if (!savedProducts || savedProducts.length === 0) {
+                // Default products
+                savedProducts = [ 
+                    {id: 'prod_1', name: 'KYLO', price: 1300, cost: 1150, category: '25 KG', minStock: 5}, 
+                    {id: 'prod_2', name: 'HASMIN AROMA', price: 1350, cost: 1200, category: '25 KG', minStock: 5}, 
+                    {id: 'prod_3', name: 'ALAS', price: 1250, cost: 1100, category: '25 KG', minStock: 5}, 
+                    {id: 'prod_4', name: 'YOUNG MASTER', price: 1280, cost: 1130, category: '25 KG', minStock: 5}, 
+                    {id: 'prod_5', name: 'BLUE HARVEST', price: 1320, cost: 1170, category: '25 KG', minStock: 5}, 
+                    {id: 'prod_6', name: 'PRINCESS BEA', price: 1270, cost: 1120, category: '25 KG', minStock: 5}, 
+                    {id: 'prod_7', name: 'ALAS', price: 550, cost: 480, category: '10 KG', minStock: 10}, 
+                    {id: 'prod_8', name: 'HASMIN AROMA', price: 580, cost: 510, category: '10 KG', minStock: 10}, 
+                    {id: 'prod_9', name: 'BLUE HARVEST', price: 570, cost: 500, category: '10 KG', minStock: 10}, 
+                    {id: 'prod_10', name: 'YOUNG MASTER', price: 560, cost: 490, category: '10 KG', minStock: 10}, 
+                    {id: 'prod_11', name: 'PRINCESS BEA', price: 540, cost: 470, category: '10 KG', minStock: 10}, 
+                    {id: 'prod_12', name: 'YOUNG MASTER', price: 280, cost: 240, category: '5 KG', minStock: 15}, 
+                    {id: 'prod_13', name: 'HASMIN AROMA', price: 290, cost: 250, category: '5 KG', minStock: 15}, 
+                    {id: 'prod_14', name: 'ALAS', price: 270, cost: 230, category: '5 KG', minStock: 15}, 
+                    {id: 'prod_15', name: 'BLUE HARVEST', price: 285, cost: 245, category: '5 KG', minStock: 15}, 
+                    {id: 'prod_16', name: 'PRINCESS BEA', price: 260, cost: 220, category: '5 KG', minStock: 15}, 
+                    {id: 'prod_17', name: 'KYLO', price: 55, cost: 48, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_18', name: 'HASMIN AROMA', price: 60, cost: 52, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_19', name: 'ALAS', price: 50, cost: 45, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_20', name: 'YOUNG MASTER', price: 53, cost: 46, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_21', name: 'BLUE HARVEST', price: 57, cost: 50, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_22', name: 'PRINCESS BEA', price: 49, cost: 43, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_23', name: 'JAZZY', price: 52, cost: 45, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_24', name: 'BIGANTE', price: 48, cost: 41, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_25', name: 'FARNALIZA', price: 51, cost: 44, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_26', name: 'PILIT', price: 47, cost: 40, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_27', name: 'BH YELLOW', price: 54, cost: 47, category: 'Per Kilo', minStock: 20}, 
+                    {id: 'prod_28', name: 'SWEET RICE', price: 65, cost: 58, category: 'Per Kilo', minStock: 20} 
+                ];
+                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
+            } else {
+                // Ensure minStock property exists for old data
+                savedProducts = savedProducts.map(p => ({ ...p, minStock: p.minStock !== undefined ? p.minStock : 0 }));
+                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
+            }
+            shopProducts = savedProducts;
+        } catch (error) {
+            console.error("Error loading products:", error);
+            // Re-throw the error to be caught by initializeApp
+            throw new Error("Could not load product data from storage.");
         }
-        shopProducts = savedProducts;
     }
 
     /**
@@ -898,18 +916,23 @@
      * Saves updated inventory data for a specific product.
      */
     async function saveInventoryData(dateString, productId, data) {
-        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-        if (report) {
-            if (!report.data[productId]) {
-                 const productInfo = shopProducts.find(p => p.id === productId);
-                 if (productInfo) {
-                    report.data[productId] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: productInfo.price, cost: productInfo.cost };
-                 } else {
-                    return;
-                 }
+        try {
+            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+            if (report) {
+                if (!report.data[productId]) {
+                     const productInfo = shopProducts.find(p => p.id === productId);
+                     if (productInfo) {
+                        report.data[productId] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: productInfo.price, cost: productInfo.cost };
+                     } else {
+                        return;
+                     }
+                }
+                Object.assign(report.data[productId], data);
+                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
             }
-            Object.assign(report.data[productId], data);
-            await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
+        } catch (error) {
+            console.error("Error saving inventory data:", error);
+            Toast.fire({ icon: 'error', title: 'Failed to save data. Please check storage space.' });
         }
     }
 
@@ -917,48 +940,53 @@
      * Finalizes report and reloads the page to reflect the new working day.
      */
     async function finalizeReport() {
-        const submittedDate = todayDateString;
-        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`);
-        if (!report) {
-            Toast.fire({ icon: 'error', title: "No report to submit." });
-            return;
-        }
-        
-        await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`, report);
-        
-        let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
-        if (!reportIndex.includes(submittedDate)) {
-            reportIndex.push(submittedDate);
-            await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex);
-        }
+        try {
+            const submittedDate = todayDateString;
+            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`);
+            if (!report) {
+                Toast.fire({ icon: 'error', title: "No report to submit." });
+                return;
+            }
+            
+            await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`, report);
+            
+            let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
+            if (!reportIndex.includes(submittedDate)) {
+                reportIndex.push(submittedDate);
+                await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex);
+            }
 
-        const tomorrowDateString = dayjs(submittedDate).add(1, 'day').format('YYYY-MM-DD');
-        const newTomorrowData = {};
-        shopProducts.forEach(p => {
-            const todayEndStock = report.data[p.id]?.end || 0;
-            newTomorrowData[p.id] = {
-                begin: todayEndStock,
-                newStock: 0,
-                openedSacks: 0,
-                end: todayEndStock,
-                price: p.price,
-                cost: p.cost
-            };
-        });
-        const newTomorrowReport = { date: tomorrowDateString, data: newTomorrowData };
-        await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${tomorrowDateString}`, newTomorrowReport);
-        
-        await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, tomorrowDateString);
+            const tomorrowDateString = dayjs(submittedDate).add(1, 'day').format('YYYY-MM-DD');
+            const newTomorrowData = {};
+            shopProducts.forEach(p => {
+                const todayEndStock = report.data[p.id]?.end || 0;
+                newTomorrowData[p.id] = {
+                    begin: todayEndStock,
+                    newStock: 0,
+                    openedSacks: 0,
+                    end: todayEndStock,
+                    price: p.price,
+                    cost: p.cost
+                };
+            });
+            const newTomorrowReport = { date: tomorrowDateString, data: newTomorrowData };
+            await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${tomorrowDateString}`, newTomorrowReport);
+            
+            await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, tomorrowDateString);
 
-        await Swal.fire({
-            title: 'Report Saved!',
-            text: `Today's data is saved. The app will now advance to the next day.`,
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-        });
-        
-        location.reload();
+            await Swal.fire({
+                title: 'Report Saved!',
+                text: `Today's data is saved. The app will now advance to the next day.`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            location.reload();
+        } catch (error) {
+            console.error("Error finalizing report:", error);
+            Swal.fire('Error', 'An error occurred while finalizing the report. Your data for today is saved, but the next day could not be started.', 'error');
+        }
     }
 
 
@@ -1248,12 +1276,20 @@
         if (!row || !row.dataset.id) return;
 
         const productId = row.dataset.id;
+        const product = shopProducts.find(p => p.id === productId);
+        // UPGRADE: Gracefully exit if product has been deleted but data remains.
+        if (!product) {
+            console.warn(`Calculation skipped for deleted product ID: ${productId}`);
+            return;
+        }
+
         const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
         if (!report) return;
 
         const data = report.data[productId];
         if (!data) return;
 
+        // UPGRADE: Use `|| 0` to prevent NaN errors if user clears an input field.
         const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
         const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
         const openedSacks = data.openedSacks || 0;
@@ -1269,8 +1305,6 @@
         row.querySelector('.total-sales-val').textContent = formatCurrency(totalSales);
         row.querySelector('.profit-val').textContent = formatCurrency(profit);
         
-        const product = shopProducts.find(p => p.id === productId);
-        
         row.classList.remove('row-negative-stock', 'row-low-stock', 'row-has-sales', 'row-logic-error');
 
         if (sold < 0) {
@@ -1281,7 +1315,7 @@
 
         if (end < 0) {
             row.classList.add('row-negative-stock');
-        } else if (product?.minStock > 0 && end <= product.minStock) {
+        } else if (product.minStock > 0 && end <= product.minStock) {
             row.classList.add('row-low-stock');
         }
 
@@ -1297,7 +1331,7 @@
     }
     
     /**
-     * Handles the submission of newly opened sacks without a full table refresh.
+     * Handles the submission of newly opened sacks with robust validation.
      */
     async function submitOpenSack(buttonElement, productId, dateString) {
         const parentDiv = buttonElement.parentElement;
@@ -1311,57 +1345,77 @@
         const sourceProduct = shopProducts.find(p => p.id === productId);
         if (!sourceProduct || sourceProduct.category !== '25 KG') return;
 
-        const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
-        if (!targetProduct) {
-            return Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}.`, 'error');
-        }
+        try {
+            // ================== UPGRADED VALIDATION BLOCK ==================
+            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+            if (!report) {
+                return Swal.fire('Error', 'Could not find the current report data to validate stock.', 'error');
+            }
 
-        const kilosToAdd = sacksToAdd * 25;
+            const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
+            const availableStock = (sourceData.begin + sourceData.newStock) - (sourceData.openedSacks || 0);
+            
+            // UPGRADE 1: Check if the source item already has a negative/logic error stock.
+            if (sourceData.end < 0 || availableStock < (sourceData.end - sourceData.begin - sourceData.newStock)) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Action Blocked',
+                    text: `Cannot transfer from "${sourceProduct.name}" because it has an existing inventory calculation error. Please correct its "Ending" stock first.`
+                });
+            }
 
-        const { isConfirmed } = await Swal.fire({
-            title: 'Confirm Transfer',
-            html: `This will add <b>${sacksToAdd} sack(s)</b> (${kilosToAdd} kg) to <b>${targetProduct.name} (Per Kilo)</b> inventory. Are you sure?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, transfer it!',
-        });
+            // UPGRADE 2: The original fix - check for sufficient stock.
+            if (sacksToAdd > availableStock) {
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Insufficient Stock',
+                    html: `You cannot transfer <b>${sacksToAdd}</b> sacks from <b>${sourceProduct.name}</b>. <br>There are only <b>${availableStock}</b> sack(s) available.`
+                });
+            }
+            // ================== END OF UPGRADED VALIDATION ==================
 
-        if (isConfirmed) {
-            try {
-                const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-                if (!report) return;
+            const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
+            if (!targetProduct) {
+                return Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}.`, 'error');
+            }
 
-                if (!report.data[sourceProduct.id]) report.data[sourceProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
-                if (!report.data[targetProduct.id]) report.data[targetProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
+            const kilosToAdd = sacksToAdd * 25;
 
-                report.data[sourceProduct.id].openedSacks = (report.data[sourceProduct.id].openedSacks || 0) + sacksToAdd;
-                report.data[targetProduct.id].begin = (report.data[targetProduct.id].begin || 0) + kilosToAdd;
-                report.data[targetProduct.id].end = (report.data[targetProduct.id].end || 0) + kilosToAdd;
+            const { isConfirmed } = await Swal.fire({
+                title: 'Confirm Transfer',
+                html: `This will add <b>${sacksToAdd} sack(s)</b> (${kilosToAdd} kg) to <b>${targetProduct.name} (Per Kilo)</b> inventory. Are you sure?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, transfer it!',
+            });
 
-                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
+            if (isConfirmed) {
+                // Get a fresh copy of the report data before modifying
+                const freshReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+                if (!freshReport) throw new Error("Report data disappeared during operation.");
 
-                // --- Live UI Update (No Reload) ---
-                addSacksInput.value = ''; // Clear the input
+                if (!freshReport.data[sourceProduct.id]) freshReport.data[sourceProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: sourceProduct.price, cost: sourceProduct.cost };
+                if (!freshReport.data[targetProduct.id]) freshReport.data[targetProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: targetProduct.price, cost: targetProduct.cost };
+
+                freshReport.data[sourceProduct.id].openedSacks = (freshReport.data[sourceProduct.id].openedSacks || 0) + sacksToAdd;
+                freshReport.data[targetProduct.id].begin = (freshReport.data[targetProduct.id].begin || 0) + kilosToAdd;
+                freshReport.data[targetProduct.id].end = (freshReport.data[targetProduct.id].end || 0) + kilosToAdd;
+
+                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, freshReport);
+
+                // Live UI Update (No Reload)
+                addSacksInput.value = '';
                 
-                const sourceRow = document.querySelector(`tr[data-id="${sourceProduct.id}"]`);
-                if (sourceRow) {
-                    await recalculateRow(sourceProduct.id, dateString);
-                }
-                
-                const targetRow = document.querySelector(`tr[data-id="${targetProduct.id}"]`);
-                if (targetRow) {
-                    targetRow.querySelector('.begin-val').value = report.data[targetProduct.id].begin;
-                    targetRow.querySelector('.end-input').value = report.data[targetProduct.id].end;
-                    await recalculateRow(targetProduct.id, dateString);
-                }
+                // Recalculate both affected rows
+                await recalculateRow(sourceProduct.id, dateString);
+                await recalculateRow(targetProduct.id, dateString);
                 
                 updateInventoryTableTotals();
                 Toast.fire({ icon: 'success', title: 'Stock transferred!' });
-
-            } catch (error) {
-                console.error("Error submitting open sack:", error);
-                Swal.fire('Error', 'An unexpected error occurred while saving the data.', 'error');
             }
+        } catch (error) {
+            console.error("Error submitting open sack:", error);
+            Swal.fire('Error', 'An unexpected error occurred while saving the data.', 'error');
         }
     }
 
@@ -1371,6 +1425,15 @@
     async function recalculateRow(productId, dateString) {
         const row = document.querySelector(`tr[data-id="${productId}"]`);
         if (!row) return;
+
+        // UPGRADE: Reload the row's data from storage to ensure it's fresh
+        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+        const data = report?.data[productId];
+        if (data) {
+             row.querySelector('.begin-val').value = data.begin;
+             row.querySelector('.end-input').value = data.end;
+        }
+
         const triggerInput = row.querySelector('.end-input'); // Any input in the row works
         if (triggerInput) {
             await calculate(triggerInput, dateString);
@@ -1390,13 +1453,17 @@
         const productId = row.dataset.id;
         const newPrice = parseFloat(priceInputElement.value) || 0;
         
-        const productInShop = shopProducts.find(p => p.id === productId);
-        if (productInShop) {
-            productInShop.price = newPrice;
-            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+        try {
+            const productInShop = shopProducts.find(p => p.id === productId);
+            if (productInShop) {
+                productInShop.price = newPrice;
+                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+            }
+            await calculate(priceInputElement, dateString);
+        } catch (error) {
+            console.error("Error updating price:", error);
+            Toast.fire({ icon: 'error', title: 'Could not save price change.' });
         }
-        
-        await calculate(priceInputElement, dateString);
     }
 
     /** Debounces the price update function. */
@@ -1432,11 +1499,16 @@
         showView('history-view');
         const historyList = document.getElementById('history-list');
         historyList.innerHTML = '<div class="p-4 text-center"><div class="loader" role="status"></div></div>';
-        const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []).sort().reverse();
-        if (reportIndex.length === 0) {
-            historyList.innerHTML = '<p class="p-4 text-center text-slate-500">No saved reports found.</p>';
-        } else {
-            renderHistoryList(reportIndex);
+        try {
+            const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []).sort().reverse();
+            if (reportIndex.length === 0) {
+                historyList.innerHTML = '<p class="p-4 text-center text-slate-500">No saved reports found.</p>';
+            } else {
+                renderHistoryList(reportIndex);
+            }
+        } catch (error) {
+             console.error("Error loading history:", error);
+             historyList.innerHTML = '<p class="p-4 text-center text-red-500">Could not load report history.</p>';
         }
     }
     
@@ -1495,11 +1567,16 @@
             confirmButtonText: 'Yes, delete it!' 
         });
         if (isConfirmed) {
-            await localforage.removeItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-            let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
-            await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex.filter(date => date !== dateString));
-            Toast.fire({ icon: 'success', title: 'Report deleted!' });
-            showHistory();
+            try {
+                await localforage.removeItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
+                let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
+                await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex.filter(date => date !== dateString));
+                Toast.fire({ icon: 'success', title: 'Report deleted!' });
+                showHistory();
+            } catch (error) {
+                console.error("Error deleting report:", error);
+                Swal.fire('Error', 'Could not delete the report from storage.', 'error');
+            }
         }
     }
 
@@ -1559,70 +1636,75 @@
             return Toast.fire({ icon: 'error', title: 'Start date cannot be after end date.' });
         }
 
-        const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []);
-        let relevantDates = reportIndex.filter(date => dayjs(date).isBetween(startDate, endDate, 'day', '[]')).sort();
+        try {
+            const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []);
+            let relevantDates = reportIndex.filter(date => dayjs(date).isBetween(startDate, endDate, 'day', '[]')).sort();
 
-        if (mode === 'daily' && !relevantDates.includes(startDate)) {
-             relevantDates = [startDate];
-        }
-
-        let totalSales = 0;
-        let totalProfit = 0;
-        const salesByCategory = {};
-        const salesTrend = {};
-        const productPerformance = {};
-
-        RICE_CATEGORIES.forEach(cat => salesByCategory[cat] = 0);
-        shopProducts.forEach(p => productPerformance[p.id] = { sold: 0, sales: 0, profit: 0, name: p.name, category: p.category });
-
-        const reports = await Promise.all(relevantDates.map(date => localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${date}`)));
-
-        let validReportCount = 0;
-        reports.forEach(report => {
-            if (!report || !report.data) return;
-            validReportCount++;
-
-            let daySales = 0;
-            for (const productId in report.data) {
-                const product = shopProducts.find(p => p.id === productId);
-                if (!product) continue;
-
-                const item = report.data[productId];
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
-                const sales = Math.max(0, sold) * item.price;
-                const profit = sales - (Math.max(0, sold) * item.cost);
-
-                totalSales += sales;
-                totalProfit += profit;
-                daySales += sales;
-
-                salesByCategory[product.category] += sales;
-
-                if (productPerformance[productId]) {
-                    productPerformance[productId].sold += sold;
-                    productPerformance[productId].sales += sales;
-                    productPerformance[productId].profit += profit;
-                }
+            if (mode === 'daily' && !relevantDates.includes(startDate)) {
+                 relevantDates = [startDate];
             }
-            salesTrend[report.date] = daySales;
-        });
 
-        const numDays = validReportCount;
-        const avgDailySales = numDays > 0 ? totalSales / numDays : 0;
-        const avgProfitMargin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+            let totalSales = 0;
+            let totalProfit = 0;
+            const salesByCategory = {};
+            const salesTrend = {};
+            const productPerformance = {};
 
-        document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`;
-        document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`;
-        document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(avgDailySales)}`;
-        document.getElementById('analytics-avg-margin').textContent = `${formatCurrency(avgProfitMargin)}%`;
+            RICE_CATEGORIES.forEach(cat => salesByCategory[cat] = 0);
+            shopProducts.forEach(p => productPerformance[p.id] = { sold: 0, sales: 0, profit: 0, name: p.name, category: p.category });
 
-        const chartsContent = document.getElementById('analytics-charts-content');
-        if (chartsContent && !chartsContent.classList.contains('hidden')) {
-            renderCategoryChart(salesByCategory);
-            renderSalesTrendChart(salesTrend);
+            const reports = await Promise.all(relevantDates.map(date => localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${date}`)));
+
+            let validReportCount = 0;
+            reports.forEach(report => {
+                if (!report || !report.data) return;
+                validReportCount++;
+
+                let daySales = 0;
+                for (const productId in report.data) {
+                    const product = shopProducts.find(p => p.id === productId);
+                    if (!product) continue;
+
+                    const item = report.data[productId];
+                    const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
+                    const sales = Math.max(0, sold) * item.price;
+                    const profit = sales - (Math.max(0, sold) * item.cost);
+
+                    totalSales += sales;
+                    totalProfit += profit;
+                    daySales += sales;
+
+                    salesByCategory[product.category] += sales;
+
+                    if (productPerformance[productId]) {
+                        productPerformance[productId].sold += sold;
+                        productPerformance[productId].sales += sales;
+                        productPerformance[productId].profit += profit;
+                    }
+                }
+                salesTrend[report.date] = daySales;
+            });
+
+            const numDays = validReportCount;
+            const avgDailySales = numDays > 0 ? totalSales / numDays : 0;
+            const avgProfitMargin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+
+            document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`;
+            document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`;
+            document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(avgDailySales)}`;
+            document.getElementById('analytics-avg-margin').textContent = `${formatCurrency(avgProfitMargin)}%`;
+
+            const chartsContent = document.getElementById('analytics-charts-content');
+            if (chartsContent && !chartsContent.classList.contains('hidden')) {
+                renderCategoryChart(salesByCategory);
+                renderSalesTrendChart(salesTrend);
+            }
+            
+            renderTopPerformingProducts(productPerformance);
+        } catch (error) {
+            console.error("Error loading analytics:", error);
+            Swal.fire('Analytics Error', 'Could not generate the report due to a data loading error.', 'error');
         }
-        
-        renderTopPerformingProducts(productPerformance);
     }
 
     function renderCategoryChart(data) {
@@ -1654,28 +1736,33 @@
         const contentContainer = document.getElementById('dashboard-content');
         contentContainer.innerHTML = '<div class="col-span-full text-center p-8"><div class="loader" role="status"></div></div>';
         
-        const lastCompletedDateString = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
-        const lastReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${lastCompletedDateString}`);
-        
-        let dateToRender = lastReport ? lastCompletedDateString : todayDateString;
-        let isSummaryView = !!lastReport;
-        
-        document.getElementById('dashboard-title').textContent = isSummaryView ? "Last Completed Day's Summary" : "Today's Overview";
-        document.getElementById('dashboard-date').textContent = dayjs(dateToRender).format('MMMM D, YYYY');
+        try {
+            const lastCompletedDateString = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
+            const lastReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${lastCompletedDateString}`);
+            
+            let dateToRender = lastReport ? lastCompletedDateString : todayDateString;
+            let isSummaryView = !!lastReport;
+            
+            document.getElementById('dashboard-title').textContent = isSummaryView ? "Last Completed Day's Summary" : "Today's Overview";
+            document.getElementById('dashboard-date').textContent = dayjs(dateToRender).format('MMMM D, YYYY');
 
-        let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToRender}`) || await startDay(dateToRender);
+            let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToRender}`) || await startDay(dateToRender);
 
-        const { totalSales, totalProfit } = await getDailySummary(dateToRender);
+            const { totalSales, totalProfit } = await getDailySummary(dateToRender);
 
-        const lowStockItems = shopProducts
-            .map(p => ({ ...p, stock: report.data[p.id]?.end }))
-            .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
+            const lowStockItems = shopProducts
+                .map(p => ({ ...p, stock: report.data[p.id]?.end }))
+                .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
 
-        const dashboardHTML = `
-            <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500"><div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Total Sales</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p></div></div>
-            <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500"><div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Estimated Profit</p><p class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p></div></div>
-            <div class="card p-6 col-span-1 md:col-span-2 bg-red-50 border-l-4 border-red-500"><h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3><div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">${lowStockItems.length > 0 ? lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('') : '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>'}</div></div>`;
-        contentContainer.innerHTML = dashboardHTML;
+            const dashboardHTML = `
+                <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500"><div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Total Sales</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p></div></div>
+                <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500"><div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Estimated Profit</p><p class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p></div></div>
+                <div class="card p-6 col-span-1 md:col-span-2 bg-red-50 border-l-4 border-red-500"><h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3><div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">${lowStockItems.length > 0 ? lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('') : '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>'}</div></div>`;
+            contentContainer.innerHTML = dashboardHTML;
+        } catch(error) {
+            console.error("Error rendering dashboard:", error);
+            contentContainer.innerHTML = '<div class="col-span-full card p-6 text-center text-red-600"><h3 class="font-bold">Dashboard Error</h3><p>Could not load dashboard data.</p></div>';
+        }
     }
 
 
@@ -1743,18 +1830,43 @@
         if (!nameInput.value.trim()) nameInput.classList.add('invalid'); else nameInput.classList.remove('invalid');
         if (!isValid) return Toast.fire({ icon: 'error', title: 'Please correct invalid inputs!' });
         
-        const productData = { id: document.getElementById('product-id').value || 'prod_' + Date.now(), name: nameInput.value.trim().toUpperCase(), price: parseFloat(priceInput.value), cost: parseFloat(costInput.value), category: document.getElementById('product-category').value, minStock: parseInt(minStockInput.value) || 0 };
-        const index = shopProducts.findIndex(p => p.id === productData.id);
-        if (index > -1) {
-            shopProducts[index] = productData;
-            Toast.fire({ icon: 'success', title: 'Product updated!' });
-        } else {
-            if (shopProducts.find(p => p.name === productData.name && p.category === productData.category)) return Swal.fire('Duplicate Product', `A product named "${productData.name}" already exists in the "${productData.category}" category.`, 'error');
-            shopProducts.push(productData);
-            Toast.fire({ icon: 'success', title: 'Product added!' });
+        const productId = document.getElementById('product-id').value;
+        const productData = { 
+            id: productId || 'prod_' + Date.now(), 
+            name: nameInput.value.trim().toUpperCase(), 
+            price: parseFloat(priceInput.value), 
+            cost: parseFloat(costInput.value), 
+            category: document.getElementById('product-category').value, 
+            minStock: parseInt(minStockInput.value) || 0 
+        };
+
+        // UPGRADE: Prevent duplicate products on both add and edit.
+        const existingProduct = shopProducts.find(p => 
+            p.name === productData.name && 
+            p.category === productData.category &&
+            p.id !== productData.id // Exclude the product being edited from the check
+        );
+        if (existingProduct) {
+            return Swal.fire('Duplicate Product', `A product named "${productData.name}" already exists in the "${productData.category}" category.`, 'error');
         }
-        await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
-        renderProductList(); clearProductForm(); renderInventoryTable(currentDailyReportCategory, todayDateString);
+
+        try {
+            const index = shopProducts.findIndex(p => p.id === productData.id);
+            if (index > -1) {
+                shopProducts[index] = productData;
+                Toast.fire({ icon: 'success', title: 'Product updated!' });
+            } else {
+                shopProducts.push(productData);
+                Toast.fire({ icon: 'success', title: 'Product added!' });
+            }
+            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+            renderProductList(); 
+            clearProductForm(); 
+            renderInventoryTable(currentDailyReportCategory, todayDateString);
+        } catch (error) {
+            console.error("Error saving product:", error);
+            Swal.fire('Error', 'Could not save the product. Please try again.', 'error');
+        }
     }
 
     function editProduct(id) {
@@ -1772,12 +1884,20 @@
 
     async function deleteProduct(id) {
         const productToDelete = shopProducts.find(p => p.id === id);
+        if (!productToDelete) return; // Exit if product not found
+
         const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', html: `Delete <strong>${productToDelete.name} (${productToDelete.category})</strong>? This is irreversible.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!', confirmButtonColor: '#d33' });
         if (isConfirmed) {
-            shopProducts = shopProducts.filter(p => p.id !== id);
-            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
-            Toast.fire({ icon: 'success', title: 'Product deleted!' });
-            renderProductList(); renderInventoryTable(currentDailyReportCategory, todayDateString);
+            try {
+                shopProducts = shopProducts.filter(p => p.id !== id);
+                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
+                Toast.fire({ icon: 'success', title: 'Product deleted!' });
+                renderProductList(); 
+                renderInventoryTable(currentDailyReportCategory, todayDateString);
+            } catch (error) {
+                console.error("Error deleting product:", error);
+                Swal.fire('Error', 'Could not delete the product from storage.', 'error');
+            }
         }
     }
     
@@ -1913,6 +2033,7 @@
             a.click(); a.remove(); URL.revokeObjectURL(a.href);
             Toast.fire({icon: 'success', title: 'Data exported successfully!'});
         } catch (error) { 
+            console.error("Export failed:", error);
             Swal.fire('Export Failed', 'An error occurred during data export.', 'error'); 
         }
     }
@@ -1929,6 +2050,7 @@
                     await Swal.fire('Import Successful', 'Data has been imported. The page will now reload.', 'success');
                     location.reload();
                 } catch (error) { 
+                    console.error("Import failed:", error);
                     Swal.fire('Import Failed', 'Invalid backup file or data format.', 'error'); 
                 }
             };
@@ -1939,9 +2061,14 @@
     async function resetData() {
         const { isConfirmed } = await Swal.fire({ title: 'ARE YOU SURE?', html: `This will permanently delete ALL data. Type <strong>RESET</strong> to confirm.`, icon: 'warning', input: 'text', showCancelButton: true, confirmButtonColor: '#d33', preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('You must type "RESET" to confirm.') });
         if (isConfirmed) {
-            await localforage.clear();
-            await Swal.fire('Data Reset', 'All data has been deleted. The page will reload.', 'success');
-            location.reload();
+            try {
+                await localforage.clear();
+                await Swal.fire('Data Reset', 'All data has been deleted. The page will reload.', 'success');
+                location.reload();
+            } catch(error) {
+                console.error("Data reset failed:", error);
+                Swal.fire('Reset Failed', 'Could not clear all data from storage.', 'error');
+            }
         }
     }
 
@@ -1965,3 +2092,4 @@
   </script>
 </body>
 </html>
+```
