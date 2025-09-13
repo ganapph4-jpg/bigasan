@@ -400,6 +400,19 @@
         outline: 2px solid var(--primary);
         outline-offset: -2px;
     }
+    
+    /* --- Style for Cash Reconciliation --- */
+    .cash-short {
+        color: #dc2626; /* Red-600 */
+        background-color: #fecaca; /* Red-200 */
+    }
+    .cash-over {
+        color: #166534; /* Green-800 */
+        background-color: #dcfce7; /* Green-100 */
+    }
+    .cash-balanced {
+        color: #1e293b; /* Slate-800 */
+    }
 
     @media (max-width: 768px) {
       .professional-table {
@@ -425,12 +438,48 @@
         text-align: center;
       }
     }
+    
+    /* --- PRINT STYLES --- */
+    @media print {
+        body {
+            padding: 0;
+            background-color: #fff;
+        }
+        .no-print {
+            display: none !important;
+        }
+        .main-view {
+            display: block !important;
+            max-width: 100%;
+            margin: 0;
+        }
+        .professional-table {
+            box-shadow: none;
+            border: 1px solid #ccc;
+            font-size: 10pt;
+        }
+        .professional-table th, .professional-table td {
+            padding: 8px 10px;
+        }
+        .grand-total-row {
+            position: static;
+            color: #000;
+            background-color: #eee;
+        }
+        .grand-total-row td {
+            border-bottom: 1px solid #ccc;
+        }
+        #report-title {
+            text-align: center;
+            width: 100%;
+        }
+    }
   </style>
 </head>
 <body class="p-4">
 
   <!-- Shared Header -->
-  <div class="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-center gap-4" role="banner">
+  <div class="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 no-print" role="banner">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">Rice Inventory Management</h1>
       <p class="text-sm text-slate-500" id="header-subtitle">Current Working Day</p>
@@ -454,9 +503,10 @@
   </div>
 
   <!-- Navigation Tabs -->
-  <nav class="max-w-7xl mx-auto mb-6 bg-white rounded-lg p-1 shadow-sm flex" aria-label="Main Navigation">
+  <nav class="max-w-7xl mx-auto mb-6 bg-white rounded-lg p-1 shadow-sm flex no-print" aria-label="Main Navigation">
     <button class="nav-tab active" role="tab" aria-selected="true" aria-controls="dashboard-view" onclick="showView('dashboard-view')">Dashboard</button>
     <button class="nav-tab" role="tab" aria-selected="false" aria-controls="daily-report-view" onclick="showCurrentDayReport()">Daily Report</button>
+    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="expenses-view" onclick="showView('expenses-view')">Expenses</button>
   </nav>
 
   <!-- VIEW 1: Dashboard -->
@@ -478,6 +528,9 @@
       <div class="flex items-center gap-4">
         <h2 id="report-title" class="text-xl font-bold text-slate-800">Daily Inventory Report</h2>
       </div>
+      <button onclick="window.print()" class="btn-primary no-print" aria-label="Print this report">
+        Print Report
+      </button>
     </div>
     
     <div class="overflow-hidden">
@@ -486,12 +539,12 @@
           <thead>
             <tr>
               <th>PRODUCT</th>
-              <th>BEGIN <br><button class="small-edit-btn mt-1" onclick="promptForCategoryThenEdit('begin')" aria-label="Edit all beginning stock">EDIT ALL</button></th>
+              <th>BEGIN <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('begin')" aria-label="Edit all beginning stock">EDIT ALL</button></th>
               <th>NEW STOCK</th>
               <th>OPEN SACKS</th>
               <th>ENDING</th>
               <th>SOLD</th>
-              <th>PRICE (₱) <br><button class="small-edit-btn mt-1" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
+              <th>PRICE (₱) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
               <th>TOTAL SALES (₱)</th>
               <th>PROFIT (₱)</th>
             </tr>
@@ -503,6 +556,46 @@
       </div>
     </div>
   </div>
+
+  <!-- VIEW 3: Expenses -->
+    <div id="expenses-view" class="main-view max-w-7xl mx-auto" role="main" aria-labelledby="expenses-title">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Left Side: Add Expense Form -->
+            <div class="md:col-span-1">
+                <div class="card p-6">
+                    <h3 id="expense-form-title" class="text-lg font-bold text-slate-800 mb-4">Add Expense for Today</h3>
+                    <div class="space-y-4">
+                        <input type="hidden" id="expense-id">
+                        <div>
+                            <label for="expense-description" class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                            <input id="expense-description" type="text" placeholder="e.g., Transportation" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
+                        </div>
+                        <div>
+                            <label for="expense-amount" class="block text-sm font-medium text-slate-700 mb-1">Amount (₱)</label>
+                            <input id="expense-amount" type="number" step="0.01" placeholder="e.g., 150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="saveExpense()" class="btn-success flex-1">Save Expense</button>
+                            <button onclick="clearExpenseForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Side: Expense List -->
+            <div class="md:col-span-2">
+                <div class="card p-6">
+                    <h2 id="expenses-title" class="text-xl font-bold text-slate-800 mb-4">Today's Expenses</h2>
+                    <div id="expense-list-container" class="space-y-2 max-h-96 overflow-y-auto" aria-live="polite" aria-atomic="true">
+                        <p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t font-bold text-lg flex justify-between">
+                        <span>Total Expenses:</span>
+                        <span id="total-expenses-display">₱0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
   <!-- VIEW 5: Report History -->
   <div id="history-view" class="main-view max-w-7xl mx-auto" role="region" aria-labelledby="history-title">
@@ -524,7 +617,7 @@
   </div>
   
   <!-- Settings Panel -->
-  <div id="settings-panel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-lg z-50 p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
+  <div id="settings-panel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-lg z-50 p-6 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
     <div class="flex justify-between items-center mb-6">
       <h2 id="settings-title" class="text-2xl font-bold text-slate-800">Settings</h2>
       <button onclick="closeSettingsPanel()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close settings panel">&times;</button>
@@ -729,7 +822,8 @@
         REPORTS_PREFIX: 'report_',
         REPORT_INDEX: 'report_index',
         PASSWORD: 'app_password_hash',
-        WORKING_DATE: 'current_working_date'
+        WORKING_DATE: 'current_working_date',
+        EXPENSES_PREFIX: 'expenses_' // New key for expenses
     };
     const HASH_SALT = 'rice-inventory-management-salt'; 
     
@@ -1017,6 +1111,8 @@
         
         if (viewId === 'dashboard-view') {
             renderDashboard();
+        } else if (viewId === 'expenses-view') {
+            renderExpensesView(todayDateString);
         }
     }
     
@@ -1162,7 +1258,7 @@
                             ${isOpenSacksEditable ? `
                                 <div class="flex items-center gap-1">
                                     <input type="number" placeholder="Add Sacks" class="open-sacks-add-input flex-grow" oninput="validateNumberInput(this, true);"/>
-                                    <button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs" onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button>
+                                    <button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button>
                                 </div>
                             ` : `<span class="text-slate-400">-</span>`}
                         </td>
@@ -1204,12 +1300,37 @@
                 <td id="overall-total-sales" class="p-4">₱${formatCurrency(overallTotalSales)}</td>
                 <td id="overall-total-profit" class="p-4 text-green-400">₱${formatCurrency(overallTotalProfit)}</td>
              </tr>`;
+             
+             // --- NEW CASH RECONCILIATION SECTION ---
+             if (isEditable) { // Only show this box on the current, editable day
+                tableHtml += `
+                <tr class="bg-slate-200 font-medium no-print">
+                    <td colspan="5" class="text-right p-3">CASH ON HAND</td>
+                    <td colspan="2"></td>
+                    <td class="p-2">
+                        <input type="number" id="cash-on-hand" 
+                               placeholder="Enter actual cash..." 
+                               class="w-full p-2 rounded border border-slate-400 text-right font-bold text-lg" 
+                               oninput="validateNumberInput(this, true); calculateCashDifference();" />
+                    </td>
+                    <td></td>
+                </tr>
+                <tr class="bg-slate-200 font-bold no-print">
+                    <td colspan="5" class="text-right p-3">DIFFERENCE (SHORT/OVER)</td>
+                    <td colspan="2"></td>
+                    <td id="cash-difference-cell" class="p-3 text-right text-lg">
+                        -
+                    </td>
+                    <td></td>
+                </tr>`;
+             }
+             // --- END OF NEW SECTION ---
         }
 
         if (isEditable) {
-            tableHtml += `<tr><td colspan="9" class="p-4 bg-white"><div class="flex justify-center"><button onclick="showReviewModal()" class="btn-success">Save Today & Start Next Day</button></div></td></tr>`;
+            tableHtml += `<tr class="no-print"><td colspan="9" class="p-4 bg-white"><div class="flex justify-center"><button onclick="showReviewModal()" class="btn-success">Save Today & Start Next Day</button></div></td></tr>`;
         } else {
-            tableHtml += `<tr><td colspan="9" class="p-4 bg-slate-50 text-center"><p class="font-medium text-slate-600">Viewing a past report. Click the Daily Report tab for the current day.</p></td></tr>`;
+            tableHtml += `<tr class="no-print"><td colspan="9" class="p-4 bg-slate-50 text-center"><p class="font-medium text-slate-600">Viewing a past report. Click the Daily Report tab for the current day.</p></td></tr>`;
         }
 
         inventoryTbody.innerHTML = tableHtml;
@@ -1263,6 +1384,42 @@
         if (overallSoldEl) overallSoldEl.textContent = overallSold;
         if (overallSalesEl) overallSalesEl.textContent = `₱${formatCurrency(overallSales)}`;
         if (overallProfitEl) overallProfitEl.textContent = `₱${formatCurrency(overallProfit)}`;
+        
+        calculateCashDifference(); // Update cash reconciliation anytime totals change
+    }
+
+    /**
+     * Calculates and displays the difference between total sales and cash on hand.
+     */
+    function calculateCashDifference() {
+        const totalSalesEl = document.getElementById('overall-total-sales');
+        const cashInput = document.getElementById('cash-on-hand');
+        const differenceCell = document.getElementById('cash-difference-cell');
+        
+        if (!totalSalesEl || !cashInput || !differenceCell) return;
+
+        const totalSales = parseFloat(totalSalesEl.textContent.replace(/[₱,]/g, '')) || 0;
+        const cashOnHand = parseFloat(cashInput.value) || 0;
+
+        if (cashInput.value.trim() === '') {
+            differenceCell.textContent = '-';
+            differenceCell.className = 'p-3 text-right text-lg'; // Reset class
+            return;
+        }
+
+        const difference = cashOnHand - totalSales;
+        differenceCell.classList.remove('cash-short', 'cash-over', 'cash-balanced');
+
+        if (difference < 0) {
+            differenceCell.textContent = `SHORT ₱${formatCurrency(Math.abs(difference))}`;
+            differenceCell.classList.add('cash-short');
+        } else if (difference > 0) {
+            differenceCell.textContent = `OVER ₱${formatCurrency(difference)}`;
+            differenceCell.classList.add('cash-over');
+        } else {
+            differenceCell.textContent = 'BALANCED';
+            differenceCell.classList.add('cash-balanced');
+        }
     }
 
 
@@ -1277,7 +1434,6 @@
 
         const productId = row.dataset.id;
         const product = shopProducts.find(p => p.id === productId);
-        // UPGRADE: Gracefully exit if product has been deleted but data remains.
         if (!product) {
             console.warn(`Calculation skipped for deleted product ID: ${productId}`);
             return;
@@ -1289,7 +1445,6 @@
         const data = report.data[productId];
         if (!data) return;
 
-        // UPGRADE: Use `|| 0` to prevent NaN errors if user clears an input field.
         const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
         const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
         const openedSacks = data.openedSacks || 0;
@@ -1346,7 +1501,6 @@
         if (!sourceProduct || sourceProduct.category !== '25 KG') return;
 
         try {
-            // ================== UPGRADED VALIDATION BLOCK ==================
             const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
             if (!report) {
                 return Swal.fire('Error', 'Could not find the current report data to validate stock.', 'error');
@@ -1355,8 +1509,7 @@
             const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
             const availableStock = (sourceData.begin + sourceData.newStock) - (sourceData.openedSacks || 0);
             
-            // UPGRADE 1: Check if the source item already has a negative/logic error stock.
-            if (sourceData.end < 0 || availableStock < (sourceData.end - sourceData.begin - sourceData.newStock)) {
+            if (sourceData.end < 0) {
                 return Swal.fire({
                     icon: 'warning',
                     title: 'Action Blocked',
@@ -1364,7 +1517,6 @@
                 });
             }
 
-            // UPGRADE 2: The original fix - check for sufficient stock.
             if (sacksToAdd > availableStock) {
                 return Swal.fire({
                     icon: 'error',
@@ -1372,8 +1524,7 @@
                     html: `You cannot transfer <b>${sacksToAdd}</b> sacks from <b>${sourceProduct.name}</b>. <br>There are only <b>${availableStock}</b> sack(s) available.`
                 });
             }
-            // ================== END OF UPGRADED VALIDATION ==================
-
+            
             const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
             if (!targetProduct) {
                 return Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}.`, 'error');
@@ -1390,7 +1541,6 @@
             });
 
             if (isConfirmed) {
-                // Get a fresh copy of the report data before modifying
                 const freshReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
                 if (!freshReport) throw new Error("Report data disappeared during operation.");
 
@@ -1402,11 +1552,8 @@
                 freshReport.data[targetProduct.id].end = (freshReport.data[targetProduct.id].end || 0) + kilosToAdd;
 
                 await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, freshReport);
-
-                // Live UI Update (No Reload)
-                addSacksInput.value = '';
                 
-                // Recalculate both affected rows
+                addSacksInput.value = '';
                 await recalculateRow(sourceProduct.id, dateString);
                 await recalculateRow(targetProduct.id, dateString);
                 
@@ -1426,7 +1573,6 @@
         const row = document.querySelector(`tr[data-id="${productId}"]`);
         if (!row) return;
 
-        // UPGRADE: Reload the row's data from storage to ensure it's fresh
         const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
         const data = report?.data[productId];
         if (data) {
@@ -1434,7 +1580,7 @@
              row.querySelector('.end-input').value = data.end;
         }
 
-        const triggerInput = row.querySelector('.end-input'); // Any input in the row works
+        const triggerInput = row.querySelector('.end-input');
         if (triggerInput) {
             await calculate(triggerInput, dateString);
         }
@@ -1737,31 +1883,156 @@
         contentContainer.innerHTML = '<div class="col-span-full text-center p-8"><div class="loader" role="status"></div></div>';
         
         try {
-            const lastCompletedDateString = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
-            const lastReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${lastCompletedDateString}`);
-            
-            let dateToRender = lastReport ? lastCompletedDateString : todayDateString;
-            let isSummaryView = !!lastReport;
-            
-            document.getElementById('dashboard-title').textContent = isSummaryView ? "Last Completed Day's Summary" : "Today's Overview";
+            const dateToRender = todayDateString;
+            document.getElementById('dashboard-title').textContent = "Today's Overview";
             document.getElementById('dashboard-date').textContent = dayjs(dateToRender).format('MMMM D, YYYY');
 
             let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToRender}`) || await startDay(dateToRender);
-
             const { totalSales, totalProfit } = await getDailySummary(dateToRender);
+            
+            // Fetch today's expenses
+            const expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateToRender}`) || [];
+            const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
+            const netProfit = totalProfit - totalExpenses;
 
             const lowStockItems = shopProducts
                 .map(p => ({ ...p, stock: report.data[p.id]?.end }))
                 .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
 
             const dashboardHTML = `
-                <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500"><div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Total Sales</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p></div></div>
-                <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500"><div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div><div><p class="text-sm text-slate-500">${isSummaryView ? 'Final' : 'Today\'s'} Estimated Profit</p><p class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p></div></div>
-                <div class="card p-6 col-span-1 md:col-span-2 bg-red-50 border-l-4 border-red-500"><h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3><div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">${lowStockItems.length > 0 ? lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('') : '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>'}</div></div>`;
+                <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500"><div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div><div><p class="text-sm text-slate-500">Today's Total Sales</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p></div></div>
+                <div class="card p-6 flex items-center gap-6 bg-yellow-50 border-l-4 border-yellow-500"><div class="bg-yellow-100 p-4 rounded-full"><svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg></div><div><p class="text-sm text-slate-500">Today's Expenses</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalExpenses)}</p></div></div>
+                <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500"><div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div><div><p class="text-sm text-slate-500">Today's Net Profit</p><p class="text-3xl font-bold text-green-700">₱${formatCurrency(netProfit)}</p></div></div>
+                <div class="card p-6 bg-red-50 border-l-4 border-red-500"><h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3><div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">${lowStockItems.length > 0 ? lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('') : '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>'}</div></div>`;
             contentContainer.innerHTML = dashboardHTML;
         } catch(error) {
             console.error("Error rendering dashboard:", error);
             contentContainer.innerHTML = '<div class="col-span-full card p-6 text-center text-red-600"><h3 class="font-bold">Dashboard Error</h3><p>Could not load dashboard data.</p></div>';
+        }
+    }
+    
+    // --- NEW: Expense Tracking Functions ---
+
+    /**
+     * Renders the main view for adding and viewing daily expenses.
+     */
+    async function renderExpensesView(dateString) {
+        document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`;
+        document.getElementById('expense-form-title').textContent = `Add Expense for Today`;
+        clearExpenseForm();
+
+        const container = document.getElementById('expense-list-container');
+        container.innerHTML = '<div class="loader"></div>';
+
+        const expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateString}`) || [];
+        
+        if (expenses.length === 0) {
+            container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>';
+        } else {
+            container.innerHTML = expenses.map(expense => `
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div>
+                        <p class="font-medium">${expense.description}</p>
+                        <p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p>
+                    </div>
+                    <div class="no-print">
+                        <button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button>
+                        <button onclick="deleteExpense('${expense.id}', '${dateString}')" class="text-xs text-red-600 hover:underline">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
+        document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`;
+    }
+
+    /**
+     * Saves a new or edited expense to LocalForage.
+     */
+    async function saveExpense() {
+        const descriptionInput = document.getElementById('expense-description');
+        const amountInput = document.getElementById('expense-amount');
+        const expenseId = document.getElementById('expense-id').value;
+
+        const description = descriptionInput.value.trim();
+        const amount = parseFloat(amountInput.value);
+
+        if (!description || isNaN(amount) || amount <= 0) {
+            Toast.fire({ icon: 'error', title: 'Please enter a valid description and amount.' });
+            return;
+        }
+
+        const expenseData = {
+            id: expenseId || 'exp_' + Date.now(),
+            description: description,
+            amount: amount
+        };
+
+        try {
+            let expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${todayDateString}`) || [];
+            const index = expenses.findIndex(e => e.id === expenseData.id);
+
+            if (index > -1) {
+                expenses[index] = expenseData;
+                Toast.fire({ icon: 'success', title: 'Expense updated!' });
+            } else {
+                expenses.push(expenseData);
+                Toast.fire({ icon: 'success', title: 'Expense added!' });
+            }
+
+            await localforage.setItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${todayDateString}`, expenses);
+            renderExpensesView(todayDateString);
+            renderDashboard(); // Update dashboard with new expense total
+        } catch (error) {
+            console.error("Error saving expense:", error);
+            Swal.fire('Error', 'Could not save the expense.', 'error');
+        }
+    }
+    
+    function clearExpenseForm() {
+        document.getElementById('expense-id').value = '';
+        document.getElementById('expense-description').value = '';
+        document.getElementById('expense-amount').value = '';
+        document.getElementById('expense-form-title').textContent = `Add Expense for Today`;
+    }
+    
+    async function editExpense(id) {
+        const expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${todayDateString}`) || [];
+        const expense = expenses.find(e => e.id === id);
+        if (expense) {
+            document.getElementById('expense-id').value = expense.id;
+            document.getElementById('expense-description').value = expense.description;
+            document.getElementById('expense-amount').value = expense.amount;
+            document.getElementById('expense-form-title').textContent = 'Edit Expense';
+            document.getElementById('expense-description').focus();
+        }
+    }
+
+    /**
+     * Deletes an expense.
+     */
+    async function deleteExpense(expenseId, dateString) {
+        const { isConfirmed } = await Swal.fire({
+            title: 'Delete Expense?',
+            text: 'Are you sure you want to delete this expense? This cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it'
+        });
+
+        if (isConfirmed) {
+            try {
+                let expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateString}`) || [];
+                const updatedExpenses = expenses.filter(e => e.id !== expenseId);
+                await localforage.setItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateString}`, updatedExpenses);
+                Toast.fire({ icon: 'success', title: 'Expense deleted!' });
+                renderExpensesView(dateString);
+                renderDashboard();
+            } catch (error) {
+                console.error("Error deleting expense:", error);
+                Swal.fire('Error', 'Could not delete the expense.', 'error');
+            }
         }
     }
 
@@ -1840,11 +2111,10 @@
             minStock: parseInt(minStockInput.value) || 0 
         };
 
-        // UPGRADE: Prevent duplicate products on both add and edit.
         const existingProduct = shopProducts.find(p => 
             p.name === productData.name && 
             p.category === productData.category &&
-            p.id !== productData.id // Exclude the product being edited from the check
+            p.id !== productData.id
         );
         if (existingProduct) {
             return Swal.fire('Duplicate Product', `A product named "${productData.name}" already exists in the "${productData.category}" category.`, 'error');
@@ -1884,7 +2154,7 @@
 
     async function deleteProduct(id) {
         const productToDelete = shopProducts.find(p => p.id === id);
-        if (!productToDelete) return; // Exit if product not found
+        if (!productToDelete) return;
 
         const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', html: `Delete <strong>${productToDelete.name} (${productToDelete.category})</strong>? This is irreversible.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!', confirmButtonColor: '#d33' });
         if (isConfirmed) {
@@ -2087,6 +2357,42 @@
     inventoryTbody.addEventListener('focusout', (event) => {
         if (event.target.matches('.new-stock-input, .end-input, .price-input, .open-sacks-add-input')) {
             event.target.closest('tr')?.classList.remove('active-row');
+        }
+    });
+    
+    // --- NEW: Keyboard Navigation for Data Entry ---
+    inventoryTbody.addEventListener('keydown', (event) => {
+        const target = event.target;
+        if (!target.matches('.new-stock-input, .end-input')) return;
+
+        const currentTR = target.closest('tr');
+        if (!currentTR) return;
+        
+        let nextTR = null;
+        let targetClass = target.classList.contains('new-stock-input') ? '.new-stock-input' : '.end-input';
+        
+        if (event.key === 'ArrowDown' || event.key === 'Enter') {
+            event.preventDefault();
+            nextTR = currentTR.nextElementSibling;
+            // Skip over header/total rows
+            while(nextTR && !nextTR.querySelector(targetClass)) {
+                nextTR = nextTR.nextElementSibling;
+            }
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            nextTR = currentTR.previousElementSibling;
+            // Skip over header/total rows
+            while(nextTR && !nextTR.querySelector(targetClass)) {
+                nextTR = nextTR.previousElementSibling;
+            }
+        }
+
+        if (nextTR) {
+            const nextInput = nextTR.querySelector(targetClass);
+            if (nextInput && !nextInput.disabled) {
+                nextInput.focus();
+                nextInput.select();
+            }
         }
     });
   </script>
