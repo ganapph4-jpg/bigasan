@@ -573,16 +573,16 @@
   <!-- VIEW 1: Dashboard -->
   <main id="dashboard-view" class="main-view active max-w-7xl mx-auto" role="main">
       <div id="dashboard-header" class="mb-6">
-        <h2 id="dashboard-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+        <h2 id="dashboard-title" class="text-xl font-bold text-slate-800">Dashboard Overview</h2>
         <p class="text-sm text-slate-500" id="dashboard-date"></p>
       </div>
-      <!-- ENHANCED Dashboard Grid with Skeleton UI -->
+      <!-- UPDATED Dashboard Grid with new labels and Skeleton UI -->
       <div id="dashboard-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Skeleton Card 1 -->
         <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500">
             <div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div>
             <div>
-                <p class="text-sm text-slate-500">Today's Total Sales</p>
+                <p class="text-sm text-slate-500">Previous Day's Total Sales</p>
                 <div id="dashboard-total-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>
             </div>
         </div>
@@ -590,7 +590,7 @@
         <div class="card p-6 flex items-center gap-6 bg-yellow-50 border-l-4 border-yellow-500">
             <div class="bg-yellow-100 p-4 rounded-full"><svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg></div>
             <div>
-                <p class="text-sm text-slate-500">Today's Expenses</p>
+                <p class="text-sm text-slate-500">Previous Day's Expenses</p>
                 <div id="dashboard-total-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>
             </div>
         </div>
@@ -598,7 +598,7 @@
         <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500">
             <div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
             <div>
-                <p class="text-sm text-slate-500">Today's Profit</p>
+                <p class="text-sm text-slate-500">Previous Day's Profit</p>
                 <div id="dashboard-total-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>
             </div>
         </div>
@@ -612,7 +612,7 @@
         </div>
         <!-- Skeleton Low Stock Card -->
         <div class="card p-6 bg-red-50 border-l-4 border-red-500 md:col-span-2 lg:col-span-4">
-            <h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3>
+            <h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock (Live)</h3>
             <div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">
               <div class="animate-pulse flex justify-between items-center text-sm p-2 bg-white rounded">
                   <div class="h-4 bg-slate-200 rounded w-2/5"></div>
@@ -947,7 +947,7 @@
       </div>
     </div>
 
-    <!-- ENHANCED: Data Management Content -->
+    <!-- Data Management Content -->
     <div id="settings-data-management-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-data-management">
       <div class="p-4 border rounded-lg mb-6">
         <h3 class="text-lg font-semibold mb-3">Backup & Restore</h3>
@@ -1294,6 +1294,14 @@
             }
         }
         return { totalSales, totalProfit };
+    }
+    
+    // NEW: Helper to get expenses for a specific date
+    async function getExpensesForDate(dateString) {
+        const expensesSnapshot = await db.collection('expenses').where('date', '==', dateString).get();
+        let totalExpenses = 0;
+        expensesSnapshot.forEach(doc => totalExpenses += doc.data().amount);
+        return totalExpenses;
     }
 
     async function getMonthlySummary(dateString) {
@@ -1668,30 +1676,30 @@
     async function loadFinancialSummary() { const monthValue = document.getElementById('financial-month-select').value; if (!monthValue) return; const startDate = dayjs(monthValue).startOf('month').format('YYYY-MM-DD'); const endDate = dayjs(monthValue).endOf('month').format('YYYY-MM-DD'); let totalSales = 0, totalCOGS = 0, totalExpenses = 0, totalNewStockCost = 0; const dailyFlow = {}; try { const reportsSnapshot = await db.collection('reports') .where('date', '>=', startDate).where('date', '<=', endDate).get(); const expensesSnapshot = await db.collection('expenses') .where('date', '>=', startDate).where('date', '<=', endDate).get(); reportsSnapshot.forEach(doc => { const report = doc.data(); if (!report || !report.data) return; let dailyNetProfit = 0; let dailyNewStockCost = 0; for (const productId in report.data) { const product = shopProducts.find(p => p.id === productId); if (!product) continue; const item = report.data[productId]; const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; if (sold > 0) { const sales = sold * item.price; const cogs = sold * item.cost; totalSales += sales; totalCOGS += cogs; dailyNetProfit += (sales - cogs); } if (item.newStock > 0) { const newStockCost = item.newStock * item.cost; totalNewStockCost += newStockCost; dailyNewStockCost += newStockCost; } } dailyFlow[report.date] = { profit: dailyNetProfit, reinvested: dailyNewStockCost }; }); expensesSnapshot.forEach(doc => { const expense = doc.data(); totalExpenses += expense.amount; if (dailyFlow[expense.date]) { dailyFlow[expense.date].profit -= expense.amount; } }); const grossProfit = totalSales - totalCOGS; const netProfit = grossProfit - totalExpenses; document.getElementById('fs-total-sales').textContent = `₱${formatCurrency(totalSales)}`; document.getElementById('fs-total-cogs').textContent = `₱${formatCurrency(totalCOGS)}`; document.getElementById('fs-gross-profit').textContent = `₱${formatCurrency(grossProfit)}`; document.getElementById('fs-total-expenses').textContent = `₱${formatCurrency(totalExpenses)}`; document.getElementById('fs-new-stock-cost').textContent = `₱${formatCurrency(totalNewStockCost)}`; document.getElementById('fs-net-profit').textContent = `₱${formatCurrency(netProfit)}`; renderMoneyFlowChart(dailyFlow); } catch (error) { console.error("Error loading financial summary:", error); Swal.fire('Error', 'Could not load financial summary data.', 'error'); } }
     function renderMoneyFlowChart(data) { if (moneyFlowChartInstance) moneyFlowChartInstance.destroy(); const ctx = document.getElementById('moneyFlowChart').getContext('2d'); const sortedDates = Object.keys(data).sort(); const labels = sortedDates.map(date => dayjs(date).format('MMM D')); const profitData = sortedDates.map(date => data[date].profit); const reinvestedData = sortedDates.map(date => data[date].reinvested); moneyFlowChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Net Profit', data: profitData, backgroundColor: 'rgba(16, 185, 129, 0.7)', }, { label: 'Capital Reinvested', data: reinvestedData, backgroundColor: 'rgba(59, 130, 246, 0.7)', }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { callback: value => `₱${value.toLocaleString()}` } } }, plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ₱${formatCurrency(c.raw)}` } } } } }); }
     
-    // ENHANCED Dashboard Renderer
+    // --- KEY CHANGE: UPDATED DASHBOARD RENDERER ---
     async function renderDashboard() {
       try {
-        const dateToRender = todayDateString;
-        document.getElementById('dashboard-title').textContent = "Today's Overview";
-        document.getElementById('dashboard-date').textContent = dayjs(dateToRender).format('MMMM D, YYYY');
+        const previousDayDateString = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
         
-        let reportDoc = await db.collection('reports').doc(dateToRender).get();
-        if (!reportDoc.exists) {
-            await startDay(dateToRender);
-            reportDoc = await db.collection('reports').doc(dateToRender).get();
+        document.getElementById('dashboard-title').textContent = "Dashboard Overview";
+        document.getElementById('dashboard-date').textContent = `Showing final report for ${dayjs(previousDayDateString).format('MMMM D, YYYY')}`;
+        
+        // --- FETCH DATA FOR PREVIOUS DAY ---
+        const { totalSales, totalProfit } = await getDailySummary(previousDayDateString);
+        const totalExpenses = await getExpensesForDate(previousDayDateString);
+
+        // --- FETCH LIVE DATA FOR CURRENT DAY/MONTH ---
+        const { monthlyNetProfit } = await getMonthlySummary(todayDateString);
+        const currentReportDoc = await db.collection('reports').doc(todayDateString).get();
+        let lowStockItems = [];
+        if(currentReportDoc.exists){
+            const report = currentReportDoc.data();
+            lowStockItems = shopProducts
+                .map(p => ({ ...p, stock: report.data[p.id]?.end }))
+                .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
         }
-        const report = reportDoc.data();
-        const { totalSales, totalProfit } = await getDailySummary(dateToRender);
-        const { monthlyNetProfit } = await getMonthlySummary(dateToRender);
-        const expensesSnapshot = await db.collection('expenses').where('date', '==', dateToRender).get();
-        let totalExpenses = 0;
-        expensesSnapshot.forEach(doc => totalExpenses += doc.data().amount);
 
-        const lowStockItems = shopProducts
-            .map(p => ({ ...p, stock: report.data[p.id]?.end }))
-            .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
-
-        // Populate skeleton UI
+        // --- POPULATE DASHBOARD ---
         document.getElementById('dashboard-total-sales').outerHTML = `<p id="dashboard-total-sales" class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p>`;
         document.getElementById('dashboard-total-expenses').outerHTML = `<p id="dashboard-total-expenses" class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalExpenses)}</p>`;
         document.getElementById('dashboard-total-profit').outerHTML = `<p id="dashboard-total-profit" class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p>`;
@@ -1724,7 +1732,6 @@
             await db.collection('expenses').doc(docId).set(expenseData);
             Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' });
             clearExpenseForm();
-            renderDashboard();
         } catch (error) {
             console.error("Error saving expense:", error);
             Swal.fire('Error', 'Could not save the expense.', 'error');
@@ -1735,7 +1742,7 @@
     }
     function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; }
     async function editExpense(id) { const expenseDoc = await db.collection('expenses').doc(id).get(); if (expenseDoc.exists) { const expense = expenseDoc.data(); document.getElementById('expense-id').value = expense.id; document.getElementById('expense-description').value = expense.description; document.getElementById('expense-amount').value = expense.amount; document.getElementById('expense-form-title').textContent = 'Edit Expense'; document.getElementById('expense-description').focus(); } }
-    async function deleteExpense(expenseId) { const { isConfirmed } = await Swal.fire({ title: 'Delete Expense?', text: 'This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it' }); if (isConfirmed) { try { await db.collection('expenses').doc(expenseId).delete(); Toast.fire({ icon: 'success', title: 'Expense deleted!' }); renderDashboard(); } catch (error) { Swal.fire('Error', 'Could not delete the expense.', 'error'); } } }
+    async function deleteExpense(expenseId) { const { isConfirmed } = await Swal.fire({ title: 'Delete Expense?', text: 'This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it' }); if (isConfirmed) { try { await db.collection('expenses').doc(expenseId).delete(); Toast.fire({ icon: 'success', title: 'Expense deleted!' }); } catch (error) { Swal.fire('Error', 'Could not delete the expense.', 'error'); } } }
     
     // --- Settings Panel Functions ---
     function showSettingsTab(contentId) { document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden')); document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.getElementById(contentId).classList.remove('hidden'); document.querySelector(`[aria-controls="${contentId}"]`).classList.add('active'); if (contentId === 'settings-analytics-content') { showAnalyticsSubTab('analytics-overview-content'); } if (contentId === 'settings-performance-content') { renderPerformanceBreakdown(); renderRemainingStockSummary(); } }
@@ -1777,7 +1784,7 @@
     function filterPerformanceTable() { const searchTerm = document.getElementById('performance-search').value.toLowerCase(); document.querySelectorAll('#performance-tbody .performance-row').forEach(row => { const dateText = row.dataset.date.toLowerCase(); row.style.display = dateText.includes(searchTerm) ? '' : 'none'; }); }
     async function setWorkingDay(dateString) { if(dateString === todayDateString) return; const { isConfirmed } = await Swal.fire({ title: 'Change Working Day?', html: `This will set your active working day to <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, change it!', confirmButtonColor: '#3085d6' }); if (isConfirmed) { await db.collection('settings').doc('main').update({ workingDate: dateString }); await Swal.fire('Working Day Changed', 'The application will now reload.', 'success'); location.reload(); } }
     
-    // --- NEW: ADVANCED DATA MANAGEMENT FUNCTIONS ---
+    // --- Advanced Data Management Functions ---
 
     async function backupAllData() {
         Swal.fire({
@@ -1959,4 +1966,4 @@
   </script>
 </body>
 </html>
-``````
+````````````
