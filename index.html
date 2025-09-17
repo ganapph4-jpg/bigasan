@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -783,9 +784,8 @@
       </div>
     </div>
     
-    <!-- UPDATED: Performance Breakdown Content -->
+    <!-- Performance Breakdown Content -->
     <div id="settings-performance-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-performance">
-      <!-- NEW: Remaining Stock Value Card -->
       <div class="card p-6 mb-6" id="remaining-stock-summary">
         <h3 class="text-xl font-bold text-slate-700 mb-4">Today's Remaining Stock Value</h3>
         <div class="space-y-3" aria-live="polite">
@@ -912,7 +912,7 @@
         </div>
       </div>
 
-      <!-- UPDATED: Financial Summary Sub-Tab -->
+      <!-- Financial Summary Sub-Tab -->
       <div id="analytics-financial-summary-content" class="analytics-tab-content hidden" role="tabpanel" aria-labelledby="tab-analytics-financial-summary">
         <div class="card p-6 mb-6">
             <h4 class="text-lg font-bold text-slate-800 mb-4">Monthly Financial Summary</h4>
@@ -947,17 +947,39 @@
       </div>
     </div>
 
+    <!-- ENHANCED: Data Management Content -->
     <div id="settings-data-management-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-data-management">
       <div class="p-4 border rounded-lg mb-6">
-        <h3 class="text-lg font-semibold mb-3 sr-only">Data Management</h3>
-        <p class="text-sm text-slate-500 mb-4">Data is now stored in the cloud. Backups can be managed within the Google Firebase console for your project.</p>
-        <div class="space-y-3">
-          <button onclick="resetData()" class="w-full bg-red-100 text-red-700 hover:bg-red-200 py-2 px-4 rounded transition">
-            Reset All Data (DANGEROUS)
+        <h3 class="text-lg font-semibold mb-3">Backup & Restore</h3>
+        <p class="text-sm text-slate-500 mb-4">Save a local copy of all data or restore the application from a backup file.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button onclick="backupAllData()" class="w-full bg-blue-100 text-blue-700 hover:bg-blue-200 py-2 px-4 rounded transition">
+            Backup All Data to File
+          </button>
+          <button onclick="restoreDataFromFile()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">
+            Restore Data from File
           </button>
         </div>
       </div>
+      <div class="p-4 border border-red-200 bg-red-50 rounded-lg mb-6">
+        <h3 class="text-lg font-semibold mb-3 text-red-800">Danger Zone</h3>
+        <div class="space-y-3">
+          <div>
+            <button onclick="resetSalesData()" class="w-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 py-2 px-4 rounded transition">
+              Reset Sales Data
+            </button>
+            <p class="text-xs text-slate-500 mt-1 pl-1">Deletes all `reports` and `expenses`. Products and settings are kept.</p>
+          </div>
+          <div>
+            <button onclick="factoryReset()" class="w-full bg-red-100 text-red-700 hover:bg-red-200 py-2 px-4 rounded transition">
+              Factory Reset
+            </button>
+            <p class="text-xs text-slate-500 mt-1 pl-1">Deletes EVERYTHING from the database. This cannot be undone.</p>
+          </div>
+        </div>
+      </div>
     </div>
+    <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="handleFileSelect(event)">
   </div>
 
   <script>
@@ -980,6 +1002,7 @@
     const APP_VERSION = 1.0;
     const RICE_CATEGORIES = ['25 KG', '10 KG', '5 KG', 'Per Kilo'];
     const HASH_SALT = 'rice-inventory-management-salt'; 
+    const COLLECTIONS_TO_BACKUP = ['products', 'reports', 'expenses', 'settings'];
     
     dayjs.extend(dayjs_plugin_isBetween);
 
@@ -1747,12 +1770,184 @@
     async function promptForCategoryThenEdit(editType) { const { value: selectedCategory } = await Swal.fire({ title: 'Select a Category to Edit', html: `<select id="swal-category-select" class="swal2-select"><option value="all">All Categories</option>${RICE_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}</select>`, focusConfirm: false, showCancelButton: true, confirmButtonText: 'Next &rarr;', preConfirm: () => document.getElementById('swal-category-select').value }); if (selectedCategory) { const categoryFilter = selectedCategory === 'all' ? null : selectedCategory; if (editType === 'begin') editBeginningStock(categoryFilter); else if (editType === 'price') editPrices(categoryFilter); } }
     async function editBeginningStock(categoryFilter = null) { const dateToEdit = todayDateString; const reportDoc = await db.collection('reports').doc(dateToEdit).get(); if (!reportDoc.exists) return Swal.fire('Cannot Edit', 'Can only edit beginning stock for the current day.', 'error'); const initialReport = reportDoc.data(); const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (storedPasswordHash) { const { value: password } = await Swal.fire({ title: 'Enter Password to Edit Beginning Stock', input: 'password', showCancelButton: true }); if (!password || hashPassword(password) !== storedPasswordHash) return password && Swal.fire('Incorrect Password', '', 'error'); } const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); if (products.length === 0) return Swal.fire('No Products', 'No products found in this category.', 'info'); let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">'; let currentCategory = ''; products.forEach(p => { if (p.category !== currentCategory && !categoryFilter) { currentCategory = p.category; modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`; } modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="begin-stock-${p.id}" class="font-medium">${p.name}</label><input type="number" id="begin-stock-${p.id}" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded" oninput="validateNumberInput(this, true)"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Beginning Stock ${categoryFilter ? `for ${categoryFilter}` : ''}`, html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, preConfirm: () => { if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) { Swal.showValidationMessage('Please correct invalid inputs.'); return false; } } }); if (isConfirmed) { const reportRef = db.collection('reports').doc(dateToEdit); const updatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newBegin = parseInt(row.querySelector('input').value) || 0; const diff = newBegin - (initialReport.data[productId]?.begin || 0); updatePayload[`data.${productId}.begin`] = newBegin; updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff); }); await reportRef.update(updatePayload); Toast.fire({ icon: 'success', title: 'Beginning stock updated!' }); } }
     async function editPrices(categoryFilter = null) { const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); if (products.length === 0) return Swal.fire('No Products Found', '', 'info'); let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">'; let currentCategory = ''; products.forEach(p => { if (p.category !== currentCategory && !categoryFilter) { currentCategory = p.category; modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`; } modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="price-input-${p.id}" class="font-medium">${p.name}</label><input type="number" id="price-input-${p.id}" step="0.01" value="${p.price.toFixed(2)}" class="border p-1 w-full rounded" oninput="validateNumberInput(this)"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Selling Prices ${categoryFilter ? `for ${categoryFilter}` : ''}`, html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, preConfirm: () => { if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) { Swal.showValidationMessage('Please correct invalid inputs.'); return false; } } }); if (isConfirmed) { const batch = db.batch(); const reportRef = db.collection('reports').doc(todayDateString); const reportUpdatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newPrice = parseFloat(row.querySelector('input').value) || 0; const productRef = db.collection('products').doc(productId); batch.update(productRef, { price: newPrice }); reportUpdatePayload[`data.${productId}.price`] = newPrice; }); batch.update(reportRef, reportUpdatePayload); await batch.commit(); await loadProducts(); Toast.fire({ icon: 'success', title: 'Prices updated!' }); } }
-    async function resetData() { const { isConfirmed } = await Swal.fire({ title: 'ARE YOU SURE?', html: `This will permanently delete ALL data. Type <strong>RESET</strong> to confirm.`, icon: 'warning', input: 'text', showCancelButton: true, confirmButtonColor: '#d33', preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('You must type "RESET" to confirm.') }); if (isConfirmed) { try { const collections = ['products', 'reports', 'expenses', 'settings']; for (const collectionName of collections) { const snapshot = await db.collection(collectionName).get(); const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } await Swal.fire('Data Reset', 'All data has been deleted. The page will reload.', 'success'); location.reload(); } catch(error) { Swal.fire('Reset Failed', 'Could not clear all data.', 'error'); } } }
+    
+    // --- Performance Tab ---
     async function renderPerformanceBreakdown() { const tbody = document.getElementById('performance-tbody'); tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>'; try { const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get(); let tableHtml = ''; for (const doc of reportsSnapshot.docs) { const report = doc.data(); const dateObj = dayjs(report.date); const summary = await getDailySummary(report.date); const cashOnHand = report.cashOnHand || 0; const difference = cashOnHand - summary.totalSales; let differenceHtml; if (cashOnHand === 0 && summary.totalSales > 0) { differenceHtml = `<span>-</span>`; } else if (difference < 0) { differenceHtml = `<span class="cash-short font-semibold">(₱${formatCurrency(Math.abs(difference))})</span>`; } else if (difference > 0) { differenceHtml = `<span class="cash-over font-semibold">+₱${formatCurrency(difference)}</span>`; } else { differenceHtml = `<span class="cash-balanced font-semibold">Balanced</span>`; } tableHtml += ` <tr class="bg-white border-b performance-row" data-date="${dateObj.format('MMM D, YYYY')}"> <td class="py-4 px-6 font-medium text-slate-900">${dateObj.format('MMM D, YYYY')}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(summary.totalSales)}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(cashOnHand)}</td> <td class="py-4 px-6 text-right">${differenceHtml}</td> <td class="py-4 px-6 text-center"> <button class="text-blue-600 hover:underline text-xs font-medium" onclick="setWorkingDay('${report.date}')">Set as Working Day</button> </td> </tr>`; } tbody.innerHTML = tableHtml || '<tr><td colspan="5" class="text-center p-4">No reports found.</td></tr>'; } catch(error) { tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Could not load performance data.</td></tr>'; } }
     async function renderRemainingStockSummary() { try { const reportDoc = await db.collection('reports').doc(todayDateString).get(); if (!reportDoc.exists) return; const report = reportDoc.data(); const categoryValues = { '25 KG': 0, '10 KG': 0, '5 KG': 0, 'Per Kilo': 0 }; let grandTotal = 0; for (const product of shopProducts) { const itemData = report.data[product.id]; if (itemData) { const remainingStock = Math.max(0, itemData.end); const value = remainingStock * itemData.cost; categoryValues[product.category] += value; grandTotal += value; } } for (const category of RICE_CATEGORIES) { const cleanCatId = category.replace(/\s+/g, '-'); const el = document.getElementById(`stock-value-${cleanCatId}`); if (el) el.textContent = `₱${formatCurrency(categoryValues[category])}`; } document.getElementById('stock-value-grand-total').textContent = `₱${formatCurrency(grandTotal)}`; } catch (error) { console.error("Error rendering stock value summary:", error); } }
     function filterPerformanceTable() { const searchTerm = document.getElementById('performance-search').value.toLowerCase(); document.querySelectorAll('#performance-tbody .performance-row').forEach(row => { const dateText = row.dataset.date.toLowerCase(); row.style.display = dateText.includes(searchTerm) ? '' : 'none'; }); }
     async function setWorkingDay(dateString) { if(dateString === todayDateString) return; const { isConfirmed } = await Swal.fire({ title: 'Change Working Day?', html: `This will set your active working day to <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, change it!', confirmButtonColor: '#3085d6' }); if (isConfirmed) { await db.collection('settings').doc('main').update({ workingDate: dateString }); await Swal.fire('Working Day Changed', 'The application will now reload.', 'success'); location.reload(); } }
     
+    // --- NEW: ADVANCED DATA MANAGEMENT FUNCTIONS ---
+
+    async function backupAllData() {
+        Swal.fire({
+            title: 'Backing up data...',
+            text: 'Please wait while we collect all your data.',
+            didOpen: () => { Swal.showLoading() },
+            allowOutsideClick: false
+        });
+
+        try {
+            const backupData = {};
+            for (const collectionName of COLLECTIONS_TO_BACKUP) {
+                const snapshot = await db.collection(collectionName).get();
+                backupData[collectionName] = {};
+                snapshot.forEach(doc => {
+                    backupData[collectionName][doc.id] = doc.data();
+                });
+            }
+
+            const jsonString = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rice-inventory-backup-${dayjs().format('YYYY-MM-DD')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            Swal.close();
+            Toast.fire({ icon: 'success', title: 'Backup successful!' });
+        } catch (error) {
+            console.error("Backup failed:", error);
+            Swal.fire('Backup Failed', 'An error occurred while creating the backup file.', 'error');
+        }
+    }
+
+    function restoreDataFromFile() {
+        document.getElementById('import-file-input').click();
+    }
+
+    async function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'ARE YOU SURE?',
+            html: `This will <strong>overwrite all current data</strong> with the contents of <code>${file.name}</code>. This cannot be undone. Type <strong>OVERWRITE</strong> to confirm.`,
+            icon: 'warning',
+            input: 'text',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, Overwrite!',
+            preConfirm: (v) => v.toUpperCase() !== 'OVERWRITE' && Swal.showValidationMessage('You must type "OVERWRITE" to confirm.')
+        });
+
+        if (!isConfirmed) {
+            event.target.value = ''; // Reset file input
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const backupData = JSON.parse(e.target.result);
+                // Basic validation
+                if (!COLLECTIONS_TO_BACKUP.every(c => backupData[c] !== undefined)) {
+                    throw new Error('Invalid or corrupted backup file format.');
+                }
+
+                Swal.fire({
+                    title: 'Restoring data...',
+                    text: 'Deleting old data first. Please wait.',
+                    didOpen: () => { Swal.showLoading() },
+                    allowOutsideClick: false
+                });
+
+                // Delete existing data
+                for (const collectionName of COLLECTIONS_TO_BACKUP) {
+                    const snapshot = await db.collection(collectionName).get();
+                    if (snapshot.empty) continue;
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                }
+
+                Swal.update({ text: 'Uploading new data. This may take a moment.' });
+
+                // Restore new data
+                for (const collectionName of COLLECTIONS_TO_BACKUP) {
+                    const collectionData = backupData[collectionName];
+                    if (Object.keys(collectionData).length === 0) continue;
+                    const batch = db.batch();
+                    for (const docId in collectionData) {
+                        const docRef = db.collection(collectionName).doc(docId);
+                        batch.set(docRef, collectionData[docId]);
+                    }
+                    await batch.commit();
+                }
+
+                await Swal.fire('Restore Complete', 'All data has been restored. The page will now reload.', 'success');
+                location.reload();
+
+            } catch (error) {
+                console.error("Restore failed:", error);
+                Swal.fire('Restore Failed', error.message || 'An error occurred while restoring data.', 'error');
+            } finally {
+                event.target.value = ''; // Reset file input
+            }
+        };
+        reader.readAsText(file);
+    }
+    
+    async function resetSalesData() {
+        const { isConfirmed } = await Swal.fire({
+            title: 'Reset Sales Data?',
+            html: `This will permanently delete all <strong>reports</strong> and <strong>expenses</strong>. Your product list and settings will NOT be affected.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, reset it!'
+        });
+        if (isConfirmed) {
+            Swal.fire({ title: 'Resetting...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+            try {
+                const collectionsToDelete = ['reports', 'expenses'];
+                for (const collectionName of collectionsToDelete) {
+                    const snapshot = await db.collection(collectionName).get();
+                    if (snapshot.empty) continue;
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                }
+                await Swal.fire('Reset Complete', 'Sales and expense data has been deleted. The page will reload.', 'success');
+                location.reload();
+            } catch (error) {
+                Swal.fire('Reset Failed', 'Could not clear sales data.', 'error');
+            }
+        }
+    }
+
+    async function factoryReset() {
+        const { isConfirmed } = await Swal.fire({
+            title: 'ARE YOU SURE?',
+            html: `This will permanently delete ALL data from the database. Type <strong>RESET</strong> to confirm.`,
+            icon: 'warning',
+            input: 'text',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, Factory Reset!',
+            preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('You must type "RESET" to confirm.')
+        });
+        if (isConfirmed) {
+            Swal.fire({ title: 'Deleting all data...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+            try {
+                for (const collectionName of COLLECTIONS_TO_BACKUP) {
+                    const snapshot = await db.collection(collectionName).get();
+                    if (snapshot.empty) continue;
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                }
+                await Swal.fire('Factory Reset Complete', 'All data has been deleted. The page will reload.', 'success');
+                location.reload();
+            } catch (error) {
+                Swal.fire('Reset Failed', 'Could not clear all data.', 'error');
+            }
+        }
+    }
+
     // --- Event Listeners ---
     document.addEventListener('DOMContentLoaded', initializeApp);
 
