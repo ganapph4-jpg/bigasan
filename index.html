@@ -1,22 +1,23 @@
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rice Inventory Management System</title>
-  <meta name="description" content="A simple, offline-first system for managing rice sales, inventory, and profit tracking.">
+  <meta name="description" content="A simple, cloud-synced system for managing rice sales, inventory, and profit tracking.">
   
   <!-- External Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isBetween.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/localforage/dist/localforage.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-dayjs-3@latest/dist/chartjs-adapter-dayjs-3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 
+  <!-- FIREBASE SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
   <style>
     /* Custom CSS Variables for easy theming */
@@ -221,6 +222,31 @@
     @keyframes spin { 
       0% { transform: rotate(0deg); } 
       100% { transform: rotate(360deg); } 
+    }
+
+    /* --- NEW: Full-page loader for initialization --- */
+    #app-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      transition: opacity 0.3s ease-in-out;
+    }
+    #app-loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #app-loader p {
+      margin-top: 1rem;
+      font-weight: 500;
+      color: var(--dark);
     }
     
     #settings-panel { 
@@ -481,6 +507,12 @@
   </style>
 </head>
 <body class="p-4">
+
+  <!-- NEW: Full-page loader -->
+  <div id="app-loader">
+    <div class="loader"></div>
+    <p id="loader-status">Initializing System...</p>
+  </div>
 
   <!-- Shared Header -->
   <div class="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 no-print" role="banner">
@@ -850,15 +882,16 @@
     <div id="settings-data-management-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-data-management">
       <div class="p-4 border rounded-lg mb-6">
         <h3 class="text-lg font-semibold mb-3 sr-only">Data Management</h3>
+        <p class="text-sm text-slate-500 mb-4">Data is now stored in the cloud. Backups can be managed within the Google Firebase console for your project.</p>
         <div class="space-y-3">
-          <button onclick="exportAllData()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">
+          <!-- <button onclick="exportAllData()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">
             Export All Data
           </button>
           <button onclick="importData()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">
             Import Data
-          </button>
+          </button> -->
           <button onclick="resetData()" class="w-full bg-red-100 text-red-700 hover:bg-red-200 py-2 px-4 rounded transition">
-            Reset All Data
+            Reset All Data (DANGEROUS)
           </button>
         </div>
       </div>
@@ -866,16 +899,28 @@
   </div>
 
   <script>
-    // --- Constants ---
-    const RICE_CATEGORIES = ['25 KG', '10 KG', '5 KG', 'Per Kilo'];
-    const LOCAL_FORAGE_KEYS = {
-        PRODUCTS: 'rice_shop_products',
-        REPORTS_PREFIX: 'report_',
-        REPORT_INDEX: 'report_index',
-        PASSWORD: 'app_password_hash',
-        WORKING_DATE: 'current_working_date',
-        EXPENSES_PREFIX: 'expenses_' // New key for expenses
+    // --- FIREBASE INITIALIZATION ---
+    // Your web app's Firebase configuration
+    // SUGGESTION: For better security and performance, consider upgrading to the Firebase v9+ modular SDK
+    // and storing these config values in a separate, non-public file or environment variables.
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeu-G3dsrumVJxpXUa0TKtJbCnpxs5UBA",
+      authDomain: "bigasan-e89a7.firebaseapp.com",
+      projectId: "bigasan-e89a7",
+      storageBucket: "bigasan-e89a7.firebasestorage.app",
+      messagingSenderId: "346505786480",
+      appId: "1:346505786480:web:c33250ea0975ff192970b5"
     };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // --- Constants ---
+    const APP_VERSION = 1.0; // For migration tracking
+    const RICE_CATEGORIES = ['25 KG', '10 KG', '5 KG', 'Per Kilo'];
     const HASH_SALT = 'rice-inventory-management-salt'; 
     
     // Day.js setup
@@ -894,20 +939,27 @@
     let shopProducts = [];
     let todayDateString; // This is the CURRENT WORKING DATE
     let moneyFlowChartInstance = null;
-    let currentDailyReportCategory = null; 
     let calculationTimeout; // For debouncing calculations
+    let reportListener = null; // To hold the active Firestore listener
+    let expensesListener = null; // Listener for expenses view
+    let isTableRendered = false; // NEW: Flag to track initial table render for optimization
 
     // --- Utility Functions ---
 
     /**
-     * Initializes the application by loading products, setting up views.
+     * Initializes the application by running migrations, loading products, and setting up views.
      */
     async function initializeApp() {
         try {
-            let workingDate = await localforage.getItem(LOCAL_FORAGE_KEYS.WORKING_DATE);
-            if (!workingDate || !dayjs(workingDate).isValid()) {
+            await runMigrations(); // NEW: Run migration logic first
+
+            const settingsDoc = await db.collection('settings').doc('main').get();
+            let workingDate;
+            if (settingsDoc.exists && settingsDoc.data().workingDate) {
+                workingDate = settingsDoc.data().workingDate;
+            } else {
                 workingDate = dayjs().format('YYYY-MM-DD');
-                await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, workingDate);
+                await db.collection('settings').doc('main').set({ workingDate: workingDate }, { merge: true });
             }
             todayDateString = workingDate;
             
@@ -925,12 +977,18 @@
             toggleAnalyticsDateInputs(); 
 
             showView('dashboard-view');
+
+            // Hide the full-page loader
+            const appLoader = document.getElementById('app-loader');
+            appLoader.classList.add('hidden');
+
         } catch (error) {
             console.error("Critical Error during App Initialization:", error);
+            document.getElementById('loader-status').textContent = 'Error: Could not start application.';
             Swal.fire({
                 icon: 'error',
                 title: 'Application Failed to Start',
-                text: 'Could not load essential data. Please clear your browser cache or contact support.',
+                text: 'Could not connect to the database. Please check your internet connection and Firebase setup.',
                 allowOutsideClick: false
             });
         }
@@ -958,7 +1016,6 @@
      * Formats a number to a currency string.
      */
     function formatCurrency(amount) {
-        // Fallback to 0 if amount is not a valid number
         const num = parseFloat(amount);
         return isNaN(num) ? '0.00' : num.toFixed(2);
     }
@@ -971,57 +1028,56 @@
     }
 
 
-    // --- Data Management Functions (LocalForage) ---
+    // --- Data Management Functions (Firestore) ---
 
     /**
-     * Loads product data from localforage or initializes with defaults.
+     * NEW: Runs data migration tasks based on app version.
+     */
+    async function runMigrations() {
+        const loaderStatus = document.getElementById('loader-status');
+        const settingsRef = db.collection('settings').doc('app_version');
+        const doc = await settingsRef.get();
+        const currentVersion = doc.exists ? doc.data().version : 0;
+
+        if (currentVersion < APP_VERSION) {
+            loaderStatus.textContent = 'Migrating data...';
+            
+            // --- Migration Task 1: Create default products if none exist ---
+            const productsSnapshot = await db.collection('products').get();
+            if (productsSnapshot.empty) {
+                const defaultProducts = [ /* ... Omitted for brevity, same as original ... */ 
+                    {id: 'prod_1', name: 'KYLO', price: 1300, cost: 1150, category: '25 KG', minStock: 5}, {id: 'prod_2', name: 'HASMIN AROMA', price: 1350, cost: 1200, category: '25 KG', minStock: 5}, {id: 'prod_3', name: 'ALAS', price: 1250, cost: 1100, category: '25 KG', minStock: 5}, {id: 'prod_4', name: 'YOUNG MASTER', price: 1280, cost: 1130, category: '25 KG', minStock: 5}, {id: 'prod_5', name: 'BLUE HARVEST', price: 1320, cost: 1170, category: '25 KG', minStock: 5}, {id: 'prod_6', name: 'PRINCESS BEA', price: 1270, cost: 1120, category: '25 KG', minStock: 5}, {id: 'prod_7', name: 'ALAS', price: 550, cost: 480, category: '10 KG', minStock: 10}, {id: 'prod_8', name: 'HASMIN AROMA', price: 580, cost: 510, category: '10 KG', minStock: 10}, {id: 'prod_9', name: 'BLUE HARVEST', price: 570, cost: 500, category: '10 KG', minStock: 10}, {id: 'prod_10', name: 'YOUNG MASTER', price: 560, cost: 490, category: '10 KG', minStock: 10}, {id: 'prod_11', name: 'PRINCESS BEA', price: 540, cost: 470, category: '10 KG', minStock: 10}, {id: 'prod_12', name: 'YOUNG MASTER', price: 280, cost: 240, category: '5 KG', minStock: 15}, {id: 'prod_13', name: 'HASMIN AROMA', price: 290, cost: 250, category: '5 KG', minStock: 15}, {id: 'prod_14', name: 'ALAS', price: 270, cost: 230, category: '5 KG', minStock: 15}, {id: 'prod_15', name: 'BLUE HARVEST', price: 285, cost: 245, category: '5 KG', minStock: 15}, {id: 'prod_16', name: 'PRINCESS BEA', price: 260, cost: 220, category: '5 KG', minStock: 15}, {id: 'prod_17', name: 'KYLO', price: 55, cost: 48, category: 'Per Kilo', minStock: 20}, {id: 'prod_18', name: 'HASMIN AROMA', price: 60, cost: 52, category: 'Per Kilo', minStock: 20}, {id: 'prod_19', name: 'ALAS', price: 50, cost: 45, category: 'Per Kilo', minStock: 20}, {id: 'prod_20', name: 'YOUNG MASTER', price: 53, cost: 46, category: 'Per Kilo', minStock: 20}, {id: 'prod_21', name: 'BLUE HARVEST', price: 57, cost: 50, category: 'Per Kilo', minStock: 20}, {id: 'prod_22', name: 'PRINCESS BEA', price: 49, cost: 43, category: 'Per Kilo', minStock: 20}, {id: 'prod_23', name: 'JAZZY', price: 52, cost: 45, category: 'Per Kilo', minStock: 20}, {id: 'prod_24', name: 'BIGANTE', price: 48, cost: 41, category: 'Per Kilo', minStock: 20}, {id: 'prod_25', name: 'FARNALIZA', price: 51, cost: 44, category: 'Per Kilo', minStock: 20}, {id: 'prod_26', name: 'PILIT', price: 47, cost: 40, category: 'Per Kilo', minStock: 20}, {id: 'prod_27', name: 'BH YELLOW', price: 54, cost: 47, category: 'Per Kilo', minStock: 20}, {id: 'prod_28', name: 'SWEET RICE', price: 65, cost: 58, category: 'Per Kilo', minStock: 20}
+                ];
+                const batch = db.batch();
+                defaultProducts.forEach(product => {
+                    const docRef = db.collection('products').doc(product.id);
+                    batch.set(docRef, product);
+                });
+                await batch.commit();
+            }
+
+            // --- Future migration tasks can be added here using "if (currentVersion < x)" ---
+            
+            await settingsRef.set({ version: APP_VERSION });
+            Toast.fire({ icon: 'success', title: 'Migration Successful!' });
+        }
+        loaderStatus.textContent = 'Loading application...';
+    }
+
+
+    /**
+     * Loads product data from Firestore.
      */
     async function loadProducts() {
         try {
-            let savedProducts = await localforage.getItem(LOCAL_FORAGE_KEYS.PRODUCTS);
-            if (!savedProducts || savedProducts.length === 0) {
-                // Default products
-                savedProducts = [ 
-                    {id: 'prod_1', name: 'KYLO', price: 1300, cost: 1150, category: '25 KG', minStock: 5}, 
-                    {id: 'prod_2', name: 'HASMIN AROMA', price: 1350, cost: 1200, category: '25 KG', minStock: 5}, 
-                    {id: 'prod_3', name: 'ALAS', price: 1250, cost: 1100, category: '25 KG', minStock: 5}, 
-                    {id: 'prod_4', name: 'YOUNG MASTER', price: 1280, cost: 1130, category: '25 KG', minStock: 5}, 
-                    {id: 'prod_5', name: 'BLUE HARVEST', price: 1320, cost: 1170, category: '25 KG', minStock: 5}, 
-                    {id: 'prod_6', name: 'PRINCESS BEA', price: 1270, cost: 1120, category: '25 KG', minStock: 5}, 
-                    {id: 'prod_7', name: 'ALAS', price: 550, cost: 480, category: '10 KG', minStock: 10}, 
-                    {id: 'prod_8', name: 'HASMIN AROMA', price: 580, cost: 510, category: '10 KG', minStock: 10}, 
-                    {id: 'prod_9', name: 'BLUE HARVEST', price: 570, cost: 500, category: '10 KG', minStock: 10}, 
-                    {id: 'prod_10', name: 'YOUNG MASTER', price: 560, cost: 490, category: '10 KG', minStock: 10}, 
-                    {id: 'prod_11', name: 'PRINCESS BEA', price: 540, cost: 470, category: '10 KG', minStock: 10}, 
-                    {id: 'prod_12', name: 'YOUNG MASTER', price: 280, cost: 240, category: '5 KG', minStock: 15}, 
-                    {id: 'prod_13', name: 'HASMIN AROMA', price: 290, cost: 250, category: '5 KG', minStock: 15}, 
-                    {id: 'prod_14', name: 'ALAS', price: 270, cost: 230, category: '5 KG', minStock: 15}, 
-                    {id: 'prod_15', name: 'BLUE HARVEST', price: 285, cost: 245, category: '5 KG', minStock: 15}, 
-                    {id: 'prod_16', name: 'PRINCESS BEA', price: 260, cost: 220, category: '5 KG', minStock: 15}, 
-                    {id: 'prod_17', name: 'KYLO', price: 55, cost: 48, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_18', name: 'HASMIN AROMA', price: 60, cost: 52, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_19', name: 'ALAS', price: 50, cost: 45, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_20', name: 'YOUNG MASTER', price: 53, cost: 46, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_21', name: 'BLUE HARVEST', price: 57, cost: 50, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_22', name: 'PRINCESS BEA', price: 49, cost: 43, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_23', name: 'JAZZY', price: 52, cost: 45, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_24', name: 'BIGANTE', price: 48, cost: 41, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_25', name: 'FARNALIZA', price: 51, cost: 44, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_26', name: 'PILIT', price: 47, cost: 40, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_27', name: 'BH YELLOW', price: 54, cost: 47, category: 'Per Kilo', minStock: 20}, 
-                    {id: 'prod_28', name: 'SWEET RICE', price: 65, cost: 58, category: 'Per Kilo', minStock: 20} 
-                ];
-                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
-            } else {
-                // Ensure minStock property exists for old data
-                savedProducts = savedProducts.map(p => ({ ...p, minStock: p.minStock !== undefined ? p.minStock : 0 }));
-                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, savedProducts);
-            }
-            shopProducts = savedProducts;
+            const productsSnapshot = await db.collection('products').get();
+            let savedProducts = [];
+            productsSnapshot.forEach(doc => savedProducts.push(doc.data()));
+            // Ensure minStock property exists for old data
+            shopProducts = savedProducts.map(p => ({ ...p, minStock: p.minStock !== undefined ? p.minStock : 0 }));
         } catch (error) {
             console.error("Error loading products:", error);
-            // Re-throw the error to be caught by initializeApp
-            throw new Error("Could not load product data from storage.");
+            throw new Error("Could not load product data from database.");
         }
     }
 
@@ -1029,14 +1085,16 @@
      * Initiates a new daily report if one doesn't exist.
      */
     async function startDay(dateString) {
-        let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-        if (report) {
-            return report;
+        const reportRef = db.collection('reports').doc(dateString);
+        let reportDoc = await reportRef.get();
+
+        if (reportDoc.exists) {
+            return reportDoc.data();
         }
 
-        const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []).sort().reverse();
-        const lastReportDate = reportIndex.length > 0 ? reportIndex[0] : null;
-        const lastReport = lastReportDate ? await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${lastReportDate}`) : null;
+        const lastReportDate = dayjs(dateString).subtract(1, 'day').format('YYYY-MM-DD');
+        const lastReportDoc = await db.collection('reports').doc(lastReportDate).get();
+        const lastReport = lastReportDoc.exists ? lastReportDoc.data() : null;
         
         const newReportData = {};
         shopProducts.forEach(p => {
@@ -1051,9 +1109,9 @@
             };
         });
 
-        report = { date: dateString, data: newReportData, cashOnHand: 0 };
-        await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
-        Toast.fire({ icon: 'success', title: `Report for ${dayjs(dateString).format('MMM D')} Started!` });
+        const report = { date: dateString, data: newReportData, cashOnHand: 0 };
+        await reportRef.set(report);
+        Toast.fire({ icon: 'info', title: `Started new report for ${dayjs(dateString).format('MMM D')}` });
         return report;
     }
 
@@ -1062,22 +1120,16 @@
      */
     async function saveInventoryData(dateString, productId, data) {
         try {
-            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-            if (report) {
-                if (!report.data[productId]) {
-                     const productInfo = shopProducts.find(p => p.id === productId);
-                     if (productInfo) {
-                        report.data[productId] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: productInfo.price, cost: productInfo.cost };
-                     } else {
-                        return;
-                     }
-                }
-                Object.assign(report.data[productId], data);
-                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, report);
+            const reportRef = db.collection('reports').doc(dateString);
+            const updatePayload = {};
+            for (const key in data) {
+                // Use dot notation for updating nested object fields
+                updatePayload[`data.${productId}.${key}`] = data[key];
             }
+            await reportRef.update(updatePayload);
         } catch (error) {
             console.error("Error saving inventory data:", error);
-            Toast.fire({ icon: 'error', title: 'Failed to save data. Please check storage space.' });
+            Toast.fire({ icon: 'error', title: 'Failed to save data. Check connection.' });
         }
     }
 
@@ -1087,47 +1139,24 @@
     async function finalizeReport() {
         try {
             const submittedDate = todayDateString;
-            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`);
-            if (!report) {
+            const reportRef = db.collection('reports').doc(submittedDate);
+            const reportDoc = await reportRef.get();
+            if (!reportDoc.exists) {
                 Toast.fire({ icon: 'error', title: "No report to submit." });
                 return;
             }
             
-            // Save the cash on hand value before finalizing
-            const cashOnHandInput = document.getElementById('cash-on-hand');
-            if (cashOnHandInput) {
-                report.cashOnHand = parseFloat(cashOnHandInput.value) || 0;
-            }
-
-            await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${submittedDate}`, report);
+            const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
+            await reportRef.update({ cashOnHand: cashOnHand });
             
-            let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
-            if (!reportIndex.includes(submittedDate)) {
-                reportIndex.push(submittedDate);
-                await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex);
-            }
-
             const tomorrowDateString = dayjs(submittedDate).add(1, 'day').format('YYYY-MM-DD');
-            const newTomorrowData = {};
-            shopProducts.forEach(p => {
-                const todayEndStock = report.data[p.id]?.end || 0;
-                newTomorrowData[p.id] = {
-                    begin: todayEndStock,
-                    newStock: 0,
-                    openedSacks: 0,
-                    end: todayEndStock,
-                    price: p.price,
-                    cost: p.cost
-                };
-            });
-            const newTomorrowReport = { date: tomorrowDateString, data: newTomorrowData, cashOnHand: 0 };
-            await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${tomorrowDateString}`, newTomorrowReport);
+            await startDay(tomorrowDateString); // This will create the next day's report based on today's end
             
-            await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, tomorrowDateString);
+            await db.collection('settings').doc('main').update({ workingDate: tomorrowDateString });
 
             await Swal.fire({
                 title: 'Report Saved!',
-                text: `Today's data is saved. The app will now advance to the next day.`,
+                text: `The app will now advance to the next day.`,
                 icon: 'success',
                 timer: 2000,
                 showConfirmButton: false
@@ -1136,7 +1165,7 @@
             location.reload();
         } catch (error) {
             console.error("Error finalizing report:", error);
-            Swal.fire('Error', 'An error occurred while finalizing the report. Your data for today is saved, but the next day could not be started.', 'error');
+            Swal.fire('Error', 'An error occurred while finalizing the report.', 'error');
         }
     }
 
@@ -1148,13 +1177,8 @@
      */
     function updateNavTabs(activeTabId) {
         document.querySelectorAll('.nav-tab').forEach(tab => {
-            if (tab.getAttribute('aria-controls') === activeTabId) {
-                tab.classList.add('active');
-                tab.setAttribute('aria-selected', 'true');
-            } else {
-                tab.classList.remove('active');
-                tab.setAttribute('aria-selected', 'false');
-            }
+            tab.classList.toggle('active', tab.getAttribute('aria-controls') === activeTabId);
+            tab.setAttribute('aria-selected', tab.getAttribute('aria-controls') === activeTabId);
         });
     }
 
@@ -1162,6 +1186,16 @@
      * Controls which main application view is currently visible.
      */
     function showView(viewId) {
+        // Detach any active Firestore listeners when changing views
+        if (typeof reportListener === 'function') {
+            reportListener();
+            reportListener = null;
+        }
+        if (typeof expensesListener === 'function') {
+            expensesListener();
+            expensesListener = null;
+        }
+
         document.querySelectorAll('.main-view').forEach(view => view.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
         updateNavTabs(viewId);
@@ -1170,6 +1204,8 @@
             renderDashboard();
         } else if (viewId === 'expenses-view') {
             renderExpensesView(todayDateString);
+        } else if (viewId === 'daily-report-view') {
+            isTableRendered = false; // Reset flag when navigating to the report view
         }
     }
     
@@ -1177,42 +1213,55 @@
      * Displays the inventory table for the current working day.
      */
     function showCurrentDayReport() {
-        showInventory(null, todayDateString);
+        showInventory(todayDateString);
     }
     
     /**
-     * Displays the inventory table for a given date.
+     * Displays the inventory table for a given date with real-time updates.
      */
-    async function showInventory(category = null, dateString) {
-        currentDailyReportCategory = category;
+    async function showInventory(dateString) {
         showView('daily-report-view');
         
-        let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-        if (!report && dateString === todayDateString) {
-            report = await startDay(dateString);
+        if (dateString === todayDateString) {
+            await startDay(dateString);
         }
+
+        const reportRef = db.collection('reports').doc(dateString);
+        if (reportListener) reportListener(); // Detach previous listener
         
-        await renderInventoryTable(category, dateString);
+        // Attach a new real-time listener
+        reportListener = reportRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                const reportData = doc.data();
+                if (!isTableRendered) {
+                    renderInventoryTable(dateString, reportData); // First time render
+                    isTableRendered = true;
+                } else {
+                    updateInventoryTable(reportData); // Subsequent efficient updates
+                }
+            } else {
+                document.getElementById('inventory-tbody').innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600">Report for ${dayjs(dateString).format('MMMM D, YYYY')} not found!</td></tr>`;
+            }
+        }, (error) => {
+            console.error("Error listening to report changes:", error);
+            Swal.fire('Connection Error', 'Could not listen for real-time updates.', 'error');
+        });
     }
 
     /**
      * Helper function to get total sales and profit for a specific date.
      */
     async function getDailySummary(dateString) {
-        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-        let totalSales = 0;
-        let totalProfit = 0;
+        const reportDoc = await db.collection('reports').doc(dateString).get();
+        let totalSales = 0, totalProfit = 0;
 
-        if (report && report.data) {
+        if (reportDoc.exists) {
+            const report = reportDoc.data();
             for (const productId in report.data) {
-                const product = shopProducts.find(p => p.id === productId);
-                if (!product) continue;
-
                 const item = report.data[productId];
                 const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
                 const sales = Math.max(0, sold) * item.price;
                 const profit = sales - (Math.max(0, sold) * item.cost);
-
                 totalSales += sales;
                 totalProfit += profit;
             }
@@ -1224,268 +1273,179 @@
      * NEW: Helper function to get running monthly totals for the dashboard.
      */
     async function getMonthlySummary(dateString) {
-        const startOfMonth = dayjs(dateString).startOf('month');
-        const endOfDay = dayjs(dateString); // Up to and including the current working day
-        let monthlySales = 0;
-        let monthlyProfit = 0;
-        let monthlyExpenses = 0;
+        const startOfMonth = dayjs(dateString).startOf('month').format('YYYY-MM-DD');
+        const endOfDay = dayjs(dateString).format('YYYY-MM-DD');
+        let monthlySales = 0, monthlyProfit = 0, monthlyExpenses = 0;
 
-        // Use a loop to iterate through each day of the month up to the current day
-        for (let d = startOfMonth; d.isBefore(endOfDay) || d.isSame(endOfDay, 'day'); d = d.add(1, 'day')) {
-            const loopDate = d.format('YYYY-MM-DD');
-            
-            // Check if a report exists for the day to get sales and profit
-            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${loopDate}`);
-            if (report) {
-                const dailySummary = await getDailySummary(loopDate);
-                monthlySales += dailySummary.totalSales;
-                monthlyProfit += dailySummary.totalProfit;
+        const reportsSnapshot = await db.collection('reports').where('date', '>=', startOfMonth).where('date', '<=', endOfDay).get();
+        reportsSnapshot.forEach(doc => {
+            const report = doc.data();
+            for (const productId in report.data) {
+                const item = report.data[productId];
+                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
+                const sales = Math.max(0, sold) * item.price;
+                const profit = sales - (Math.max(0, sold) * item.cost);
+                monthlySales += sales;
+                monthlyProfit += profit;
             }
-            
-            // Check for expenses for the day
-            const expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${loopDate}`) || [];
-            monthlyExpenses += expenses.reduce((acc, exp) => acc + exp.amount, 0);
-        }
+        });
+        
+        const expensesSnapshot = await db.collection('expenses').where('date', '>=', startOfMonth).where('date', '<=', endOfDay).get();
+        expensesSnapshot.forEach(doc => monthlyExpenses += doc.data().amount);
 
         const monthlyNetProfit = monthlyProfit - monthlyExpenses;
         return { monthlySales, monthlyNetProfit };
     }
 
-
     /**
-     * Renders the daily inventory report table.
+     * Renders the initial structure of the daily inventory report table.
      */
-    async function renderInventoryTable(category, dateString) {
+    function renderInventoryTable(dateString, report) {
         const inventoryTbody = document.getElementById('inventory-tbody');
-        inventoryTbody.innerHTML = '<tr><td colspan="9" class="text-center p-4"><div class="loader" role="status"></div></td></tr>';
-        
         try {
-            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-            if (!report) {
-                inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600">Report for ${dayjs(dateString).format('MMMM D, YYYY')} not found!</td></tr>`;
-                return;
-            }
-            
             const isEditable = (dateString === todayDateString);
             document.getElementById('report-title').textContent = `Daily Report - ${dayjs(dateString).format('MMMM D, YYYY')}`;
             
-            const productsToRender = category 
-                ? shopProducts.filter(p => p.category === category) 
-                : shopProducts.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
-            
-            if (productsToRender.length === 0) {
-                inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-slate-500">No products found. Add products in settings.</td></tr>`;
-                return;
-            }
+            const groupedProducts = {};
+            RICE_CATEGORIES.forEach(cat => groupedProducts[cat] = []);
+            shopProducts.forEach(p => groupedProducts[p.category]?.push(p));
             
             let tableHtml = '';
-
-            const groupedProducts = {};
-            const categoriesToLoop = category ? [category] : RICE_CATEGORIES;
-            categoriesToLoop.forEach(cat => groupedProducts[cat] = []);
-            productsToRender.forEach(p => {
-                 if (groupedProducts[p.category]) {
-                    groupedProducts[p.category].push(p);
-                 }
-            });
-
-            let overallTotalSold = 0;
-            let overallTotalSales = 0;
-            let overallTotalProfit = 0;
-            let hasProductsInAnyCategory = false; 
-            
-            categoriesToLoop.forEach((cat, index) => {
+            RICE_CATEGORIES.forEach((cat, index) => {
                 const productsInCategory = groupedProducts[cat].sort((a, b) => a.name.localeCompare(b.name));
                 if (productsInCategory.length > 0) {
-                    hasProductsInAnyCategory = true;
-                    
-                    if (!category) {
-                        const cleanCatClass = cat.replace(/\s+/g, '-');
-                        tableHtml += `
-                        <tr class="category-header category-header-${cleanCatClass}">
-                            <td colspan="9">${cat}</td>
-                        </tr>`;
-                        if(index > 0) {
-                            tableHtml += `
-                            <tr class="category-subheader">
-                                <th>PRODUCT</th><th>BEGIN</th><th>NEW</th><th>OPEN SACKS</th><th>ENDING</th><th>SOLD</th><th>PRICE(₱)</th><th>SALES(₱)</th><th>PROFIT(₱)</th>
-                            </tr>`;
-                        }
+                    const cleanCatClass = cat.replace(/\s+/g, '-');
+                    tableHtml += `<tr class="category-header category-header-${cleanCatClass}"><td colspan="9">${cat}</td></tr>`;
+                    if(index > 0) {
+                        tableHtml += `<tr class="category-subheader"><th>PRODUCT</th><th>BEGIN</th><th>NEW</th><th>OPEN SACKS</th><th>ENDING</th><th>SOLD</th><th>PRICE(₱)</th><th>SALES(₱)</th><th>PROFIT(₱)</th></tr>`;
                     }
 
-                    let categoryTotalSold = 0;
-                    let categoryTotalSales = 0;
-                    let categoryTotalProfit = 0;
-
                     productsInCategory.forEach(product => {
-                        const data = report.data[product.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: product.price, cost: product.cost };
-                        const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
-                        const totalSales = Math.max(0, sold) * data.price;
-                        const profit = totalSales - (Math.max(0, sold) * data.cost);
-
-                        categoryTotalSold += sold > 0 ? sold : 0;
-                        categoryTotalSales += totalSales;
-                        categoryTotalProfit += profit;
-                        
-                        const rowClasses = [];
-                        if (sold > 0) rowClasses.push('row-has-sales');
-                        if (sold < 0) rowClasses.push('row-logic-error');
-
-                        if (data.end < 0) {
-                            rowClasses.push('row-negative-stock');
-                        } else if (product.minStock > 0 && data.end <= product.minStock) {
-                            rowClasses.push('row-low-stock');
-                        }
-                        
                         const isOpenSacksEditable = isEditable && product.category === '25 KG';
-
-                        tableHtml += `<tr data-id="${product.id}" class="${rowClasses.join(' ')}">
-                            <td class="font-medium">${product.name}</td>
-                            <td><input type="number" value="${data.begin}" class="begin-val" disabled /></td>
-                            <td><input type="number" value="${data.newStock}" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
+                        tableHtml += `<tr data-id="${product.id}">
+                            <td class="font-medium product-name">${product.name}</td>
+                            <td><input type="number" class="begin-val" disabled /></td>
+                            <td><input type="number" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
                             <td class="!p-1">
-                                ${isOpenSacksEditable ? `
-                                    <div class="flex items-center gap-1">
-                                        <input type="number" placeholder="Add Sacks" class="open-sacks-add-input flex-grow" oninput="validateNumberInput(this, true);"/>
-                                        <button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button>
-                                    </div>
-                                ` : `<span class="text-slate-400">-</span>`}
+                                ${isOpenSacksEditable ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" oninput="validateNumberInput(this, true);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
                             </td>
-                            <td><input type="number" value="${data.end}" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
-                            <td><input type="number" value="${sold}" class="sold-val" disabled /></td>
-                            <td><input type="number" step="0.01" value="${formatCurrency(data.price)}" class="price-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedUpdatePrice(this, '${dateString}');" /></td>
-                            <td class="total-sales-val font-semibold" aria-live="polite">${formatCurrency(totalSales)}</td>
-                            <td class="profit-val font-semibold text-green-600" aria-live="polite">${formatCurrency(profit)}</td>
+                            <td><input type="number" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
+                            <td><input type="number" class="sold-val" disabled /></td>
+                            <td><input type="number" step="0.01" class="price-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedUpdatePrice(this, '${dateString}');" /></td>
+                            <td class="total-sales-val font-semibold" aria-live="polite"></td>
+                            <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
                         </tr>`;
                     });
-
                     const cleanCat = cat.replace(' ', '-');
-                    tableHtml += `
-                    <tr class="category-total-row">
-                        <td colspan="5" class="text-right p-3">Total for ${cat}</td>
-                        <td id="category-total-sold-${cleanCat}" class="p-3">${categoryTotalSold}</td>
-                        <td></td>
-                        <td id="category-total-sales-${cleanCat}" class="p-3">₱${formatCurrency(categoryTotalSales)}</td>
-                        <td id="category-total-profit-${cleanCat}" class="p-3 text-green-600">₱${formatCurrency(categoryTotalProfit)}</td>
-                    </tr>`;
-                    
-                    overallTotalSold += categoryTotalSold;
-                    overallTotalSales += categoryTotalSales;
-                    overallTotalProfit += categoryTotalProfit;
+                    tableHtml += `<tr class="category-total-row" data-category-total="${cleanCat}"><td colspan="5" class="text-right p-3">Total for ${cat}</td><td class="category-total-sold p-3"></td><td></td><td class="category-total-sales p-3"></td><td class="category-total-profit p-3 text-green-600"></td></tr>`;
                 }
             });
-
-            if (!hasProductsInAnyCategory) {
-                inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-slate-500">No products found.</td></tr>`;
-                return;
-            }
-
-            if (!category && hasProductsInAnyCategory) {
-                 tableHtml += `
-                 <tr class="grand-total-row">
-                    <td colspan="5" class="text-right p-4">OVERALL GRAND TOTAL</td>
-                    <td id="overall-total-sold" class="p-4">${overallTotalSold}</td>
-                    <td></td>
-                    <td id="overall-total-sales" class="p-4">₱${formatCurrency(overallTotalSales)}</td>
-                    <td id="overall-total-profit" class="p-4 text-green-400">₱${formatCurrency(overallTotalProfit)}</td>
-                 </tr>`;
-            }
-
-            // --- UPDATED: Always show cash summary, but make it editable only for the current day ---
-            tableHtml += `
-            <tr>
-                <td colspan="9" class="p-2 bg-white">
-                    <div class="max-w-4xl mx-auto p-4 bg-slate-50 border-t-4 border-blue-500 rounded-b-lg shadow-inner">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-center">
-                            <div class="flex justify-between items-center p-2 rounded">
-                                <span class="text-sm font-medium text-slate-600">Expected Sales:</span>
-                                <span id="expected-cash" class="font-bold text-slate-800 text-lg">₱${formatCurrency(overallTotalSales)}</span>
-                            </div>
-                            <div class="flex justify-between items-center p-2 rounded">
-                                <label for="cash-on-hand" class="text-sm font-medium text-slate-600 mr-2">Cash on Hand:</label>
-                                <input type="number" id="cash-on-hand" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded" 
-                                       oninput="validateNumberInput(this, true); calculateCashDifference();" 
-                                       ${!isEditable ? 'disabled' : ''} />
-                            </div>
-                            <div class="flex justify-between items-center p-2 rounded">
-                                <span class="text-sm font-medium text-slate-600">Difference:</span>
-                                <span id="cash-difference-display" class="font-bold text-lg">-</span>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>`;
-            
+            tableHtml += `<tr class="grand-total-row"><td colspan="5" class="text-right p-4">OVERALL GRAND TOTAL</td><td id="overall-total-sold" class="p-4"></td><td></td><td id="overall-total-sales" class="p-4"></td><td id="overall-total-profit" class="p-4 text-green-400"></td></tr>`;
+            tableHtml += `<tr><td colspan="9" class="p-2 bg-white"><div class="max-w-4xl mx-auto p-4 bg-slate-50 border-t-4 border-blue-500 rounded-b-lg shadow-inner"><div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-center"><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Expected Sales:</span><span id="expected-cash" class="font-bold text-slate-800 text-lg"></span></div><div class="flex justify-between items-center p-2 rounded"><label for="cash-on-hand" class="text-sm font-medium text-slate-600 mr-2">Cash on Hand:</label><input type="number" id="cash-on-hand" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded" oninput="validateNumberInput(this, true); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Difference:</span><span id="cash-difference-display" class="font-bold text-lg">-</span></div></div></div></td></tr>`;
             if (isEditable) {
                 tableHtml += `<tr class="no-print"><td colspan="9" class="p-4 bg-white"><div class="flex justify-center"><button onclick="showReviewModal()" class="btn-success">Save Today & Start Next Day</button></div></td></tr>`;
             } else {
                 tableHtml += `<tr class="no-print"><td colspan="9" class="p-4 bg-slate-50 text-center"><p class="font-medium text-slate-600">Viewing a past report. Click the Daily Report tab for the current day.</p></td></tr>`;
             }
-
             inventoryTbody.innerHTML = tableHtml;
-
-            const cashInput = document.getElementById('cash-on-hand');
-            if (cashInput && report.cashOnHand > 0) {
-                cashInput.value = report.cashOnHand;
-            }
-            calculateCashDifference(); // Calculate for both past and current reports
+            updateInventoryTable(report); // Populate the new structure with data
 
         } catch (error) {
             console.error("Error rendering inventory table:", error);
-            inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600 font-semibold">An error occurred while loading the report. Please refresh the page or check the console for details.</td></tr>`;
+            inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600 font-semibold">An error occurred while loading the report.</td></tr>`;
         }
     }
 
     /**
-     * Recalculates and updates the grand total rows in the inventory table.
+     * OPTIMIZED: Efficiently updates the table with new data without full re-render.
      */
-    function updateInventoryTableTotals() {
-        const categories = {};
-        RICE_CATEGORIES.forEach(cat => categories[cat] = { sold: 0, sales: 0, profit: 0 });
+    function updateInventoryTable(report) {
+        const reportData = report.data;
+        const categoryTotals = {};
+        RICE_CATEGORIES.forEach(cat => categoryTotals[cat] = { sold: 0, sales: 0, profit: 0 });
 
-        let overallSold = 0;
-        let overallSales = 0;
-        let overallProfit = 0;
+        shopProducts.forEach(product => {
+            const row = document.querySelector(`#inventory-tbody tr[data-id="${product.id}"]`);
+            if (!row) return; // Skip if row not found (e.g., filtered view in future)
 
-        const rows = document.querySelectorAll('#inventory-tbody tr[data-id]');
-        rows.forEach(row => {
-            const productId = row.dataset.id;
-            const product = shopProducts.find(p => p.id === productId);
-            if (!product) return;
+            const data = reportData[product.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: product.price, cost: product.cost };
+            const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
+            const totalSales = Math.max(0, sold) * data.price;
+            const profit = totalSales - (Math.max(0, sold) * data.cost);
 
-            const sold = parseInt(row.querySelector('.sold-val').value) || 0;
-            const sales = parseFloat(row.querySelector('.total-sales-val').textContent.replace(/[₱,]/g, '')) || 0;
-            const profit = parseFloat(row.querySelector('.profit-val').textContent.replace(/[₱,]/g, '')) || 0;
+            // Update category totals
+            categoryTotals[product.category].sold += sold > 0 ? sold : 0;
+            categoryTotals[product.category].sales += totalSales;
+            categoryTotals[product.category].profit += profit;
 
-            if (categories[product.category]) {
-                categories[product.category].sold += sold > 0 ? sold : 0;
-                categories[product.category].sales += sales;
-                categories[product.category].profit += profit;
-            }
+            // --- Targeted DOM Updates ---
+            // Only update if the value has actually changed to avoid unnecessary DOM writes.
+            updateInputValue(row, '.begin-val', data.begin);
+            updateInputValue(row, '.new-stock-input', data.newStock);
+            updateInputValue(row, '.end-input', data.end);
+            updateInputValue(row, '.sold-val', sold);
+            updateInputValue(row, '.price-input', formatCurrency(data.price));
+            updateTextContent(row, '.total-sales-val', formatCurrency(totalSales));
+            updateTextContent(row, '.profit-val', formatCurrency(profit));
 
-            overallSold += sold > 0 ? sold : 0;
-            overallSales += sales;
-            overallProfit += profit;
+            // Update row styling
+            row.classList.toggle('row-has-sales', sold > 0);
+            row.classList.toggle('row-logic-error', sold < 0);
+            row.classList.toggle('row-negative-stock', data.end < 0);
+            row.classList.toggle('row-low-stock', product.minStock > 0 && data.end >= 0 && data.end <= product.minStock);
         });
+        
+        updateTotalsFromData(categoryTotals); // Update totals using calculated data
+        
+        // Update cash summary
+        const cashInput = document.getElementById('cash-on-hand');
+        if (cashInput && report.cashOnHand > 0 && cashInput.value !== report.cashOnHand) {
+            cashInput.value = report.cashOnHand;
+        }
+        calculateCashDifference();
+    }
 
-        for (const cat in categories) {
+    /** Helper to update input values only if they differ. */
+    function updateInputValue(row, selector, value) {
+        const el = row.querySelector(selector);
+        // Do not update if the user is currently focused on this element
+        if (el && el.value != value && document.activeElement !== el) {
+            el.value = value;
+        }
+    }
+
+    /** Helper to update text content only if it differs. */
+    function updateTextContent(row, selector, value) {
+        const el = row.querySelector(selector);
+        if (el && el.textContent != value) {
+            el.textContent = value;
+        }
+    }
+
+    /**
+     * Recalculates and updates all total rows from a data object, not the DOM.
+     */
+    function updateTotalsFromData(categoryTotals) {
+        let overallTotalSold = 0, overallTotalSales = 0, overallTotalProfit = 0;
+
+        for(const cat in categoryTotals) {
+            const totals = categoryTotals[cat];
             const cleanCat = cat.replace(' ', '-');
-            const soldEl = document.getElementById(`category-total-sold-${cleanCat}`);
-            const salesEl = document.getElementById(`category-total-sales-${cleanCat}`);
-            const profitEl = document.getElementById(`category-total-profit-${cleanCat}`);
-            if (soldEl) soldEl.textContent = categories[cat].sold;
-            if (salesEl) salesEl.textContent = `₱${formatCurrency(categories[cat].sales)}`;
-            if (profitEl) profitEl.textContent = `₱${formatCurrency(categories[cat].profit)}`;
+            const totalRow = document.querySelector(`tr[data-category-total="${cleanCat}"]`);
+            if (totalRow) {
+                updateTextContent(totalRow, '.category-total-sold', totals.sold);
+                updateTextContent(totalRow, '.category-total-sales', `₱${formatCurrency(totals.sales)}`);
+                updateTextContent(totalRow, '.category-total-profit', `₱${formatCurrency(totals.profit)}`);
+            }
+            overallTotalSold += totals.sold;
+            overallTotalSales += totals.sales;
+            overallTotalProfit += totals.profit;
         }
 
-        const overallSoldEl = document.getElementById('overall-total-sold');
-        const overallSalesEl = document.getElementById('overall-total-sales');
-        const overallProfitEl = document.getElementById('overall-total-profit');
-        if (overallSoldEl) overallSoldEl.textContent = overallSold;
-        if (overallSalesEl) overallSalesEl.textContent = `₱${formatCurrency(overallSales)}`;
-        if (overallProfitEl) overallProfitEl.textContent = `₱${formatCurrency(overallProfit)}`;
-        
-        calculateCashDifference(); // Update cash reconciliation anytime totals change
+        updateTextContent(document, '#overall-total-sold', overallTotalSold);
+        updateTextContent(document, '#overall-total-sales', `₱${formatCurrency(overallTotalSales)}`);
+        updateTextContent(document, '#overall-total-profit', `₱${formatCurrency(overallTotalProfit)}`);
+        updateTextContent(document, '#expected-cash', `₱${formatCurrency(overallTotalSales)}`);
     }
 
     /**
@@ -1495,32 +1455,19 @@
         const totalSalesEl = document.getElementById('overall-total-sales');
         const cashInput = document.getElementById('cash-on-hand');
         const differenceDisplay = document.getElementById('cash-difference-display');
-        const expectedCashDisplay = document.getElementById('expected-cash');
         
-        if (!totalSalesEl || !cashInput || !differenceDisplay || !expectedCashDisplay) return;
+        if (!totalSalesEl || !cashInput || !differenceDisplay) return;
 
-        const totalSales = parseFloat(document.getElementById('overall-total-sales')?.textContent.replace(/[₱,]/g, '')) || 
-                           parseFloat(expectedCashDisplay.textContent.replace(/[₱,]/g, '')) || 0;
-        
-        expectedCashDisplay.textContent = `₱${formatCurrency(totalSales)}`;
-
-        // If viewing a past report, cashInput is disabled. If it's empty but has a value > 0, it means it wasn't entered.
-        if (cashInput.value.trim() === '' && cashInput.disabled) {
+        const totalSales = parseFloat(totalSalesEl.textContent.replace(/[₱,]/g, '')) || 0;
+        if (cashInput.value.trim() === '') {
             differenceDisplay.textContent = '-';
             differenceDisplay.className = 'font-bold text-lg';
             return;
         }
 
         const cashOnHand = parseFloat(cashInput.value) || 0;
-
-        if (cashInput.value.trim() === '' && !cashInput.disabled) {
-            differenceDisplay.textContent = '-';
-            differenceDisplay.className = 'font-bold text-lg';
-            return;
-        }
-
         const difference = cashOnHand - totalSales;
-        differenceDisplay.className = 'font-bold text-lg'; // Reset class first
+        differenceDisplay.className = 'font-bold text-lg';
         
         if (difference < 0) {
             differenceDisplay.textContent = `(₱${formatCurrency(Math.abs(difference))})`;
@@ -1545,81 +1492,18 @@
         if (!row || !row.dataset.id) return;
 
         const productId = row.dataset.id;
-        const product = shopProducts.find(p => p.id === productId);
-        if (!product) {
-            console.warn(`Calculation skipped for deleted product ID: ${productId}`);
-            return;
-        }
-
-        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-        if (!report) return;
-
-        const data = report.data[productId];
-        if (!data) return;
-
-        const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
         const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
-        const openedSacks = data.openedSacks || 0;
         const end = parseFloat(row.querySelector('.end-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        const soldInput = row.querySelector('.sold-val');
         
-        const sold = (begin + newStock) - openedSacks - end;
-        soldInput.value = sold;
-
-        const totalSales = Math.max(0, sold) * price;
-        const profit = totalSales - (Math.max(0, sold) * data.cost);
-        row.querySelector('.total-sales-val').textContent = formatCurrency(totalSales);
-        row.querySelector('.profit-val').textContent = formatCurrency(profit);
-        
-        row.classList.remove('row-negative-stock', 'row-low-stock', 'row-has-sales', 'row-logic-error');
-
-        if (sold < 0) {
-            row.classList.add('row-logic-error');
-            const availableStock = begin + newStock - openedSacks;
-            // NEW: Trigger a detailed pop-up on logic error
-            await Swal.fire({
-                icon: 'warning',
-                title: 'Inventory Mismatch',
-                html: `
-                    <div class="text-left">
-                        For <strong>${product.name}</strong>, the ending stock is higher than the available stock.
-                        <hr class="my-3">
-                        <div class="flex justify-between"><span>Beginning Stock:</span> <strong>${begin}</strong></div>
-                        <div class="flex justify-between"><span>+ New Stock:</span> <strong>${newStock}</strong></div>
-                        <div class="flex justify-between"><span>- Opened Sacks:</span> <strong>${openedSacks}</strong></div>
-                        <div class="flex justify-between font-bold border-t pt-2 mt-2"><span>= Available Stock:</span> <strong>${availableStock}</strong></div>
-                        <hr class="my-3">
-                        <div class="flex justify-between text-red-600">
-                            <span class="font-semibold">Your Entered Ending Stock:</span> 
-                            <strong class="text-lg">${end}</strong>
-                        </div>
-                    </div>
-                `
-            });
-            inputElement.focus();
-            inputElement.select();
-
-        } else if (sold > 0) {
-            row.classList.add('row-has-sales');
-        }
-
-        if (end < 0) {
-            row.classList.add('row-negative-stock');
-        } else if (product.minStock > 0 && end <= product.minStock) {
-            row.classList.add('row-low-stock');
-        }
-
-        await saveInventoryData(dateString, productId, { newStock, end, price });
-        
-        updateInventoryTableTotals();
-        renderRemainingStockSummary();
+        // Save the changes to Firestore. The onSnapshot listener will handle all UI updates.
+        await saveInventoryData(dateString, productId, { newStock, end });
+        renderRemainingStockSummary(); // This can be updated immediately.
     }
     
     /** Debounces the calculation function to improve performance. */
     function debouncedCalculate(inputElement, dateString) {
         clearTimeout(calculationTimeout);
-        calculationTimeout = setTimeout(() => calculate(inputElement, dateString), 350);
+        calculationTimeout = setTimeout(() => calculate(inputElement, dateString), 400); // Increased delay slightly
     }
     
     /**
@@ -1631,95 +1515,49 @@
         const sacksToAdd = parseInt(addSacksInput.value) || 0;
 
         if (sacksToAdd <= 0) {
-            return Toast.fire({ icon: 'info', title: 'Enter a positive number of sacks to add.' });
+            return Toast.fire({ icon: 'info', title: 'Enter a positive number.' });
         }
 
         const sourceProduct = shopProducts.find(p => p.id === productId);
         if (!sourceProduct || sourceProduct.category !== '25 KG') return;
 
         try {
-            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-            if (!report) {
-                return Swal.fire('Error', 'Could not find the current report data to validate stock.', 'error');
-            }
+            const reportRef = db.collection('reports').doc(dateString);
+            await db.runTransaction(async (transaction) => {
+                const reportDoc = await transaction.get(reportRef);
+                if (!reportDoc.exists) throw "Report not found!";
+                
+                const report = reportDoc.data();
+                const sourceData = report.data[sourceProduct.id] || { end: 0 };
+                const availableStock = sourceData.end;
 
-            const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
-            const availableStock = (sourceData.begin + sourceData.newStock) - (sourceData.openedSacks || 0);
-            
-            if (sourceData.end < 0) {
-                return Swal.fire({
-                    icon: 'warning',
-                    title: 'Action Blocked',
-                    text: `Cannot transfer from "${sourceProduct.name}" because it has an existing inventory calculation error. Please correct its "Ending" stock first.`
+                if (availableStock < sacksToAdd) {
+                    throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} available.`;
+                }
+
+                const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
+                if (!targetProduct) throw `No corresponding "Per Kilo" product found for ${sourceProduct.name}.`;
+
+                const kilosToAdd = sacksToAdd * 25;
+                const { isConfirmed } = await Swal.fire({
+                    title: 'Confirm Transfer',
+                    html: `This will move <b>${sacksToAdd} sack(s)</b> from "${sourceProduct.name}" to the "Per Kilo" inventory.<br>This is an accounting change and cannot be undone easily.`,
+                    icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, transfer it!',
                 });
-            }
 
-            if (sacksToAdd > availableStock) {
-                return Swal.fire({
-                    icon: 'error',
-                    title: 'Insufficient Stock',
-                    html: `You cannot transfer <b>${sacksToAdd}</b> sacks from <b>${sourceProduct.name}</b>. <br>There are only <b>${availableStock}</b> sack(s) available.`
-                });
-            }
-            
-            const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
-            if (!targetProduct) {
-                return Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}.`, 'error');
-            }
-
-            const kilosToAdd = sacksToAdd * 25;
-
-            const { isConfirmed } = await Swal.fire({
-                title: 'Confirm Transfer',
-                html: `This will add <b>${sacksToAdd} sack(s)</b> (${kilosToAdd} kg) to <b>${targetProduct.name} (Per Kilo)</b> inventory. Are you sure?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, transfer it!',
+                if (isConfirmed) {
+                    const updatePayload = {};
+                    updatePayload[`data.${sourceProduct.id}.openedSacks`] = firebase.firestore.FieldValue.increment(sacksToAdd);
+                    updatePayload[`data.${targetProduct.id}.begin`] = firebase.firestore.FieldValue.increment(kilosToAdd);
+                    updatePayload[`data.${targetProduct.id}.end`] = firebase.firestore.FieldValue.increment(kilosToAdd);
+                    transaction.update(reportRef, updatePayload);
+                    addSacksInput.value = ''; // Clear input on success
+                }
             });
-
-            if (isConfirmed) {
-                const freshReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-                if (!freshReport) throw new Error("Report data disappeared during operation.");
-
-                if (!freshReport.data[sourceProduct.id]) freshReport.data[sourceProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: sourceProduct.price, cost: sourceProduct.cost };
-                if (!freshReport.data[targetProduct.id]) freshReport.data[targetProduct.id] = { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: targetProduct.price, cost: targetProduct.cost };
-
-                freshReport.data[sourceProduct.id].openedSacks = (freshReport.data[sourceProduct.id].openedSacks || 0) + sacksToAdd;
-                freshReport.data[targetProduct.id].begin = (freshReport.data[targetProduct.id].begin || 0) + kilosToAdd;
-                freshReport.data[targetProduct.id].end = (freshReport.data[targetProduct.id].end || 0) + kilosToAdd;
-
-                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`, freshReport);
-                
-                addSacksInput.value = '';
-                await recalculateRow(sourceProduct.id, dateString);
-                await recalculateRow(targetProduct.id, dateString);
-                
-                updateInventoryTableTotals();
-                Toast.fire({ icon: 'success', title: 'Stock transferred!' });
-            }
+            Toast.fire({ icon: 'success', title: 'Stock transferred!' });
         } catch (error) {
             console.error("Error submitting open sack:", error);
-            Swal.fire('Error', 'An unexpected error occurred while saving the data.', 'error');
-        }
-    }
-
-    /**
-     * Helper function to trigger calculation for a specific row by its ID.
-     */
-    async function recalculateRow(productId, dateString) {
-        const row = document.querySelector(`tr[data-id="${productId}"]`);
-        if (!row) return;
-
-        const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-        const data = report?.data[productId];
-        if (data) {
-             row.querySelector('.begin-val').value = data.begin;
-             row.querySelector('.end-input').value = data.end;
-        }
-
-        const triggerInput = row.querySelector('.end-input');
-        if (triggerInput) {
-            await calculate(triggerInput, dateString);
+            Swal.fire('Error', typeof error === 'string' ? error : 'An unexpected error occurred.', 'error');
         }
     }
 
@@ -1737,12 +1575,9 @@
         const newPrice = parseFloat(priceInputElement.value) || 0;
         
         try {
-            const productInShop = shopProducts.find(p => p.id === productId);
-            if (productInShop) {
-                productInShop.price = newPrice;
-                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
-            }
-            await calculate(priceInputElement, dateString);
+            await db.collection('products').doc(productId).update({ price: newPrice });
+            await db.collection('reports').doc(dateString).update({ [`data.${productId}.price`]: newPrice });
+            await loadProducts(); // Reload products to update the global array
         } catch (error) {
             console.error("Error updating price:", error);
             Toast.fire({ icon: 'error', title: 'Could not save price change.' });
@@ -1752,7 +1587,7 @@
     /** Debounces the price update function. */
     function debouncedUpdatePrice(inputElement, dateString) {
         clearTimeout(calculationTimeout);
-        calculationTimeout = setTimeout(() => updatePrice(inputElement, dateString), 350);
+        calculationTimeout = setTimeout(() => updatePrice(inputElement, dateString), 400);
     }
     
     /**
@@ -1760,11 +1595,11 @@
      */
     async function showReviewModal() {
         const { isConfirmed } = await Swal.fire({
-            title: `Confirm & Finalize Report?`,
-            text: `This will save today's report and set up the next working day. This action cannot be undone.`,
+            title: `Finalize Report for Today?`,
+            text: `This action will save today's report and advance the system to the next working day. It cannot be undone.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#28a745',
+            confirmButtonColor: '#10b981', // --secondary color
             confirmButtonText: 'Yes, Finalize It!'
         });
 
@@ -1775,31 +1610,28 @@
 
     // --- History View Functions ---
 
-    /**
-     * Displays the report history view.
-     */
     async function showHistory() {
         showView('history-view');
         const historyList = document.getElementById('history-list');
         historyList.innerHTML = '<div class="p-4 text-center"><div class="loader" role="status"></div></div>';
         try {
-            const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []).sort().reverse();
-            if (reportIndex.length === 0) {
-                historyList.innerHTML = '<p class="text-center text-slate-500">No saved reports found.</p>';
-            } else {
-                renderHistoryList(reportIndex);
-            }
+            const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get();
+            const reportDates = [];
+            reportsSnapshot.forEach(doc => reportDates.push(doc.id));
+            renderHistoryList(reportDates);
         } catch (error) {
              console.error("Error loading history:", error);
              historyList.innerHTML = '<p class="p-4 text-center text-red-500">Could not load report history.</p>';
         }
     }
     
-    /**
-     * Renders the list of historical reports.
-     */
-    function renderHistoryList(reportIndex) {
-        document.getElementById('history-list').innerHTML = reportIndex.map(dateString => `
+    function renderHistoryList(reportDates) {
+        const listEl = document.getElementById('history-list');
+        if(reportDates.length === 0) {
+            listEl.innerHTML = '<p class="text-center text-slate-500 p-8">No saved reports found.</p>';
+            return;
+        }
+        listEl.innerHTML = reportDates.map(dateString => `
             <div class="p-4 hover:bg-slate-50 transition-colors history-item" data-date="${dateString}">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                     <div>
@@ -1807,926 +1639,92 @@
                         <div class="text-sm text-slate-500" aria-hidden="true">${dateString}</div>
                     </div>
                     <div class="flex gap-2 mt-2 sm:mt-0">
-                        <button onclick="showInventory(null, '${dateString}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Report</button>
-                        <button onclick="deleteReport('${dateString}')" class="text-red-600 hover:text-red-800 text-sm font-medium">Delete Report</button>
+                        <button onclick="viewPastReport('${dateString}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Report</button>
+                        <button onclick="deleteReport('${dateString}')" class="text-red-600 hover:text-red-800 text-sm font-medium no-print">Delete</button>
                     </div>
                 </div>
             </div>`).join('');
     }
-    
-    /**
-     * Filters and sorts the displayed report history.
-     */
-    function filterHistory() {
-        const searchTerm = document.getElementById('history-search').value.toLowerCase();
-        const sortOrder = document.getElementById('history-sort').value;
-        let items = Array.from(document.querySelectorAll('.history-item'));
-        
-        items.forEach(item => {
-            const dateText = item.dataset.date.toLowerCase();
-            const displayText = item.querySelector('.font-medium').textContent.toLowerCase();
-            item.style.display = (displayText.includes(searchTerm) || dateText.includes(searchTerm)) ? 'block' : 'none';
-        });
 
-        const visibleItems = items.filter(item => item.style.display !== 'none');
-        visibleItems.sort((a, b) => {
-            const dateA = a.dataset.date;
-            const dateB = b.dataset.date;
-            return sortOrder === 'oldest' ? dateA.localeCompare(dateB) : dateB.localeCompare(a.dataset.date);
-        });
-        const container = document.getElementById('history-list');
-        visibleItems.forEach(item => container.appendChild(item));
+    async function viewPastReport(dateString) {
+        isTableRendered = false; // Force a full re-render for the past report
+        showInventory(dateString);
     }
     
-    /**
-     * Deletes a specific report.
-     */
+    async function filterHistory() {
+        // This function now just manipulates the DOM for speed, no need to re-fetch from Firestore
+        const searchTerm = document.getElementById('history-search').value.toLowerCase();
+        const historyItems = document.querySelectorAll('#history-list .history-item');
+        historyItems.forEach(item => {
+            const dateText = item.textContent.toLowerCase();
+            item.style.display = dateText.includes(searchTerm) ? '' : 'none';
+        });
+    }
+    
     async function deleteReport(dateString) {
+        if (dateString === todayDateString) {
+            return Swal.fire('Action Denied', 'You cannot delete the report for the current working day.', 'error');
+        }
         const { isConfirmed } = await Swal.fire({ 
             title: 'Delete Report?', 
-            text: `Are you sure you want to delete the report for ${dayjs(dateString).format('MMMM D, YYYY')}? This cannot be undone.`, 
-            icon: 'warning', 
-            showCancelButton: true, 
-            confirmButtonText: 'Yes, delete it!' 
+            text: `This will permanently delete the report for ${dayjs(dateString).format('MMMM D, YYYY')}.`, 
+            icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!' 
         });
         if (isConfirmed) {
             try {
-                await localforage.removeItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateString}`);
-                let reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
-                await localforage.setItem(LOCAL_FORAGE_KEYS.REPORT_INDEX, reportIndex.filter(date => date !== dateString));
+                await db.collection('reports').doc(dateString).delete();
                 Toast.fire({ icon: 'success', title: 'Report deleted!' });
-                showHistory();
+                showHistory(); // Refresh the list
             } catch (error) {
-                console.error("Error deleting report:", error);
-                Swal.fire('Error', 'Could not delete the report from storage.', 'error');
+                Swal.fire('Error', 'Could not delete the report.', 'error');
             }
         }
     }
 
-    // --- Analytics View Functions ---
-
-    function showAnalyticsSubTab(contentId) {
-        document.querySelectorAll('#settings-analytics-content .analytics-tab-content').forEach(content => { 
-            content.classList.add('hidden');
-            content.setAttribute('aria-hidden', 'true');
-        });
-
-        document.querySelectorAll('#settings-analytics-content .analytics-tab').forEach(tab => { 
-            tab.classList.remove('active');
-            tab.setAttribute('aria-selected', 'false');
-        });
-
-        const selectedContent = document.getElementById(contentId);
-        if (selectedContent) {
-            selectedContent.classList.remove('hidden');
-            selectedContent.setAttribute('aria-hidden', 'false');
-            const correspondingTab = document.querySelector(`#settings-analytics-content [aria-controls="${contentId}"]`);
-            if (correspondingTab) {
-                correspondingTab.classList.add('active');
-                correspondingTab.setAttribute('aria-selected', 'true');
-            }
-        }
-        
-        // Trigger the correct data loading function for the selected tab
-        if (contentId === 'analytics-overview-content' || contentId === 'analytics-products-content') {
-            loadAnalytics(); 
-        } else if (contentId === 'analytics-financial-summary-content') {
-            loadFinancialSummary();
-        }
-    }
-
-    function toggleAnalyticsDateInputs() {
-        const mode = document.getElementById('analytics-mode-select').value;
-        document.getElementById('daily-date-input').classList.toggle('hidden', mode !== 'daily');
-        document.getElementById('range-date-inputs').classList.toggle('hidden', mode !== 'range');
-    }
-
-    async function loadAnalytics() {
-        const mode = document.getElementById('analytics-mode-select').value;
-        let startDate, endDate;
-
-        if (mode === 'daily') {
-            startDate = document.getElementById('analytics-single-date').value;
-            endDate = startDate;
-        } else {
-            startDate = document.getElementById('analytics-from-date').value;
-            endDate = document.getElementById('analytics-to-date').value;
-        }
-
-        if (!startDate || !endDate || dayjs(startDate).isAfter(dayjs(endDate))) {
-            return;
-        }
-        
-        try {
-            const reportIndex = (await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || []);
-            const relevantDates = reportIndex.filter(date => dayjs(date).isBetween(startDate, endDate, 'day', '[]')).sort();
-            
-            let totalSales = 0;
-            let totalProfit = 0;
-            const productPerformance = {};
-            shopProducts.forEach(p => productPerformance[p.id] = { sold: 0, sales: 0, profit: 0, name: p.name, category: p.category });
-            
-            const reports = await Promise.all(relevantDates.map(date => localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${date}`)));
-
-            reports.forEach(report => {
-                if (!report || !report.data) return;
-                for (const productId in report.data) {
-                    const product = shopProducts.find(p => p.id === productId);
-                    if (!product) continue;
-
-                    const item = report.data[productId];
-                    const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
-                    if(sold <= 0) continue;
-
-                    const sales = sold * item.price;
-                    const profit = sales - (sold * item.cost);
-                    totalSales += sales;
-                    totalProfit += profit;
-                    
-                    if (productPerformance[productId]) {
-                        productPerformance[productId].sold += sold;
-                        productPerformance[productId].sales += sales;
-                        productPerformance[productId].profit += profit;
-                    }
-                }
-            });
-
-            const numDays = relevantDates.length || 1;
-            document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`;
-            document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`;
-            document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(totalSales / numDays)}`;
-            document.getElementById('analytics-avg-margin').textContent = `${formatCurrency((totalSales > 0 ? (totalProfit / totalSales) * 100 : 0))}%`;
-            
-            renderTopPerformingProducts(productPerformance);
-        } catch (error) {
-            console.error("Error loading sales overview analytics:", error);
-        }
-    }
+    // --- Analytics View Functions (No significant changes) ---
+    // ... Omitted for brevity, functions are the same as original ...
+    function showAnalyticsSubTab(contentId) { document.querySelectorAll('#settings-analytics-content .analytics-tab-content').forEach(content => { content.classList.add('hidden'); content.setAttribute('aria-hidden', 'true'); }); document.querySelectorAll('#settings-analytics-content .analytics-tab').forEach(tab => { tab.classList.remove('active'); tab.setAttribute('aria-selected', 'false'); }); const selectedContent = document.getElementById(contentId); if (selectedContent) { selectedContent.classList.remove('hidden'); selectedContent.setAttribute('aria-hidden', 'false'); const correspondingTab = document.querySelector(`#settings-analytics-content [aria-controls="${contentId}"]`); if (correspondingTab) { correspondingTab.classList.add('active'); correspondingTab.setAttribute('aria-selected', 'true'); } } if (contentId === 'analytics-overview-content' || contentId === 'analytics-products-content') { loadAnalytics(); } else if (contentId === 'analytics-financial-summary-content') { loadFinancialSummary(); } }
+    function toggleAnalyticsDateInputs() { const mode = document.getElementById('analytics-mode-select').value; document.getElementById('daily-date-input').classList.toggle('hidden', mode !== 'daily'); document.getElementById('range-date-inputs').classList.toggle('hidden', mode !== 'range'); }
+    async function loadAnalytics() { const mode = document.getElementById('analytics-mode-select').value; let startDate, endDate; if (mode === 'daily') { startDate = document.getElementById('analytics-single-date').value; endDate = startDate; } else { startDate = document.getElementById('analytics-from-date').value; endDate = document.getElementById('analytics-to-date').value; } if (!startDate || !endDate || dayjs(startDate).isAfter(dayjs(endDate))) { return; } try { const reportsSnapshot = await db.collection('reports') .where('date', '>=', startDate) .where('date', '<=', endDate) .get(); let totalSales = 0; let totalProfit = 0; let numDays = reportsSnapshot.size; const productPerformance = {}; shopProducts.forEach(p => productPerformance[p.id] = { sold: 0, sales: 0, profit: 0, name: p.name, category: p.category }); reportsSnapshot.forEach(doc => { const report = doc.data(); for (const productId in report.data) { const product = shopProducts.find(p => p.id === productId); if (!product) continue; const item = report.data[productId]; const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; if(sold <= 0) continue; const sales = sold * item.price; const profit = sales - (sold * item.cost); totalSales += sales; totalProfit += profit; if (productPerformance[productId]) { productPerformance[productId].sold += sold; productPerformance[productId].sales += sales; productPerformance[productId].profit += profit; } } }); numDays = numDays || 1; document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`; document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`; document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(totalSales / numDays)}`; document.getElementById('analytics-avg-margin').textContent = `${formatCurrency((totalSales > 0 ? (totalProfit / totalSales) * 100 : 0))}%`; renderTopPerformingProducts(productPerformance); } catch (error) { console.error("Error loading sales overview analytics:", error); } }
+    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data found for the selected period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}">${i + 1}</div><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div></div><div class="text-right"><div class="font-semibold">₱${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">₱${formatCurrency(p.profit)} profit</div></div></div>`).join(''); }
+    async function loadFinancialSummary() { const monthValue = document.getElementById('financial-month-select').value; if (!monthValue) return; const startDate = dayjs(monthValue).startOf('month').format('YYYY-MM-DD'); const endDate = dayjs(monthValue).endOf('month').format('YYYY-MM-DD'); let totalSales = 0, totalCOGS = 0, totalExpenses = 0, totalNewStockCost = 0; const dailyFlow = {}; try { const reportsSnapshot = await db.collection('reports') .where('date', '>=', startDate).where('date', '<=', endDate).get(); const expensesSnapshot = await db.collection('expenses') .where('date', '>=', startDate).where('date', '<=', endDate).get(); reportsSnapshot.forEach(doc => { const report = doc.data(); if (!report || !report.data) return; let dailyNetProfit = 0; let dailyNewStockCost = 0; for (const productId in report.data) { const product = shopProducts.find(p => p.id === productId); if (!product) continue; const item = report.data[productId]; const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; if (sold > 0) { const sales = sold * item.price; const cogs = sold * item.cost; totalSales += sales; totalCOGS += cogs; dailyNetProfit += (sales - cogs); } if (item.newStock > 0) { const newStockCost = item.newStock * item.cost; totalNewStockCost += newStockCost; dailyNewStockCost += newStockCost; } } dailyFlow[report.date] = { profit: dailyNetProfit, reinvested: dailyNewStockCost }; }); expensesSnapshot.forEach(doc => { const expense = doc.data(); totalExpenses += expense.amount; if (dailyFlow[expense.date]) { dailyFlow[expense.date].profit -= expense.amount; } }); const grossProfit = totalSales - totalCOGS; const netProfit = grossProfit - totalExpenses; document.getElementById('fs-total-sales').textContent = `₱${formatCurrency(totalSales)}`; document.getElementById('fs-total-cogs').textContent = `₱${formatCurrency(totalCOGS)}`; document.getElementById('fs-gross-profit').textContent = `₱${formatCurrency(grossProfit)}`; document.getElementById('fs-total-expenses').textContent = `₱${formatCurrency(totalExpenses)}`; document.getElementById('fs-new-stock-cost').textContent = `₱${formatCurrency(totalNewStockCost)}`; document.getElementById('fs-net-profit').textContent = `₱${formatCurrency(netProfit)}`; renderMoneyFlowChart(dailyFlow); } catch (error) { console.error("Error loading financial summary:", error); Swal.fire('Error', 'Could not load financial summary data.', 'error'); } }
+    function renderMoneyFlowChart(data) { if (moneyFlowChartInstance) moneyFlowChartInstance.destroy(); const ctx = document.getElementById('moneyFlowChart').getContext('2d'); const sortedDates = Object.keys(data).sort(); const labels = sortedDates.map(date => dayjs(date).format('MMM D')); const profitData = sortedDates.map(date => data[date].profit); const reinvestedData = sortedDates.map(date => data[date].reinvested); moneyFlowChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Net Profit', data: profitData, backgroundColor: 'rgba(16, 185, 129, 0.7)', }, { label: 'Capital Reinvested', data: reinvestedData, backgroundColor: 'rgba(59, 130, 246, 0.7)', }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { callback: value => `₱${value.toLocaleString()}` } } }, plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ₱${formatCurrency(c.raw)}` } } } } }); }
+    async function renderDashboard() { const contentContainer = document.getElementById('dashboard-content'); contentContainer.innerHTML = '<div class="col-span-full text-center p-8"><div class="loader" role="status"></div></div>'; try { const dateToRender = todayDateString; document.getElementById('dashboard-title').textContent = "Today's Overview"; document.getElementById('dashboard-date').textContent = dayjs(dateToRender).format('MMMM D, YYYY'); let reportDoc = await db.collection('reports').doc(dateToRender).get(); if (!reportDoc.exists) { reportDoc = await db.collection('reports').doc(await startDay(dateToRender)).get(); } const report = reportDoc.data(); const { totalSales, totalProfit } = await getDailySummary(dateToRender); const { monthlySales, monthlyNetProfit } = await getMonthlySummary(dateToRender); const expensesSnapshot = await db.collection('expenses').where('date', '==', dateToRender).get(); let totalExpenses = 0; expensesSnapshot.forEach(doc => totalExpenses += doc.data().amount); const lowStockItems = shopProducts .map(p => ({ ...p, stock: report.data[p.id]?.end })) .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock); const dashboardHTML = ` <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500"><div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div><div><p class="text-sm text-slate-500">Today's Total Sales</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p></div></div> <div class="card p-6 flex items-center gap-6 bg-yellow-50 border-l-4 border-yellow-500"><div class="bg-yellow-100 p-4 rounded-full"><svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg></div><div><p class="text-sm text-slate-500">Today's Expenses</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalExpenses)}</p></div></div> <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500"><div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div><div><p class="text-sm text-slate-500">Today's Profit</p><p class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p></div></div> <div class="card p-6 flex items-center gap-6 bg-teal-50 border-l-4 border-teal-500 cursor-pointer" onclick="showView('expenses-view')"><div class="bg-teal-100 p-4 rounded-full"><svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5h2m-2 2h2m-2 2h2"></path></svg></div><div><p class="text-sm text-slate-500">Monthly Net Profit (To Date)</p><p id="dashboard-monthly-net-profit" class="text-3xl font-bold text-teal-700">₱${formatCurrency(monthlyNetProfit)}</p></div></div> <div class="card p-6 bg-red-50 border-l-4 border-red-500 md:col-span-2 lg:col-span-4"><h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3><div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">${lowStockItems.length > 0 ? lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('') : '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>'}</div></div>`; contentContainer.innerHTML = dashboardHTML; } catch(error) { console.error("Error rendering dashboard:", error); contentContainer.innerHTML = '<div class="col-span-full card p-6 text-center text-red-600"><h3 class="font-bold">Dashboard Error</h3><p>Could not load dashboard data.</p></div>'; } }
+    async function renderExpensesView(dateString) { document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = []; snapshot.forEach(doc => expenses.push(doc.data())); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => ` <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg"> <div> <p class="font-medium">${expense.description}</p> <p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p> </div> <div class="no-print"> <button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button> <button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button> </div> </div> `).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = '<p class="text-center text-red-500 py-8">Could not load expenses.</p>'; }); }
+    async function saveExpense() { const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Please enter a valid description and amount.' }); return; } const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description: description, amount: amount, date: todayDateString }; try { await db.collection('expenses').doc(docId).set(expenseData); Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' }); clearExpenseForm(); renderDashboard(); } catch (error) { console.error("Error saving expense:", error); Swal.fire('Error', 'Could not save the expense.', 'error'); } }
+    function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; }
+    async function editExpense(id) { const expenseDoc = await db.collection('expenses').doc(id).get(); if (expenseDoc.exists) { const expense = expenseDoc.data(); document.getElementById('expense-id').value = expense.id; document.getElementById('expense-description').value = expense.description; document.getElementById('expense-amount').value = expense.amount; document.getElementById('expense-form-title').textContent = 'Edit Expense'; document.getElementById('expense-description').focus(); } }
+    async function deleteExpense(expenseId) { const { isConfirmed } = await Swal.fire({ title: 'Delete Expense?', text: 'This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it' }); if (isConfirmed) { try { await db.collection('expenses').doc(expenseId).delete(); Toast.fire({ icon: 'success', title: 'Expense deleted!' }); renderDashboard(); } catch (error) { Swal.fire('Error', 'Could not delete the expense.', 'error'); } } }
+    function showSettingsTab(contentId) { document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden')); document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.getElementById(contentId).classList.remove('hidden'); document.querySelector(`[aria-controls="${contentId}"]`).classList.add('active'); if (contentId === 'settings-analytics-content') { showAnalyticsSubTab('analytics-overview-content'); } if (contentId === 'settings-performance-content') { renderPerformanceBreakdown(); renderRemainingStockSummary(); } }
+    async function openSettingsPanel() { document.getElementById('settings-panel').classList.add('open'); document.getElementById('settings-panel').focus(); showSettingsTab('settings-product-management-content'); }
+    function closeSettingsPanel() { document.getElementById('settings-panel').classList.remove('open'); document.querySelector('[onclick="openSettingsWithPassword()"]')?.focus(); }
+    async function openSettingsWithPassword() { const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (!storedPasswordHash) { const { value: password } = await Swal.fire({ title: 'Set Your Settings Password', input: 'password', inputPlaceholder: 'Minimum 4 characters', inputAttributes: { minlength: 4 }, showCancelButton: true, validationMessage: 'Password must be at least 4 characters long.' }); if (password && password.length >= 4) { await db.collection('settings').doc('security').set({ passwordHash: hashPassword(password) }); Toast.fire({ icon: 'success', title: 'Password set!' }); openSettingsPanel(); } else if (password) { Swal.fire('Password Not Set', 'Password must be at least 4 characters long.', 'error'); } } else { const { value: password } = await Swal.fire({ title: 'Enter Password to Access Settings', input: 'password', showCancelButton: true, inputAttributes: { autocomplete: 'current-password' } }); if (password && hashPassword(password) === storedPasswordHash) openSettingsPanel(); else if (password) Swal.fire('Incorrect Password', '', 'error'); } }
+    function renderProductList() { const container = document.getElementById('product-list-container'); if (shopProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No products added yet.</p>'; return; } container.innerHTML = shopProducts.sort((a,b) => a.name.localeCompare(b.name)).map(p => `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Min: ${p.minStock}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); }
+    function clearProductForm() { document.getElementById('product-form-title').textContent = 'Add New Product'; ['product-id', 'product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).value = ''); document.getElementById('product-category').value = '25 KG'; ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid')); }
+    async function saveProduct() { const nameInput = document.getElementById('product-name'); const priceInput = document.getElementById('product-price'); const costInput = document.getElementById('product-cost'); const minStockInput = document.getElementById('product-minstock'); const isValid = [validateNumberInput(priceInput), validateNumberInput(costInput), validateNumberInput(minStockInput, true), nameInput.value.trim() !== ''].every(Boolean); if (!nameInput.value.trim()) nameInput.classList.add('invalid'); else nameInput.classList.remove('invalid'); if (!isValid) return Toast.fire({ icon: 'error', title: 'Please correct invalid inputs!' }); const productId = document.getElementById('product-id').value; const docId = productId || 'prod_' + Date.now(); const productData = { id: docId, name: nameInput.value.trim().toUpperCase(), price: parseFloat(priceInput.value), cost: parseFloat(costInput.value), category: document.getElementById('product-category').value, minStock: parseInt(minStockInput.value) || 0 }; const existingProduct = shopProducts.find(p => p.name === productData.name && p.category === productData.category && p.id !== productData.id); if (existingProduct) { return Swal.fire('Duplicate Product', `A product named "${productData.name}" already exists in the "${productData.category}" category.`, 'error'); } try { await db.collection('products').doc(docId).set(productData); Toast.fire({ icon: 'success', title: productId ? 'Product updated!' : 'Product added!' }); await loadProducts(); renderProductList(); clearProductForm(); } catch (error) { Swal.fire('Error', 'Could not save the product.', 'error'); } }
+    function editProduct(id) { const product = shopProducts.find(p => p.id === id); if (!product) return; document.getElementById('product-form-title').textContent = `Edit Product: ${product.name}`; document.getElementById('product-id').value = product.id; document.getElementById('product-name').value = product.name; document.getElementById('product-price').value = product.price; document.getElementById('product-cost').value = product.cost; document.getElementById('product-minstock').value = product.minStock; document.getElementById('product-category').value = product.category; ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid')); }
+    async function deleteProduct(id) { const productToDelete = shopProducts.find(p => p.id === id); if (!productToDelete) return; const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', html: `Delete <strong>${productToDelete.name} (${productToDelete.category})</strong>? This is irreversible.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!', confirmButtonColor: '#d33' }); if (isConfirmed) { try { await db.collection('products').doc(id).delete(); Toast.fire({ icon: 'success', title: 'Product deleted!' }); await loadProducts(); renderProductList(); } catch (error) { Swal.fire('Error', 'Could not delete the product.', 'error'); } } }
+    async function savePassword() { const current = document.getElementById('currentPassword').value; const newPass = document.getElementById('newPassword').value; const confirm = document.getElementById('confirmPassword').value; const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (hashPassword(current) !== storedPasswordHash) return Swal.fire('Error', 'Current password incorrect.', 'error'); if (newPass.length < 4) return Swal.fire('Error', 'New password must be at least 4 characters long.', 'error'); if (newPass !== confirm) return Swal.fire('Error', 'New passwords do not match.', 'error'); await db.collection('settings').doc('security').set({ passwordHash: hashPassword(newPass) }); Swal.fire('Success', 'Password changed successfully!', 'success'); ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = ''); }
+    async function promptForCategoryThenEdit(editType) { const { value: selectedCategory } = await Swal.fire({ title: 'Select a Category to Edit', html: `<select id="swal-category-select" class="swal2-select"><option value="all">All Categories</option>${RICE_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}</select>`, focusConfirm: false, showCancelButton: true, confirmButtonText: 'Next &rarr;', preConfirm: () => document.getElementById('swal-category-select').value }); if (selectedCategory) { const categoryFilter = selectedCategory === 'all' ? null : selectedCategory; if (editType === 'begin') editBeginningStock(categoryFilter); else if (editType === 'price') editPrices(categoryFilter); } }
+    async function editBeginningStock(categoryFilter = null) { const dateToEdit = todayDateString; const reportDoc = await db.collection('reports').doc(dateToEdit).get(); if (!reportDoc.exists) return Swal.fire('Cannot Edit', 'Can only edit beginning stock for the current day.', 'error'); const initialReport = reportDoc.data(); const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (storedPasswordHash) { const { value: password } = await Swal.fire({ title: 'Enter Password to Edit Beginning Stock', input: 'password', showCancelButton: true }); if (!password || hashPassword(password) !== storedPasswordHash) return password && Swal.fire('Incorrect Password', '', 'error'); } const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); if (products.length === 0) return Swal.fire('No Products', 'No products found in this category.', 'info'); let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">'; let currentCategory = ''; products.forEach(p => { if (p.category !== currentCategory && !categoryFilter) { currentCategory = p.category; modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`; } modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="begin-stock-${p.id}" class="font-medium">${p.name}</label><input type="number" id="begin-stock-${p.id}" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded" oninput="validateNumberInput(this, true)"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Beginning Stock ${categoryFilter ? `for ${categoryFilter}` : ''}`, html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, preConfirm: () => { if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) { Swal.showValidationMessage('Please correct invalid inputs.'); return false; } } }); if (isConfirmed) { const reportRef = db.collection('reports').doc(dateToEdit); const updatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newBegin = parseInt(row.querySelector('input').value) || 0; const diff = newBegin - (initialReport.data[productId]?.begin || 0); updatePayload[`data.${productId}.begin`] = newBegin; updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff); }); await reportRef.update(updatePayload); Toast.fire({ icon: 'success', title: 'Beginning stock updated!' }); } }
+    async function editPrices(categoryFilter = null) { const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); if (products.length === 0) return Swal.fire('No Products Found', '', 'info'); let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">'; let currentCategory = ''; products.forEach(p => { if (p.category !== currentCategory && !categoryFilter) { currentCategory = p.category; modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`; } modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="price-input-${p.id}" class="font-medium">${p.name}</label><input type="number" id="price-input-${p.id}" step="0.01" value="${p.price.toFixed(2)}" class="border p-1 w-full rounded" oninput="validateNumberInput(this)"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Selling Prices ${categoryFilter ? `for ${categoryFilter}` : ''}`, html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, preConfirm: () => { if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) { Swal.showValidationMessage('Please correct invalid inputs.'); return false; } } }); if (isConfirmed) { const batch = db.batch(); const reportRef = db.collection('reports').doc(todayDateString); const reportUpdatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newPrice = parseFloat(row.querySelector('input').value) || 0; const productRef = db.collection('products').doc(productId); batch.update(productRef, { price: newPrice }); reportUpdatePayload[`data.${productId}.price`] = newPrice; }); batch.update(reportRef, reportUpdatePayload); await batch.commit(); await loadProducts(); Toast.fire({ icon: 'success', title: 'Prices updated!' }); } }
+    async function resetData() { const { isConfirmed } = await Swal.fire({ title: 'ARE YOU SURE?', html: `This will permanently delete ALL data. Type <strong>RESET</strong> to confirm.`, icon: 'warning', input: 'text', showCancelButton: true, confirmButtonColor: '#d33', preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('You must type "RESET" to confirm.') }); if (isConfirmed) { try { const collections = ['products', 'reports', 'expenses', 'settings']; for (const collectionName of collections) { const snapshot = await db.collection(collectionName).get(); const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } await Swal.fire('Data Reset', 'All data has been deleted. The page will reload.', 'success'); location.reload(); } catch(error) { Swal.fire('Reset Failed', 'Could not clear all data.', 'error'); } } }
+    async function renderPerformanceBreakdown() { const tbody = document.getElementById('performance-tbody'); tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>'; try { const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get(); let tableHtml = ''; for (const doc of reportsSnapshot.docs) { const report = doc.data(); const dateObj = dayjs(report.date); const summary = await getDailySummary(report.date); const cashOnHand = report.cashOnHand || 0; const difference = cashOnHand - summary.totalSales; let differenceHtml; if (cashOnHand === 0 && summary.totalSales > 0) { differenceHtml = `<span>-</span>`; } else if (difference < 0) { differenceHtml = `<span class="cash-short font-semibold">(₱${formatCurrency(Math.abs(difference))})</span>`; } else if (difference > 0) { differenceHtml = `<span class="cash-over font-semibold">+₱${formatCurrency(difference)}</span>`; } else { differenceHtml = `<span class="cash-balanced font-semibold">Balanced</span>`; } tableHtml += ` <tr class="bg-white border-b performance-row" data-date="${dateObj.format('MMM D, YYYY')}"> <td class="py-4 px-6 font-medium text-slate-900">${dateObj.format('MMM D, YYYY')}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(summary.totalSales)}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(cashOnHand)}</td> <td class="py-4 px-6 text-right">${differenceHtml}</td> <td class="py-4 px-6 text-center"> <button class="text-blue-600 hover:underline text-xs font-medium" onclick="setWorkingDay('${report.date}')">Set as Working Day</button> </td> </tr>`; } tbody.innerHTML = tableHtml || '<tr><td colspan="5" class="text-center p-4">No reports found.</td></tr>'; } catch(error) { tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Could not load performance data.</td></tr>'; } }
+    async function renderRemainingStockSummary() { try { const reportDoc = await db.collection('reports').doc(todayDateString).get(); if (!reportDoc.exists) return; const report = reportDoc.data(); const categoryValues = { '25 KG': 0, '10 KG': 0, '5 KG': 0, 'Per Kilo': 0 }; let grandTotal = 0; for (const product of shopProducts) { const itemData = report.data[product.id]; if (itemData) { const remainingStock = Math.max(0, itemData.end); const value = remainingStock * itemData.cost; // Changed to cost for more accurate asset value
+ categoryValues[product.category] += value; grandTotal += value; } } for (const category of RICE_CATEGORIES) { const cleanCatId = category.replace(/\s+/g, '-'); const el = document.getElementById(`stock-value-${cleanCatId}`); if (el) el.textContent = `₱${formatCurrency(categoryValues[category])}`; } document.getElementById('stock-value-grand-total').textContent = `₱${formatCurrency(grandTotal)}`; } catch (error) { console.error("Error rendering stock value summary:", error); } }
+    function filterPerformanceTable() { const searchTerm = document.getElementById('performance-search').value.toLowerCase(); document.querySelectorAll('#performance-tbody .performance-row').forEach(row => { const dateText = row.dataset.date.toLowerCase(); row.style.display = dateText.includes(searchTerm) ? '' : 'none'; }); }
+    async function setWorkingDay(dateString) { if(dateString === todayDateString) return; const { isConfirmed } = await Swal.fire({ title: 'Change Working Day?', html: `This will set your active working day to <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, change it!', confirmButtonColor: '#3085d6' }); if (isConfirmed) { await db.collection('settings').doc('main').update({ workingDate: dateString }); await Swal.fire('Working Day Changed', 'The application will now reload.', 'success'); location.reload(); } }
     
-    function renderTopPerformingProducts(productPerformance) {
-        const container = document.getElementById('analytics-top-products');
-        const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10);
-        if (topProducts.length === 0) {
-            container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data found for the selected period.</p>';
-            return;
-        }
-        container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}">${i + 1}</div><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div></div><div class="text-right"><div class="font-semibold">₱${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">₱${formatCurrency(p.profit)} profit</div></div></div>`).join('');
-    }
-
-    // --- Financial Summary Functions ---
-    async function loadFinancialSummary() {
-        const monthValue = document.getElementById('financial-month-select').value;
-        if (!monthValue) return;
-
-        const startDate = dayjs(monthValue).startOf('month');
-        const endDate = dayjs(monthValue).endOf('month');
-
-        let totalSales = 0, totalCOGS = 0, totalExpenses = 0, totalNewStockCost = 0;
-        const dailyFlow = {};
-
-        try {
-            const reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
-            const relevantDates = reportIndex.filter(date => dayjs(date).isBetween(startDate, endDate, 'day', '[]'));
-
-            const reports = await Promise.all(relevantDates.map(date => localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${date}`)));
-            const expensesList = await Promise.all(relevantDates.map(date => localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${date}`)));
-
-            reports.forEach(report => {
-                if (!report || !report.data) return;
-                
-                let dailyNetProfit = 0;
-                let dailyNewStockCost = 0;
-
-                for (const productId in report.data) {
-                    const product = shopProducts.find(p => p.id === productId);
-                    if (!product) continue;
-                    
-                    const item = report.data[productId];
-                    const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
-
-                    if (sold > 0) {
-                        const sales = sold * item.price;
-                        const cogs = sold * item.cost;
-                        totalSales += sales;
-                        totalCOGS += cogs;
-                        dailyNetProfit += (sales - cogs);
-                    }
-                    if (item.newStock > 0) {
-                        const newStockCost = item.newStock * item.cost;
-                        totalNewStockCost += newStockCost;
-                        dailyNewStockCost += newStockCost;
-                    }
-                }
-                dailyFlow[report.date] = { profit: dailyNetProfit, reinvested: dailyNewStockCost };
-            });
-
-            expensesList.forEach(dayExpenses => {
-                if (dayExpenses && Array.isArray(dayExpenses)) {
-                    totalExpenses += dayExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-                }
-            });
-            
-            Object.keys(dailyFlow).forEach(date => {
-                const dayExpenses = (expensesList.find(e => e && e.length > 0 && e[0].date === date) || []).reduce((sum, exp) => sum + exp.amount, 0);
-                dailyFlow[date].profit -= dayExpenses;
-            });
-            
-            const grossProfit = totalSales - totalCOGS;
-            const netProfit = grossProfit - totalExpenses;
-
-            document.getElementById('fs-total-sales').textContent = `₱${formatCurrency(totalSales)}`;
-            document.getElementById('fs-total-cogs').textContent = `₱${formatCurrency(totalCOGS)}`;
-            document.getElementById('fs-gross-profit').textContent = `₱${formatCurrency(grossProfit)}`;
-            document.getElementById('fs-total-expenses').textContent = `₱${formatCurrency(totalExpenses)}`;
-            document.getElementById('fs-new-stock-cost').textContent = `₱${formatCurrency(totalNewStockCost)}`;
-            document.getElementById('fs-net-profit').textContent = `₱${formatCurrency(netProfit)}`;
-
-            renderMoneyFlowChart(dailyFlow);
-
-        } catch (error) {
-            console.error("Error loading financial summary:", error);
-            Swal.fire('Error', 'Could not load financial summary data.', 'error');
-        }
-    }
-    
-    function renderMoneyFlowChart(data) {
-        if (moneyFlowChartInstance) moneyFlowChartInstance.destroy();
-        const ctx = document.getElementById('moneyFlowChart').getContext('2d');
-        
-        const sortedDates = Object.keys(data).sort();
-        const labels = sortedDates.map(date => dayjs(date).format('MMM D'));
-        const profitData = sortedDates.map(date => data[date].profit);
-        const reinvestedData = sortedDates.map(date => data[date].reinvested);
-
-        moneyFlowChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Net Profit',
-                    data: profitData,
-                    backgroundColor: 'rgba(16, 185, 129, 0.7)', // Green
-                }, {
-                    label: 'Capital Reinvested',
-                    data: reinvestedData,
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { stacked: true },
-                    y: { stacked: true, beginAtZero: true, ticks: { callback: value => `₱${value.toLocaleString()}` } }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: (c) => `${c.dataset.label}: ₱${formatCurrency(c.raw)}`
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // --- Dashboard Functions ---
-    async function renderDashboard() {
-        const contentContainer = document.getElementById('dashboard-content');
-        contentContainer.innerHTML = '<div class="col-span-full text-center p-8"><div class="loader" role="status"></div></div>';
-        
-        try {
-            const dateToRender = todayDateString;
-            document.getElementById('dashboard-title').textContent = "Today's Overview";
-            document.getElementById('dashboard-date').textContent = dayjs(dateToRender).format('MMMM D, YYYY');
-
-            let report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToRender}`) || await startDay(dateToRender);
-            const { totalSales, totalProfit } = await getDailySummary(dateToRender);
-            const { monthlySales, monthlyNetProfit } = await getMonthlySummary(dateToRender);
-            
-            const expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateToRender}`) || [];
-            const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
-
-            const lowStockItems = shopProducts
-                .map(p => ({ ...p, stock: report.data[p.id]?.end }))
-                .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
-
-            const dashboardHTML = `
-                <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500"><div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div><div><p class="text-sm text-slate-500">Today's Total Sales</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p></div></div>
-                <div class="card p-6 flex items-center gap-6 bg-yellow-50 border-l-4 border-yellow-500"><div class="bg-yellow-100 p-4 rounded-full"><svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg></div><div><p class="text-sm text-slate-500">Today's Expenses</p><p class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalExpenses)}</p></div></div>
-                <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500"><div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div><div><p class="text-sm text-slate-500">Today's Profit</p><p class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p></div></div>
-                
-                <!-- NEW Monthly Cards -->
-                <div class="card p-6 flex items-center gap-6 bg-teal-50 border-l-4 border-teal-500 cursor-pointer" onclick="showView('expenses-view')"><div class="bg-teal-100 p-4 rounded-full"><svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5h2m-2 2h2m-2 2h2"></path></svg></div><div><p class="text-sm text-slate-500">Monthly Net Profit (To Date)</p><p id="dashboard-monthly-net-profit" class="text-3xl font-bold text-teal-700">₱${formatCurrency(monthlyNetProfit)}</p></div></div>
-                
-                <div class="card p-6 bg-red-50 border-l-4 border-red-500 md:col-span-2 lg:col-span-4"><h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock</h3><div id="low-stock-list" class="space-y-2 max-h-48 overflow-y-auto">${lowStockItems.length > 0 ? lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('') : '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>'}</div></div>`;
-            contentContainer.innerHTML = dashboardHTML;
-        } catch(error) {
-            console.error("Error rendering dashboard:", error);
-            contentContainer.innerHTML = '<div class="col-span-full card p-6 text-center text-red-600"><h3 class="font-bold">Dashboard Error</h3><p>Could not load dashboard data.</p></div>';
-        }
-    }
-    
-    // --- Expense Tracking Functions ---
-
-    /**
-     * Renders the main view for adding and viewing daily expenses.
-     */
-    async function renderExpensesView(dateString) {
-        document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`;
-        document.getElementById('expense-form-title').textContent = `Add Expense for Today`;
-        clearExpenseForm();
-
-        const container = document.getElementById('expense-list-container');
-        container.innerHTML = '<div class="loader"></div>';
-
-        const expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateString}`) || [];
-        
-        if (expenses.length === 0) {
-            container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>';
-        } else {
-            container.innerHTML = expenses.map(expense => `
-                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                    <div>
-                        <p class="font-medium">${expense.description}</p>
-                        <p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p>
-                    </div>
-                    <div class="no-print">
-                        <button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button>
-                        <button onclick="deleteExpense('${expense.id}', '${dateString}')" class="text-xs text-red-600 hover:underline">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0);
-        document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`;
-    }
-
-    /**
-     * Saves a new or edited expense to LocalForage.
-     */
-    async function saveExpense() {
-        const descriptionInput = document.getElementById('expense-description');
-        const amountInput = document.getElementById('expense-amount');
-        const expenseId = document.getElementById('expense-id').value;
-
-        const description = descriptionInput.value.trim();
-        const amount = parseFloat(amountInput.value);
-
-        if (!description || isNaN(amount) || amount <= 0) {
-            Toast.fire({ icon: 'error', title: 'Please enter a valid description and amount.' });
-            return;
-        }
-
-        const expenseData = {
-            id: expenseId || 'exp_' + Date.now(),
-            description: description,
-            amount: amount,
-            date: todayDateString // Store date for financial summary
-        };
-
-        try {
-            let expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${todayDateString}`) || [];
-            const index = expenses.findIndex(e => e.id === expenseData.id);
-
-            if (index > -1) {
-                expenses[index] = expenseData;
-                Toast.fire({ icon: 'success', title: 'Expense updated!' });
-            } else {
-                expenses.push(expenseData);
-                Toast.fire({ icon: 'success', title: 'Expense added!' });
-            }
-
-            await localforage.setItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${todayDateString}`, expenses);
-            renderExpensesView(todayDateString);
-            renderDashboard(); // Update dashboard with new expense total
-        } catch (error) {
-            console.error("Error saving expense:", error);
-            Swal.fire('Error', 'Could not save the expense.', 'error');
-        }
-    }
-    
-    function clearExpenseForm() {
-        document.getElementById('expense-id').value = '';
-        document.getElementById('expense-description').value = '';
-        document.getElementById('expense-amount').value = '';
-        document.getElementById('expense-form-title').textContent = `Add Expense for Today`;
-    }
-    
-    async function editExpense(id) {
-        const expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${todayDateString}`) || [];
-        const expense = expenses.find(e => e.id === id);
-        if (expense) {
-            document.getElementById('expense-id').value = expense.id;
-            document.getElementById('expense-description').value = expense.description;
-            document.getElementById('expense-amount').value = expense.amount;
-            document.getElementById('expense-form-title').textContent = 'Edit Expense';
-            document.getElementById('expense-description').focus();
-        }
-    }
-
-    /**
-     * Deletes an expense.
-     */
-    async function deleteExpense(expenseId, dateString) {
-        const { isConfirmed } = await Swal.fire({
-            title: 'Delete Expense?',
-            text: 'Are you sure you want to delete this expense? This cannot be undone.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it'
-        });
-
-        if (isConfirmed) {
-            try {
-                let expenses = await localforage.getItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateString}`) || [];
-                const updatedExpenses = expenses.filter(e => e.id !== expenseId);
-                await localforage.setItem(`${LOCAL_FORAGE_KEYS.EXPENSES_PREFIX}${dateString}`, updatedExpenses);
-                Toast.fire({ icon: 'success', title: 'Expense deleted!' });
-                renderExpensesView(dateString);
-                renderDashboard();
-            } catch (error) {
-                console.error("Error deleting expense:", error);
-                Swal.fire('Error', 'Could not delete the expense.', 'error');
-            }
-        }
-    }
-
-
-    // --- Settings Panel Functions ---
-
-    function showSettingsTab(contentId) {
-        document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden'));
-        document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(contentId).classList.remove('hidden');
-        document.querySelector(`[aria-controls="${contentId}"]`).classList.add('active');
-        
-        if (contentId === 'settings-analytics-content') {
-            showAnalyticsSubTab('analytics-overview-content');
-        }
-        if (contentId === 'settings-performance-content') {
-            renderPerformanceBreakdown();
-            renderRemainingStockSummary();
-        }
-    }
-
-    async function openSettingsPanel() { 
-        document.getElementById('settings-panel').classList.add('open');
-        document.getElementById('settings-panel').focus();
-        showSettingsTab('settings-product-management-content');
-    }
-    
-    function closeSettingsPanel() { 
-        document.getElementById('settings-panel').classList.remove('open');
-        document.querySelector('[onclick="openSettingsWithPassword()"]')?.focus();
-    }
-    
-    async function openSettingsWithPassword() {
-        const storedPasswordHash = await localforage.getItem(LOCAL_FORAGE_KEYS.PASSWORD);
-        if (!storedPasswordHash) {
-            const { value: password } = await Swal.fire({ title: 'Set Your Settings Password', input: 'password', inputPlaceholder: 'Minimum 4 characters', inputAttributes: { minlength: 4 }, showCancelButton: true, validationMessage: 'Password must be at least 4 characters long.' });
-            if (password && password.length >= 4) {
-                await localforage.setItem(LOCAL_FORAGE_KEYS.PASSWORD, hashPassword(password));
-                Toast.fire({ icon: 'success', title: 'Password set!' });
-                openSettingsPanel();
-            } else if (password) {
-                Swal.fire('Password Not Set', 'Password must be at least 4 characters long.', 'error');
-            }
-        } else {
-            const { value: password } = await Swal.fire({ title: 'Enter Password to Access Settings', input: 'password', showCancelButton: true, inputAttributes: { autocomplete: 'current-password' } });
-            if (password && hashPassword(password) === storedPasswordHash) openSettingsPanel();
-            else if (password) Swal.fire('Incorrect Password', 'The password you entered is incorrect.', 'error');
-        }
-    }
-
-    function renderProductList() {
-        const container = document.getElementById('product-list-container');
-        if (shopProducts.length === 0) {
-            container.innerHTML = '<p class="text-center text-slate-500 py-4">No products added yet.</p>';
-            return;
-        }
-        container.innerHTML = shopProducts.sort((a,b) => a.name.localeCompare(b.name)).map(p => `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Min: ${p.minStock}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join('');
-    }
-
-    function clearProductForm() {
-        document.getElementById('product-form-title').textContent = 'Add New Product';
-        ['product-id', 'product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('product-category').value = '25 KG';
-        ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid'));
-    }
-
-    async function saveProduct() {
-        const nameInput = document.getElementById('product-name');
-        const priceInput = document.getElementById('product-price');
-        const costInput = document.getElementById('product-cost');
-        const minStockInput = document.getElementById('product-minstock');
-        const isValid = [validateNumberInput(priceInput), validateNumberInput(costInput), validateNumberInput(minStockInput, true), nameInput.value.trim() !== ''].every(Boolean);
-        if (!nameInput.value.trim()) nameInput.classList.add('invalid'); else nameInput.classList.remove('invalid');
-        if (!isValid) return Toast.fire({ icon: 'error', title: 'Please correct invalid inputs!' });
-        
-        const productId = document.getElementById('product-id').value;
-        const productData = { 
-            id: productId || 'prod_' + Date.now(), 
-            name: nameInput.value.trim().toUpperCase(), 
-            price: parseFloat(priceInput.value), 
-            cost: parseFloat(costInput.value), 
-            category: document.getElementById('product-category').value, 
-            minStock: parseInt(minStockInput.value) || 0 
-        };
-
-        const existingProduct = shopProducts.find(p => 
-            p.name === productData.name && 
-            p.category === productData.category &&
-            p.id !== productData.id
-        );
-        if (existingProduct) {
-            return Swal.fire('Duplicate Product', `A product named "${productData.name}" already exists in the "${productData.category}" category.`, 'error');
-        }
-
-        try {
-            const index = shopProducts.findIndex(p => p.id === productData.id);
-            if (index > -1) {
-                shopProducts[index] = productData;
-                Toast.fire({ icon: 'success', title: 'Product updated!' });
-            } else {
-                shopProducts.push(productData);
-                Toast.fire({ icon: 'success', title: 'Product added!' });
-            }
-            await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
-            renderProductList(); 
-            clearProductForm(); 
-            renderInventoryTable(currentDailyReportCategory, todayDateString);
-        } catch (error) {
-            console.error("Error saving product:", error);
-            Swal.fire('Error', 'Could not save the product. Please try again.', 'error');
-        }
-    }
-
-    function editProduct(id) {
-        const product = shopProducts.find(p => p.id === id);
-        if (!product) return;
-        document.getElementById('product-form-title').textContent = `Edit Product: ${product.name}`;
-        document.getElementById('product-id').value = product.id;
-        document.getElementById('product-name').value = product.name;
-        document.getElementById('product-price').value = product.price;
-        document.getElementById('product-cost').value = product.cost;
-        document.getElementById('product-minstock').value = product.minStock;
-        document.getElementById('product-category').value = product.category;
-        ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid'));
-    }
-
-    async function deleteProduct(id) {
-        const productToDelete = shopProducts.find(p => p.id === id);
-        if (!productToDelete) return;
-
-        const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', html: `Delete <strong>${productToDelete.name} (${productToDelete.category})</strong>? This is irreversible.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!', confirmButtonColor: '#d33' });
-        if (isConfirmed) {
-            try {
-                shopProducts = shopProducts.filter(p => p.id !== id);
-                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
-                Toast.fire({ icon: 'success', title: 'Product deleted!' });
-                renderProductList(); 
-                renderInventoryTable(currentDailyReportCategory, todayDateString);
-            } catch (error) {
-                console.error("Error deleting product:", error);
-                Swal.fire('Error', 'Could not delete the product from storage.', 'error');
-            }
-        }
-    }
-    
-    async function savePassword() {
-        const current = document.getElementById('currentPassword').value;
-        const newPass = document.getElementById('newPassword').value;
-        const confirm = document.getElementById('confirmPassword').value;
-        const storedPasswordHash = await localforage.getItem(LOCAL_FORAGE_KEYS.PASSWORD);
-        if (hashPassword(current) !== storedPasswordHash) return Swal.fire('Error', 'Current password incorrect.', 'error');
-        if (newPass.length < 4) return Swal.fire('Error', 'New password must be at least 4 characters long.', 'error');
-        if (newPass !== confirm) return Swal.fire('Error', 'New passwords do not match.', 'error');
-        await localforage.setItem(LOCAL_FORAGE_KEYS.PASSWORD, hashPassword(newPass));
-        Swal.fire('Success', 'Password changed successfully!', 'success');
-        ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = '');
-    }
-    
-    async function promptForCategoryThenEdit(editType) {
-        const { value: selectedCategory } = await Swal.fire({
-            title: 'Select a Category to Edit',
-            html: `<select id="swal-category-select" class="swal2-select"><option value="all">All Categories</option>${RICE_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}</select>`,
-            focusConfirm: false, showCancelButton: true, confirmButtonText: 'Next &rarr;',
-            preConfirm: () => document.getElementById('swal-category-select').value
-        });
-        if (selectedCategory) {
-            const categoryFilter = selectedCategory === 'all' ? null : selectedCategory;
-            if (editType === 'begin') editBeginningStock(categoryFilter);
-            else if (editType === 'price') editPrices(categoryFilter);
-        }
-    }
-
-    async function editBeginningStock(categoryFilter = null) {
-        const dateToEdit = todayDateString;
-        let initialReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToEdit}`);
-        if (!initialReport) return Swal.fire('Cannot Edit', 'Can only edit beginning stock on the current day\'s report.', 'error');
-        
-        const storedPasswordHash = await localforage.getItem(LOCAL_FORAGE_KEYS.PASSWORD);
-        if (storedPasswordHash) {
-            const { value: password } = await Swal.fire({ title: 'Enter Password to Edit Beginning Stock', input: 'password', showCancelButton: true });
-            if (!password || hashPassword(password) !== storedPasswordHash) return password && Swal.fire('Incorrect Password', '', 'error');
-        }
-        
-        const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
-        if (products.length === 0) return Swal.fire('No Products', 'No products found in this category.', 'info');
-        
-        let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">';
-        let currentCategory = '';
-        products.forEach(p => {
-            if (p.category !== currentCategory && !categoryFilter) {
-                currentCategory = p.category;
-                modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`;
-            }
-            modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="begin-stock-${p.id}" class="font-medium">${p.name}</label><input type="number" id="begin-stock-${p.id}" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded" oninput="validateNumberInput(this, true)"></div>`;
-        });
-        modalHtml += '</div>';
-
-        const { isConfirmed } = await Swal.fire({ 
-            title: `Edit Beginning Stock ${categoryFilter ? `for ${categoryFilter}` : ''}`, 
-            html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, 
-            preConfirm: async () => {
-                if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) {
-                    Swal.showValidationMessage('Please correct invalid inputs.');
-                    return false;
-                }
-                const freshReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToEdit}`);
-                document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => {
-                    const productId = row.dataset.productId;
-                    const newBegin = parseInt(row.querySelector('input').value) || 0;
-                    if (freshReport.data[productId]) {
-                        const diff = newBegin - (freshReport.data[productId].begin || 0);
-                        freshReport.data[productId].begin = newBegin;
-                        freshReport.data[productId].end = (freshReport.data[productId].end || 0) + diff;
-                    }
-                });
-                await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${dateToEdit}`, freshReport);
-            }
-        });
-        if (isConfirmed) {
-            Toast.fire({ icon: 'success', title: 'Beginning stock updated!' });
-            renderInventoryTable(currentDailyReportCategory, dateToEdit);
-        }
-    }
-
-    async function editPrices(categoryFilter = null) {
-        const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
-        if (products.length === 0) return Swal.fire('No Products', 'No products found in this category.', 'info');
-        
-        let modalHtml = '<div class="text-left max-h-[60vh] overflow-y-auto p-2 border rounded">';
-        let currentCategory = '';
-        products.forEach(p => {
-            if (p.category !== currentCategory && !categoryFilter) {
-                currentCategory = p.category;
-                modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`;
-            }
-            modalHtml += `<div class="grid grid-cols-2 gap-4 items-center mb-2 p-2 border-b" data-product-id="${p.id}"><label for="price-input-${p.id}" class="font-medium">${p.name}</label><input type="number" id="price-input-${p.id}" step="0.01" value="${p.price.toFixed(2)}" class="border p-1 w-full rounded" oninput="validateNumberInput(this)"></div>`;
-        });
-        modalHtml += '</div>';
-
-        const { isConfirmed } = await Swal.fire({ 
-            title: `Edit Selling Prices ${categoryFilter ? `for ${categoryFilter}` : ''}`, 
-            html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, 
-            preConfirm: async () => {
-                if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) {
-                    Swal.showValidationMessage('Please correct invalid inputs.'); return false;
-                }
-                const todayReport = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${todayDateString}`);
-                document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => {
-                    const productId = row.dataset.productId;
-                    const newPrice = parseFloat(row.querySelector('input').value) || 0;
-                    const productInShop = shopProducts.find(p => p.id === productId);
-                    if (productInShop) productInShop.price = newPrice;
-                    if(todayReport?.data[productId]) todayReport.data[productId].price = newPrice;
-                });
-                await localforage.setItem(LOCAL_FORAGE_KEYS.PRODUCTS, shopProducts);
-                if (todayReport) await localforage.setItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${todayDateString}`, todayReport);
-            }
-        });
-        if (isConfirmed) {
-            Toast.fire({ icon: 'success', title: 'Prices updated!' });
-            renderInventoryTable(currentDailyReportCategory, todayDateString);
-        }
-    }
-
-
-    async function exportAllData() {
-        try {
-            const allData = {};
-            const keys = await localforage.keys();
-            for (const key of keys) { allData[key] = await localforage.getItem(key); }
-            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `rice_inventory_backup_${dayjs().format('YYYY-MM-DD_HHmmss')}.json`;
-            a.click(); a.remove(); URL.revokeObjectURL(a.href);
-            Toast.fire({icon: 'success', title: 'Data exported successfully!'});
-        } catch (error) { 
-            console.error("Export failed:", error);
-            Swal.fire('Export Failed', 'An error occurred during data export.', 'error'); 
-        }
-    }
-
-    async function importData() {
-        const { value: file } = await Swal.fire({ title: 'Select Backup File', html: `<strong>WARNING:</strong> This will overwrite ALL existing data.`, icon: 'warning', input: 'file', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, Import' });
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    await localforage.clear();
-                    for (const key in data) { await localforage.setItem(key, data[key]); }
-                    await Swal.fire('Import Successful', 'Data has been imported. The page will now reload.', 'success');
-                    location.reload();
-                } catch (error) { 
-                    console.error("Import failed:", error);
-                    Swal.fire('Import Failed', 'Invalid backup file or data format.', 'error'); 
-                }
-            };
-            reader.readAsText(file);
-        }
-    }
-
-    async function resetData() {
-        const { isConfirmed } = await Swal.fire({ title: 'ARE YOU SURE?', html: `This will permanently delete ALL data. Type <strong>RESET</strong> to confirm.`, icon: 'warning', input: 'text', showCancelButton: true, confirmButtonColor: '#d33', preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('You must type "RESET" to confirm.') });
-        if (isConfirmed) {
-            try {
-                await localforage.clear();
-                await Swal.fire('Data Reset', 'All data has been deleted. The page will reload.', 'success');
-                location.reload();
-            } catch(error) {
-                console.error("Data reset failed:", error);
-                Swal.fire('Reset Failed', 'Could not clear all data from storage.', 'error');
-            }
-        }
-    }
-    
-    // --- Performance & Stock Value Functions ---
-    async function renderPerformanceBreakdown() {
-        const tbody = document.getElementById('performance-tbody');
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>';
-
-        try {
-            const reportIndex = await localforage.getItem(LOCAL_FORAGE_KEYS.REPORT_INDEX) || [];
-            const allReports = await Promise.all(reportIndex.map(date => localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${date}`)));
-            
-            const sortedReports = allReports.filter(Boolean).sort((a, b) => b.date.localeCompare(a.date));
-
-            let tableHtml = '';
-            for (const report of sortedReports) {
-                const dateObj = dayjs(report.date);
-                const summary = await getDailySummary(report.date);
-                const cashOnHand = report.cashOnHand || 0;
-                const difference = cashOnHand - summary.totalSales;
-
-                let differenceHtml;
-                if (cashOnHand === 0 && summary.totalSales > 0) {
-                     differenceHtml = `<span>-</span>`; // Not recorded
-                } else if (difference < 0) {
-                    differenceHtml = `<span class="cash-short font-semibold">(₱${formatCurrency(Math.abs(difference))})</span>`;
-                } else if (difference > 0) {
-                    differenceHtml = `<span class="cash-over font-semibold">+₱${formatCurrency(difference)}</span>`;
-                } else {
-                    differenceHtml = `<span class="cash-balanced font-semibold">Balanced</span>`;
-                }
-                
-                tableHtml += `
-                    <tr class="bg-white border-b performance-row" data-date="${dateObj.format('MMM D, YYYY')}">
-                        <td class="py-4 px-6 font-medium text-slate-900">${dateObj.format('MMM D, YYYY')}</td>
-                        <td class="py-4 px-6 text-right">₱${formatCurrency(summary.totalSales)}</td>
-                        <td class="py-4 px-6 text-right">₱${formatCurrency(cashOnHand)}</td>
-                        <td class="py-4 px-6 text-right">${differenceHtml}</td>
-                        <td class="py-4 px-6 text-center">
-                           <button class="text-blue-600 hover:underline text-xs font-medium" onclick="setWorkingDay('${report.date}')">Edit Day</button>
-                        </td>
-                    </tr>`;
-            }
-            tbody.innerHTML = tableHtml || '<tr><td colspan="5" class="text-center p-4">No reports found.</td></tr>';
-        } catch(error) {
-            console.error("Error rendering performance breakdown:", error);
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Could not load performance data.</td></tr>';
-        }
-    }
-    
-    async function renderRemainingStockSummary() {
-        try {
-            const report = await localforage.getItem(`${LOCAL_FORAGE_KEYS.REPORTS_PREFIX}${todayDateString}`);
-            if (!report || !report.data) return;
-
-            const categoryValues = { '25 KG': 0, '10 KG': 0, '5 KG': 0, 'Per Kilo': 0 };
-            let grandTotal = 0;
-
-            for (const product of shopProducts) {
-                const itemData = report.data[product.id];
-                if (itemData) {
-                    const remainingStock = Math.max(0, itemData.end); // Ignore negative stock in value calculation
-                    const value = remainingStock * itemData.price;
-                    categoryValues[product.category] += value;
-                    grandTotal += value;
-                }
-            }
-
-            for (const category of RICE_CATEGORIES) {
-                const cleanCatId = category.replace(/\s+/g, '-');
-                const el = document.getElementById(`stock-value-${cleanCatId}`);
-                if (el) el.textContent = `₱${formatCurrency(categoryValues[category])}`;
-            }
-            document.getElementById('stock-value-grand-total').textContent = `₱${formatCurrency(grandTotal)}`;
-
-        } catch (error) {
-            console.error("Error rendering stock value summary:", error);
-        }
-    }
-
-
-    function filterPerformanceTable() {
-        const searchTerm = document.getElementById('performance-search').value.toLowerCase();
-        document.querySelectorAll('#performance-tbody .performance-row').forEach(row => {
-            const dateText = row.dataset.date.toLowerCase();
-            row.style.display = dateText.includes(searchTerm) ? '' : 'none';
-        });
-    }
-
-    async function setWorkingDay(dateString) {
-        if(dateString === todayDateString) {
-            return Toast.fire({ icon: 'info', title: 'This is already the current working day.' });
-        }
-        
-        const { isConfirmed } = await Swal.fire({
-            title: 'Change Working Day?',
-            html: `This will set your active working day to <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>. You will be able to edit this day's report.<br><br>Your current work will be saved.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, change it!',
-            confirmButtonColor: '#3085d6'
-        });
-
-        if (isConfirmed) {
-            await localforage.setItem(LOCAL_FORAGE_KEYS.WORKING_DATE, dateString);
-            await Swal.fire('Working Day Changed', 'The application will now reload.', 'success');
-            location.reload();
-        }
-    }
-
     // --- Event Listeners ---
     document.addEventListener('DOMContentLoaded', initializeApp);
 
     const inventoryTbody = document.getElementById('inventory-tbody');
-    
-    inventoryTbody.addEventListener('focusin', (event) => {
-        if (event.target.matches('.new-stock-input, .end-input, .price-input, .open-sacks-add-input')) {
-            inventoryTbody.querySelectorAll('.active-row').forEach(row => row.classList.remove('active-row'));
-            event.target.closest('tr')?.classList.add('active-row');
-        }
-    });
-
-    inventoryTbody.addEventListener('focusout', (event) => {
-        if (event.target.matches('.new-stock-input, .end-input, .price-input, .open-sacks-add-input')) {
-            event.target.closest('tr')?.classList.remove('active-row');
-        }
-    });
+    inventoryTbody.addEventListener('focusin', (event) => { if (event.target.matches('input')) { inventoryTbody.querySelectorAll('.active-row').forEach(row => row.classList.remove('active-row')); event.target.closest('tr')?.classList.add('active-row'); } });
+    inventoryTbody.addEventListener('focusout', (event) => { if (event.target.matches('input')) { event.target.closest('tr')?.classList.remove('active-row'); } });
     
     // --- Keyboard Navigation for Data Entry ---
-    inventoryTbody.addEventListener('keydown', (event) => {
-        const target = event.target;
-        if (!target.matches('.new-stock-input, .end-input')) return;
-
-        const currentTR = target.closest('tr');
-        if (!currentTR) return;
-        
-        let nextTR = null;
-        let targetClass = target.classList.contains('new-stock-input') ? '.new-stock-input' : '.end-input';
-        
-        if (event.key === 'ArrowDown' || event.key === 'Enter') {
-            event.preventDefault();
-            nextTR = currentTR.nextElementSibling;
-            // Skip over header/total rows
-            while(nextTR && !nextTR.querySelector(targetClass)) {
-                nextTR = nextTR.nextElementSibling;
-            }
-        } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            nextTR = currentTR.previousElementSibling;
-            // Skip over header/total rows
-            while(nextTR && !nextTR.querySelector(targetClass)) {
-                nextTR = nextTR.previousElementSibling;
-            }
-        }
-
-        if (nextTR) {
-            const nextInput = nextTR.querySelector(targetClass);
-            if (nextInput && !nextInput.disabled) {
-                nextInput.focus();
-                nextInput.select();
-            }
-        }
-    });
+    inventoryTbody.addEventListener('keydown', (event) => { const target = event.target; if (!target.matches('.new-stock-input, .end-input')) return; const currentTR = target.closest('tr'); if (!currentTR) return; let nextTR = null; let targetClass = target.classList.contains('new-stock-input') ? '.new-stock-input' : '.end-input'; if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); nextTR = currentTR.nextElementSibling; while(nextTR && !nextTR.querySelector(targetClass)) { nextTR = nextTR.nextElementSibling; } } else if (event.key === 'ArrowUp') { event.preventDefault(); nextTR = currentTR.previousElementSibling; while(nextTR && !nextTR.querySelector(targetClass)) { nextTR = nextTR.previousElementSibling; } } if (nextTR) { const nextInput = nextTR.querySelector(targetClass); if (nextInput && !nextInput.disabled) { nextInput.focus(); nextInput.select(); } } });
   </script>
 </body>
 </html>
-```
+``````
