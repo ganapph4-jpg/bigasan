@@ -234,7 +234,7 @@
         height: 16px;
         animation: spin 1s linear infinite;
         display: inline-block;
-        margin-right: 8px;
+        margin: 0 8px 0 0;
     }
 
 
@@ -361,6 +361,20 @@
     
     .btn-primary:hover {
       background-color: #2563eb;
+    }
+
+    .btn-secondary {
+      background-color: #64748b;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+        background-color: #475569;
     }
     
     .btn-success {
@@ -533,7 +547,7 @@
 </head>
 <body class="p-4">
 
-  <!-- NEW: Full-page loader -->
+  <!-- Full-page loader -->
   <div id="app-loader">
     <div class="loader"></div>
     <p id="loader-status">Initializing System...</p>
@@ -543,7 +557,7 @@
   <div class="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 no-print" role="banner">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">Rice Inventory Management</h1>
-      <p class="text-sm text-slate-500" id="header-subtitle">Current Working Day</p>
+      <p class="text-sm text-slate-500" id="header-subtitle">Today is</p>
     </div>
     <div class="flex items-center gap-4">
       <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -556,7 +570,7 @@
       </button>
       <button onclick="openSettingsWithPassword()" title="Settings" aria-label="Open Settings" class="text-slate-600 hover:text-blue-600 p-2 transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </button>
@@ -582,7 +596,7 @@
         <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500">
             <div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div>
             <div>
-                <p class="text-sm text-slate-500">Previous Day's Total Sales</p>
+                <p class="text-sm text-slate-500">Yesterday's Total Sales</p>
                 <div id="dashboard-total-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>
             </div>
         </div>
@@ -590,7 +604,7 @@
         <div class="card p-6 flex items-center gap-6 bg-yellow-50 border-l-4 border-yellow-500">
             <div class="bg-yellow-100 p-4 rounded-full"><svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg></div>
             <div>
-                <p class="text-sm text-slate-500">Previous Day's Expenses</p>
+                <p class="text-sm text-slate-500">Yesterday's Expenses</p>
                 <div id="dashboard-total-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>
             </div>
         </div>
@@ -598,7 +612,7 @@
         <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500">
             <div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
             <div>
-                <p class="text-sm text-slate-500">Previous Day's Profit</p>
+                <p class="text-sm text-slate-500">Yesterday's Profit</p>
                 <div id="dashboard-total-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>
             </div>
         </div>
@@ -634,9 +648,16 @@
       <div class="flex items-center gap-4">
         <h2 id="report-title" class="text-xl font-bold text-slate-800">Daily Inventory Report</h2>
       </div>
-      <button onclick="window.print()" class="btn-primary no-print" aria-label="Print this report">
-        Print Report
-      </button>
+      <div id="report-actions" class="flex gap-2">
+        <button onclick="window.print()" class="btn-primary no-print" aria-label="Print this report">
+            Print Report
+        </button>
+      </div>
+    </div>
+    
+    <div id="editing-past-banner" class="hidden max-w-7xl mx-auto mb-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md no-print">
+        <p class="font-bold">You are editing a past report.</p>
+        <p class="text-sm">Changes saved here will NOT automatically update the beginning stock for subsequent days. Please review future reports if you change an "Ending" value.</p>
     </div>
     
     <div class="overflow-hidden">
@@ -682,7 +703,7 @@
                         </div>
                         <div class="flex gap-2">
                             <button id="save-expense-btn" onclick="saveExpense()" class="btn-success flex-1">Save Expense</button>
-                            <button onclick="clearExpenseForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
+                            <button id="cancel-expense-btn" onclick="clearExpenseForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
                         </div>
                     </div>
                 </div>
@@ -707,14 +728,6 @@
   <div id="history-view" class="main-view max-w-7xl mx-auto" role="region" aria-labelledby="history-title">
     <div class="mb-6 flex items-center gap-4">
       <h2 id="history-title" class="text-xl font-bold text-slate-700">Report History</h2>
-    </div>
-    
-    <div class="mb-4 flex flex-col sm:flex-row items-center gap-4">
-      <input type="text" id="history-search" placeholder="Search reports by date or content..." class="border border-slate-300 rounded-md py-2 px-3 flex-grow" oninput="filterHistory()" aria-label="Search report history">
-      <select id="history-sort" class="border border-slate-300 rounded-md py-2 px-3" onchange="filterHistory()" aria-label="Sort report history">
-        <option value="newest">Newest First</option>
-        <option value="oldest">Oldest First</option>
-      </select>
     </div>
     
     <div id="history-list" class="bg-white rounded-lg shadow divide-y" aria-live="polite" aria-atomic="true">
@@ -777,7 +790,7 @@
             </div>
             <div class="flex gap-2">
               <button id="save-product-btn" onclick="saveProduct()" class="btn-success flex-1">Save Product</button>
-              <button onclick="clearProductForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
+              <button id="cancel-product-btn" onclick="clearProductForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
             </div>
           </div>
         </div>
@@ -786,22 +799,9 @@
     
     <!-- Performance Breakdown Content -->
     <div id="settings-performance-content" class="settings-tab-content hidden" role="tabpanel" aria-labelledby="tab-performance">
-      <div class="card p-6 mb-6" id="remaining-stock-summary">
-        <h3 class="text-xl font-bold text-slate-700 mb-4">Today's Remaining Stock Value</h3>
-        <div class="space-y-3" aria-live="polite">
-            <div class="flex justify-between items-center text-blue-700"><span class="font-medium">25 KG</span><span id="stock-value-25-KG" class="font-semibold">₱0.00</span></div>
-            <div class="flex justify-between items-center text-green-700"><span class="font-medium">10 KG</span><span id="stock-value-10-KG" class="font-semibold">₱0.00</span></div>
-            <div class="flex justify-between items-center text-purple-700"><span class="font-medium">5 KG</span><span id="stock-value-5-KG" class="font-semibold">₱0.00</span></div>
-            <div class="flex justify-between items-center text-amber-700"><span class="font-medium">Per Kilo</span><span id="stock-value-Per-Kilo" class="font-semibold">₱0.00</span></div>
-            <hr class="my-2">
-            <div class="flex justify-between items-center text-slate-800"><span class="font-bold text-lg">Grand Total</span><span id="stock-value-grand-total" class="font-bold text-lg">₱0.00</span></div>
-        </div>
-        <p class="text-xs text-slate-400 mt-3">This value updates in real-time as you edit the "Ending" stock in the Daily Report.</p>
-      </div>
         
-      <h3 class="text-xl font-bold text-slate-700 mb-4">Daily Performance Breakdown</h3>
-      <input type="text" id="performance-search" placeholder="Search transactions by date (e.g., Sep 30)..." class="w-full border border-slate-300 rounded-md py-2 px-3 mb-4" oninput="filterPerformanceTable()">
-      <div class="overflow-y-auto max-h-[60vh]">
+      <h3 class="text-xl font-bold text-slate-700 mb-4">Daily Performance History</h3>
+      <div class="overflow-y-auto max-h-[80vh]">
         <table class="w-full text-sm text-left text-slate-500">
             <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
                 <tr>
@@ -809,11 +809,10 @@
                     <th scope="col" class="py-3 px-6 text-right">Total Sales</th>
                     <th scope="col" class="py-3 px-6 text-right">Cash on Hand</th>
                     <th scope="col" class="py-3 px-6 text-right">Difference</th>
-                    <th scope="col" class="py-3 px-6 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody id="performance-tbody">
-                <tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>
+                <tr><td colspan="4" class="text-center p-4"><div class="loader"></div></td></tr>
             </tbody>
         </table>
       </div>
@@ -836,7 +835,7 @@
             <input id="confirmPassword" type="password" class="border border-slate-300 p-2 w-full rounded-md" autocomplete="new-password">
           </div>
         </div>
-        <button onclick="savePassword()" class="btn-primary w-full mt-4">Change Password</button>
+        <button id="save-password-btn" onclick="savePassword()" class="btn-primary w-full mt-4">Change Password</button>
       </div>
     </div>
     
@@ -983,7 +982,8 @@
   </div>
 
   <script>
-    // --- FIREBASE INITIALIZATION ---
+    // --- FIREBASE & APP INITIALIZATION ---
+
     const firebaseConfig = {
       apiKey: "AIzaSyAeu-G3dsrumVJxpXUa0TKtJbCnpxs5UBA",
       authDomain: "bigasan-e89a7.firebaseapp.com",
@@ -998,8 +998,22 @@
     }
     const db = firebase.firestore();
 
-    // --- Constants ---
-    const APP_VERSION = 1.0;
+    // --- NEW: Enable Firestore offline persistence ---
+    // This allows the app to work offline and syncs changes when the connection is back.
+    db.enablePersistence().catch((err) => {
+      if (err.code == 'failed-precondition') {
+        // Multiple tabs open, persistence can only be enabled in one.
+        console.warn('Firestore persistence failed: multiple tabs open.');
+      } else if (err.code == 'unimplemented') {
+        // The current browser does not support this feature.
+        console.warn('Firestore persistence is not available in this browser.');
+      }
+    });
+
+
+    // --- GLOBAL CONSTANTS & VARIABLES ---
+
+    const APP_VERSION = 1.3; // Updated version
     const RICE_CATEGORIES = ['25 KG', '10 KG', '5 KG', 'Per Kilo'];
     const HASH_SALT = 'rice-inventory-management-salt'; 
     const COLLECTIONS_TO_BACKUP = ['products', 'reports', 'expenses', 'settings'];
@@ -1014,33 +1028,60 @@
         timerProgressBar: true 
     });
 
-    // Global variables
     let shopProducts = [];
     let todayDateString;
     let moneyFlowChartInstance = null;
     let calculationTimeout;
     let reportListener = null;
     let expensesListener = null;
-    let isTableRendered = false;
+    let dashboardListeners = [];
+    
+    
+    // --- UTILITY & HELPER FUNCTIONS ---
 
-    // --- Utility Functions ---
+    /**
+     * Toggles the loading state of a button, showing a spinner.
+     * @param {HTMLElement} button The button element.
+     * @param {boolean} isLoading True to show loader, false to restore text.
+     */
+    function toggleButtonLoading(button, isLoading) {
+        if (!button) return;
+        if (isLoading) {
+            button.disabled = true;
+            button.dataset.originalText = button.innerHTML;
+            button.innerHTML = `<span class="btn-loader"></span> Processing...`;
+        } else {
+            button.disabled = false;
+            button.innerHTML = button.dataset.originalText || 'Save';
+        }
+    }
+
+    /**
+     * Handles Firestore errors and returns a user-friendly message.
+     * @param {Error} error The Firestore error object.
+     * @returns {string} A user-friendly error message.
+     */
+    function handleFirestoreError(error) {
+        console.error("Firestore Error:", error.code, error.message);
+        switch (error.code) {
+            case 'permission-denied':
+                return 'Error: You do not have permission to perform this action.';
+            case 'unavailable':
+                return 'The service is currently unavailable. Please check your internet connection and try again.';
+            case 'not-found':
+                return 'Could not find the requested document.';
+            default:
+                return 'An unexpected error occurred. Please try again.';
+        }
+    }
 
     async function initializeApp() {
         try {
             await runMigrations();
-
-            const settingsDoc = await db.collection('settings').doc('main').get();
-            let workingDate;
-            if (settingsDoc.exists && settingsDoc.data().workingDate) {
-                workingDate = settingsDoc.data().workingDate;
-            } else {
-                workingDate = dayjs().format('YYYY-MM-DD');
-                await db.collection('settings').doc('main').set({ workingDate: workingDate }, { merge: true });
-            }
-            todayDateString = workingDate;
             
+            todayDateString = dayjs().format('YYYY-MM-DD');
             document.getElementById('current-date-display').textContent = dayjs(todayDateString).format('MMMM D, YYYY');
-            document.getElementById('header-subtitle').textContent = `Current Working Day`;
+            document.getElementById('header-subtitle').textContent = `Today is`;
 
             await loadProducts(); 
             renderProductList(); 
@@ -1049,30 +1090,32 @@
             document.getElementById('analytics-from-date').value = dayjs(todayDateString).subtract(7, 'day').format('YYYY-MM-DD');
             document.getElementById('analytics-to-date').value = todayDateString;
             document.getElementById('financial-month-select').value = dayjs(todayDateString).format('YYYY-MM');
-            toggleAnalyticsDateInputs(); 
-
+            
             showView('dashboard-view');
 
             document.getElementById('app-loader').classList.add('hidden');
         } catch (error) {
+            // --- ENHANCED: Graceful initialization failure ---
             console.error("Critical Error during App Initialization:", error);
-            document.getElementById('loader-status').textContent = 'Error: Could not start application.';
-            Swal.fire({
-                icon: 'error',
-                title: 'Application Failed to Start',
-                text: 'Could not connect to the database. Please check your internet connection and Firebase setup.',
-                allowOutsideClick: false
-            });
+            const loader = document.getElementById('app-loader');
+            loader.classList.remove('hidden'); // Ensure loader is visible
+            loader.innerHTML = `
+                <div class="text-center p-4">
+                    <h2 class="text-xl font-bold text-red-600 mb-2">Application Failed to Start</h2>
+                    <p class="text-slate-600">${handleFirestoreError(error)}</p>
+                    <p class="text-slate-500 text-sm mt-1">Please check your internet connection and refresh the page.</p>
+                    <button onclick="location.reload()" class="btn-primary mt-4">Retry</button>
+                </div>`;
         }
     }
 
-    function validateNumberInput(inputElement, allowZero = false) {
+    function validateNumberInput(inputElement, allowZero = true) {
         if (inputElement.value.trim() === '') {
             inputElement.classList.remove('invalid');
             return true;
         }
         const value = parseFloat(inputElement.value);
-        if (isNaN(value) || value < 0 || (!allowZero && value === 0)) {
+        if (isNaN(value) || value < 0) {
             inputElement.classList.add('invalid');
             return false;
         } else {
@@ -1091,46 +1134,35 @@
     }
 
 
-    // --- Data Management Functions (Firestore) ---
-
+    // --- DATA MANAGEMENT FUNCTIONS (FIRESTORE) ---
+    
     async function runMigrations() {
         const loaderStatus = document.getElementById('loader-status');
-        const settingsRef = db.collection('settings').doc('app_version');
-        const doc = await settingsRef.get();
-        const currentVersion = doc.exists ? doc.data().version : 0;
+        const localVersion = localStorage.getItem('app_version');
 
-        if (currentVersion < APP_VERSION) {
-            loaderStatus.textContent = 'Migrating data...';
-            
-            const productsSnapshot = await db.collection('products').get();
-            if (productsSnapshot.empty) {
-                const defaultProducts = [
-                    {id: 'prod_1', name: 'KYLO', price: 1300, cost: 1150, category: '25 KG', minStock: 5}, {id: 'prod_2', name: 'HASMIN AROMA', price: 1350, cost: 1200, category: '25 KG', minStock: 5}, {id: 'prod_3', name: 'ALAS', price: 1250, cost: 1100, category: '25 KG', minStock: 5}, {id: 'prod_4', name: 'YOUNG MASTER', price: 1280, cost: 1130, category: '25 KG', minStock: 5}, {id: 'prod_5', name: 'BLUE HARVEST', price: 1320, cost: 1170, category: '25 KG', minStock: 5}, {id: 'prod_6', name: 'PRINCESS BEA', price: 1270, cost: 1120, category: '25 KG', minStock: 5}, {id: 'prod_7', name: 'ALAS', price: 550, cost: 480, category: '10 KG', minStock: 10}, {id: 'prod_8', name: 'HASMIN AROMA', price: 580, cost: 510, category: '10 KG', minStock: 10}, {id: 'prod_9', name: 'BLUE HARVEST', price: 570, cost: 500, category: '10 KG', minStock: 10}, {id: 'prod_10', name: 'YOUNG MASTER', price: 560, cost: 490, category: '10 KG', minStock: 10}, {id: 'prod_11', name: 'PRINCESS BEA', price: 540, cost: 470, category: '10 KG', minStock: 10}, {id: 'prod_12', name: 'YOUNG MASTER', price: 280, cost: 240, category: '5 KG', minStock: 15}, {id: 'prod_13', name: 'HASMIN AROMA', price: 290, cost: 250, category: '5 KG', minStock: 15}, {id: 'prod_14', name: 'ALAS', price: 270, cost: 230, category: '5 KG', minStock: 15}, {id: 'prod_15', name: 'BLUE HARVEST', price: 285, cost: 245, category: '5 KG', minStock: 15}, {id: 'prod_16', name: 'PRINCESS BEA', price: 260, cost: 220, category: '5 KG', minStock: 15}, {id: 'prod_17', name: 'KYLO', price: 55, cost: 48, category: 'Per Kilo', minStock: 20}, {id: 'prod_18', name: 'HASMIN AROMA', price: 60, cost: 52, category: 'Per Kilo', minStock: 20}, {id: 'prod_19', name: 'ALAS', price: 50, cost: 45, category: 'Per Kilo', minStock: 20}, {id: 'prod_20', name: 'YOUNG MASTER', price: 53, cost: 46, category: 'Per Kilo', minStock: 20}, {id: 'prod_21', name: 'BLUE HARVEST', price: 57, cost: 50, category: 'Per Kilo', minStock: 20}, {id: 'prod_22', name: 'PRINCESS BEA', price: 49, cost: 43, category: 'Per Kilo', minStock: 20}, {id: 'prod_23', name: 'JAZZY', price: 52, cost: 45, category: 'Per Kilo', minStock: 20}, {id: 'prod_24', name: 'BIGANTE', price: 48, cost: 41, category: 'Per Kilo', minStock: 20}, {id: 'prod_25', name: 'FARNALIZA', price: 51, cost: 44, category: 'Per Kilo', minStock: 20}, {id: 'prod_26', name: 'PILIT', price: 47, cost: 40, category: 'Per Kilo', minStock: 20}, {id: 'prod_27', name: 'BH YELLOW', price: 54, cost: 47, category: 'Per Kilo', minStock: 20}, {id: 'prod_28', name: 'SWEET RICE', price: 65, cost: 58, category: 'Per Kilo', minStock: 20}
-                ];
-                const batch = db.batch();
-                defaultProducts.forEach(product => {
-                    const docRef = db.collection('products').doc(product.id);
-                    batch.set(docRef, product);
-                });
-                await batch.commit();
+        if (parseFloat(localVersion) !== APP_VERSION) {
+            loaderStatus.textContent = 'Checking for updates...';
+            const settingsRef = db.collection('settings').doc('app_version');
+            const doc = await settingsRef.get();
+            const dbVersion = doc.exists ? doc.data().version : 0;
+
+            if (dbVersion < APP_VERSION) {
+                await settingsRef.set({ version: APP_VERSION });
+                Toast.fire({ icon: 'info', title: 'Application updated successfully!' });
             }
-            
-            await settingsRef.set({ version: APP_VERSION });
-            Toast.fire({ icon: 'success', title: 'Migration Successful!' });
+            localStorage.setItem('app_version', APP_VERSION);
         }
         loaderStatus.textContent = 'Loading application...';
     }
 
-
     async function loadProducts() {
         try {
-            const productsSnapshot = await db.collection('products').get();
-            let savedProducts = [];
-            productsSnapshot.forEach(doc => savedProducts.push(doc.data()));
-            shopProducts = savedProducts.map(p => ({ ...p, minStock: p.minStock !== undefined ? p.minStock : 0 }));
+            const productsSnapshot = await db.collection('products').orderBy('name').get();
+            shopProducts = productsSnapshot.docs.map(doc => doc.data());
         } catch (error) {
             console.error("Error loading products:", error);
-            throw new Error("Could not load product data from database.");
+            // Propagate the error to be handled by the initialization catch block
+            throw error;
         }
     }
 
@@ -1159,7 +1191,7 @@
             };
         });
 
-        const report = { date: dateString, data: newReportData, cashOnHand: 0 };
+        const report = { date: dateString, data: newReportData, cashOnHand: 0, isFinalized: false };
         await reportRef.set(report);
         Toast.fire({ icon: 'info', title: `Started new report for ${dayjs(dateString).format('MMM D')}` });
         return report;
@@ -1173,48 +1205,36 @@
                 updatePayload[`data.${productId}.${key}`] = data[key];
             }
             await reportRef.update(updatePayload);
+            recalculateAndRenderAllTotals();
         } catch (error) {
-            console.error("Error saving inventory data:", error);
-            Toast.fire({ icon: 'error', title: 'Failed to save data. Check connection.' });
+            // --- ENHANCED: Error handling ---
+            Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
         }
     }
 
     async function finalizeReport() {
+        // Note: Swal handles the loading state in showFinalizeModal
         try {
-            const submittedDate = todayDateString;
-            const reportRef = db.collection('reports').doc(submittedDate);
-            const reportDoc = await reportRef.get();
-            if (!reportDoc.exists) {
-                Toast.fire({ icon: 'error', title: "No report to submit." });
-                return;
-            }
-            
+            const reportRef = db.collection('reports').doc(todayDateString);
             const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
-            await reportRef.update({ cashOnHand: cashOnHand });
-            
-            const tomorrowDateString = dayjs(submittedDate).add(1, 'day').format('YYYY-MM-DD');
-            await startDay(tomorrowDateString);
-            
-            await db.collection('settings').doc('main').update({ workingDate: tomorrowDateString });
+            await reportRef.update({ cashOnHand: cashOnHand, isFinalized: true });
 
             await Swal.fire({
-                title: 'Report Saved!',
-                text: `The app will now advance to the next day.`,
+                title: 'Report Finalized!',
+                text: `The report for ${dayjs(todayDateString).format('MMMM D')} is now locked.`,
                 icon: 'success',
                 timer: 2000,
                 showConfirmButton: false,
                 allowOutsideClick: false
             });
-            
-            location.reload();
         } catch (error) {
             console.error("Error finalizing report:", error);
-            Swal.fire('Error', 'An error occurred while finalizing the report.', 'error');
+            Swal.fire('Error', handleFirestoreError(error), 'error');
         }
     }
 
 
-    // --- UI Rendering Functions ---
+    // --- UI RENDERING & VIEW MANAGEMENT ---
 
     function updateNavTabs(activeTabId) {
         document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -1224,25 +1244,20 @@
     }
 
     function showView(viewId) {
-        if (typeof reportListener === 'function') {
-            reportListener();
-            reportListener = null;
-        }
-        if (typeof expensesListener === 'function') {
-            expensesListener();
-            expensesListener = null;
-        }
+        // Detach ALL old listeners to prevent memory leaks
+        if (typeof reportListener === 'function') { reportListener(); reportListener = null; }
+        if (typeof expensesListener === 'function') { expensesListener(); expensesListener = null; }
+        dashboardListeners.forEach(unsubscribe => unsubscribe());
+        dashboardListeners = [];
 
         document.querySelectorAll('.main-view').forEach(view => view.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
         updateNavTabs(viewId);
         
         if (viewId === 'dashboard-view') {
-            renderDashboard();
+            listenForDashboardData();
         } else if (viewId === 'expenses-view') {
             renderExpensesView(todayDateString);
-        } else if (viewId === 'daily-report-view') {
-            isTableRendered = false;
         }
     }
     
@@ -1250,181 +1265,122 @@
         showInventory(todayDateString);
     }
     
-    async function showInventory(dateString) {
+    async function showInventory(dateString, options = {}) {
         showView('daily-report-view');
-        
-        if (dateString === todayDateString) {
-            await startDay(dateString);
-        }
-
-        const reportRef = db.collection('reports').doc(dateString);
-        if (reportListener) reportListener();
-        
-        reportListener = reportRef.onSnapshot((doc) => {
-            if (doc.exists) {
-                const reportData = doc.data();
-                if (!isTableRendered) {
-                    renderInventoryTable(dateString, reportData);
-                    isTableRendered = true;
-                } else {
-                    updateInventoryTable(reportData);
-                }
-            } else {
-                document.getElementById('inventory-tbody').innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600">Report for ${dayjs(dateString).format('MMMM D, YYYY')} not found!</td></tr>`;
-            }
-        }, (error) => {
-            console.error("Error listening to report changes:", error);
-            Swal.fire('Connection Error', 'Could not listen for real-time updates.', 'error');
-        });
-    }
-
-    async function getDailySummary(dateString) {
-        const reportDoc = await db.collection('reports').doc(dateString).get();
-        let totalSales = 0, totalProfit = 0;
-
-        if (reportDoc.exists) {
-            const report = reportDoc.data();
-            for (const productId in report.data) {
-                const item = report.data[productId];
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
-                const sales = Math.max(0, sold) * item.price;
-                const profit = sales - (Math.max(0, sold) * item.cost);
-                totalSales += sales;
-                totalProfit += profit;
-            }
-        }
-        return { totalSales, totalProfit };
-    }
-
-    async function getExpensesForDate(dateString) {
-        const expensesSnapshot = await db.collection('expenses').where('date', '==', dateString).get();
-        let totalExpenses = 0;
-        expensesSnapshot.forEach(doc => totalExpenses += doc.data().amount);
-        return totalExpenses;
-    }
-
-    async function getMonthlySummary(dateString) {
-        const startOfMonth = dayjs(dateString).startOf('month').format('YYYY-MM-DD');
-        const endOfDay = dayjs(dateString).format('YYYY-MM-DD');
-        let monthlySales = 0, monthlyProfit = 0, monthlyExpenses = 0;
-
-        const reportsSnapshot = await db.collection('reports').where('date', '>=', startOfMonth).where('date', '<=', endOfDay).get();
-        reportsSnapshot.forEach(doc => {
-            const report = doc.data();
-            for (const productId in report.data) {
-                const item = report.data[productId];
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
-                const sales = Math.max(0, sold) * item.price;
-                const profit = sales - (Math.max(0, sold) * item.cost);
-                monthlySales += sales;
-                monthlyProfit += profit;
-            }
-        });
-        
-        const expensesSnapshot = await db.collection('expenses').where('date', '>=', startOfMonth).where('date', '<=', endOfDay).get();
-        expensesSnapshot.forEach(doc => monthlyExpenses += doc.data().amount);
-
-        const monthlyNetProfit = monthlyProfit - monthlyExpenses;
-        return { monthlySales, monthlyNetProfit };
-    }
-
-    function renderInventoryTable(dateString, report) {
-        const inventoryTbody = document.getElementById('inventory-tbody');
         try {
-            const isEditable = (dateString === todayDateString);
-            document.getElementById('report-title').textContent = `Daily Report - ${dayjs(dateString).format('MMMM D, YYYY')}`;
-            
-            const groupedProducts = {};
-            RICE_CATEGORIES.forEach(cat => groupedProducts[cat] = []);
-            shopProducts.forEach(p => groupedProducts[p.category]?.push(p));
-            
-            let tableHtml = '';
-            RICE_CATEGORIES.forEach((cat, index) => {
-                const productsInCategory = groupedProducts[cat].sort((a, b) => a.name.localeCompare(b.name));
-                if (productsInCategory.length > 0) {
-                    const cleanCatClass = cat.replace(/\s+/g, '-');
-                    tableHtml += `<tr class="category-header category-header-${cleanCatClass}"><td colspan="9">${cat}</td></tr>`;
-                    if(index > 0) {
-                        tableHtml += `<tr class="category-subheader"><th>PRODUCT</th><th>BEGIN</th><th>NEW</th><th>OPEN SACKS</th><th>ENDING</th><th>SOLD</th><th>PRICE(₱)</th><th>SALES(₱)</th><th>PROFIT(₱)</th></tr>`;
-                    }
+            await startDay(dateString);
 
-                    productsInCategory.forEach(product => {
-                        const isOpenSacksEditable = isEditable && product.category === '25 KG';
-                        tableHtml += `<tr data-id="${product.id}">
-                            <td class="font-medium product-name">${product.name}</td>
-                            <td><input type="number" class="begin-val" disabled /></td>
-                            <td><input type="number" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
-                            <td class="!p-1">
-                                ${isOpenSacksEditable ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" oninput="validateNumberInput(this, true);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
-                            </td>
-                            <td><input type="number" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this, true); debouncedCalculate(this, '${dateString}');"/></td>
-                            <td><input type="number" class="sold-val" disabled /></td>
-                            <td><input type="number" step="0.01" class="price-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedUpdatePrice(this, '${dateString}');" /></td>
-                            <td class="total-sales-val font-semibold" aria-live="polite"></td>
-                            <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
-                        </tr>`;
-                    });
-                    const cleanCat = cat.replace(' ', '-');
-                    tableHtml += `<tr class="category-total-row" data-category-total="${cleanCat}"><td colspan="5" class="text-right p-3">Total for ${cat}</td><td class="category-total-sold p-3"></td><td></td><td class="category-total-sales p-3"></td><td class="category-total-profit p-3 text-green-600"></td></tr>`;
+            const isEditingPast = options.isEditingPast || false;
+            document.getElementById('editing-past-banner').classList.toggle('hidden', !isEditingPast);
+
+            const reportRef = db.collection('reports').doc(dateString);
+            if (reportListener) reportListener();
+            
+            reportListener = reportRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const reportData = doc.data();
+                    const isFinalized = reportData.isFinalized || false;
+                    const isToday = dateString === todayDateString;
+                    const isEditable = (isToday && !isFinalized) || isEditingPast;
+
+                    renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday });
+                    updateInventoryTable(reportData);
+                } else {
+                    document.getElementById('inventory-tbody').innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600">Report not found!</td></tr>`;
                 }
+            }, (error) => {
+                console.error("Error listening to report changes:", error);
+                Swal.fire('Connection Error', handleFirestoreError(error), 'error');
             });
-            tableHtml += `<tr class="grand-total-row"><td colspan="5" class="text-right p-4">OVERALL GRAND TOTAL</td><td id="overall-total-sold" class="p-4"></td><td></td><td id="overall-total-sales" class="p-4"></td><td id="overall-total-profit" class="p-4 text-green-400"></td></tr>`;
-            tableHtml += `<tr><td colspan="9" class="p-2 bg-white"><div class="max-w-4xl mx-auto p-4 bg-slate-50 border-t-4 border-blue-500 rounded-b-lg shadow-inner"><div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-center"><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Expected Sales:</span><span id="expected-cash" class="font-bold text-slate-800 text-lg"></span></div><div class="flex justify-between items-center p-2 rounded"><label for="cash-on-hand" class="text-sm font-medium text-slate-600 mr-2">Cash on Hand:</label><input type="number" id="cash-on-hand" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded" oninput="validateNumberInput(this, true); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Difference:</span><span id="cash-difference-display" class="font-bold text-lg">-</span></div></div></div></td></tr>`;
-            if (isEditable) {
-                tableHtml += `<tr class="no-print"><td colspan="9" class="p-4 bg-white"><div class="flex justify-center"><button onclick="showReviewModal()" class="btn-success">Save Today & Start Next Day</button></div></td></tr>`;
-            } else {
-                tableHtml += `<tr class="no-print"><td colspan="9" class="p-4 bg-slate-50 text-center"><p class="font-medium text-slate-600">Viewing a past report. Click the Daily Report tab for the current day.</p></td></tr>`;
-            }
-            inventoryTbody.innerHTML = tableHtml;
-            updateInventoryTable(report);
-
         } catch (error) {
-            console.error("Error rendering inventory table:", error);
-            inventoryTbody.innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600 font-semibold">An error occurred while loading the report.</td></tr>`;
+            Swal.fire('Error', handleFirestoreError(error), 'error');
         }
+    }
+
+    function renderInventoryTable(dateString, report, options) {
+        const { isEditable, isFinalized, isEditingPast, isToday } = options;
+        const inventoryTbody = document.getElementById('inventory-tbody');
+        document.getElementById('report-title').textContent = `Daily Report - ${dayjs(dateString).format('MMMM D, YYYY')}`;
+            
+        const groupedProducts = {};
+        RICE_CATEGORIES.forEach(cat => groupedProducts[cat] = []);
+        shopProducts.forEach(p => {
+            if (!groupedProducts[p.category]) groupedProducts[p.category] = [];
+            groupedProducts[p.category].push(p)
+        });
+            
+        let tableHtml = '';
+        RICE_CATEGORIES.forEach(cat => {
+            const productsInCategory = groupedProducts[cat]?.sort((a, b) => a.name.localeCompare(b.name));
+            if (productsInCategory && productsInCategory.length > 0) {
+                const cleanCatClass = cat.replace(/\s+/g, '-');
+                tableHtml += `<tr class="category-header category-header-${cleanCatClass}"><td colspan="9">${cat}</td></tr>`;
+                
+                productsInCategory.forEach(product => {
+                    tableHtml += `<tr data-id="${product.id}" data-category="${product.category}">
+                        <td class="font-medium product-name">${product.name}</td>
+                        <td><input type="number" class="begin-val" disabled /></td>
+                        <td><input type="number" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
+                        <td class="!p-1">
+                            ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!isEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
+                        </td>
+                        <td><input type="number" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
+                        <td><input type="number" class="sold-val" disabled /></td>
+                        <td><input type="number" step="0.01" class="price-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedUpdatePrice(this, '${dateString}');" /></td>
+                        <td class="total-sales-val font-semibold" aria-live="polite"></td>
+                        <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
+                    </tr>`;
+                });
+                tableHtml += `<tr class="category-total-row" data-category-total="${cat}"><td colspan="5" class="text-right p-3">Total for ${cat}</td><td class="category-total-sold p-3"></td><td></td><td class="category-total-sales p-3"></td><td class="category-total-profit p-3 text-green-600"></td></tr>`;
+            }
+        });
+        
+        tableHtml += `<tr class="grand-total-row"><td colspan="5" class="text-right p-4">OVERALL GRAND TOTAL</td><td id="overall-total-sold" class="p-4"></td><td></td><td id="overall-total-sales" class="p-4"></td><td id="overall-total-profit" class="p-4 text-green-400"></td></tr>`;
+        tableHtml += `<tr><td colspan="9" class="p-2 bg-white"><div class="max-w-4xl mx-auto p-4 bg-slate-50 border-t-4 border-blue-500 rounded-b-lg shadow-inner"><div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 items-center"><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Expected Sales:</span><span id="expected-cash" class="font-bold text-slate-800 text-lg"></span></div><div class="flex justify-between items-center p-2 rounded"><label for="cash-on-hand" class="text-sm font-medium text-slate-600 mr-2">Cash on Hand:</label><input type="number" id="cash-on-hand" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Difference:</span><span id="cash-difference-display" class="font-bold text-lg">-</span></div></div></div></td></tr>`;
+        
+        let footerHtml = '';
+        if(isEditingPast) {
+            footerHtml = `<tr class="no-print"><td colspan="9" class="p-4 bg-white text-center"><button onclick="savePastReportChanges('${dateString}')" class="btn-primary">Save Changes</button></td></tr>`;
+        } else if (isToday && !isFinalized) {
+            footerHtml = `<tr class="no-print"><td colspan="9" class="p-4 bg-white text-center"><button onclick="showFinalizeModal()" class="btn-success">Finalize Today's Report</button></td></tr>`;
+        } else {
+            const message = isToday ? "Today's report is finalized and locked." : "This is a past report and is read-only.";
+            footerHtml = `<tr class="no-print"><td colspan="9" class="p-4 bg-slate-50 text-center"><p class="font-medium text-slate-600">${message}</p></td></tr>`;
+        }
+        tableHtml += footerHtml;
+        
+        inventoryTbody.innerHTML = tableHtml;
     }
 
     function updateInventoryTable(report) {
         const reportData = report.data;
-        const categoryTotals = {};
-        RICE_CATEGORIES.forEach(cat => categoryTotals[cat] = { sold: 0, sales: 0, profit: 0 });
-
         shopProducts.forEach(product => {
             const row = document.querySelector(`#inventory-tbody tr[data-id="${product.id}"]`);
             if (!row) return;
-
             const data = reportData[product.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0, price: product.price, cost: product.cost };
-            const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
-            const totalSales = Math.max(0, sold) * data.price;
-            const profit = totalSales - (Math.max(0, sold) * data.cost);
-
-            categoryTotals[product.category].sold += sold > 0 ? sold : 0;
-            categoryTotals[product.category].sales += totalSales;
-            categoryTotals[product.category].profit += profit;
-
             updateInputValue(row, '.begin-val', data.begin);
             updateInputValue(row, '.new-stock-input', data.newStock);
             updateInputValue(row, '.end-input', data.end);
-            updateInputValue(row, '.sold-val', sold);
             updateInputValue(row, '.price-input', formatCurrency(data.price));
+            const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
+            const totalSales = Math.max(0, sold) * data.price;
+            const profit = totalSales - (Math.max(0, sold) * data.cost);
+            updateInputValue(row, '.sold-val', sold);
             updateTextContent(row, '.total-sales-val', formatCurrency(totalSales));
             updateTextContent(row, '.profit-val', formatCurrency(profit));
-
             row.classList.toggle('row-has-sales', sold > 0);
             row.classList.toggle('row-logic-error', sold < 0);
             row.classList.toggle('row-negative-stock', data.end < 0);
-            row.classList.toggle('row-low-stock', product.minStock > 0 && data.end >= 0 && data.end <= product.minStock);
+            row.classList.toggle('row-low-stock', (product.minStock || 0) > 0 && data.end >= 0 && data.end <= product.minStock);
         });
-        
-        updateTotalsFromData(categoryTotals);
-        
+        recalculateAndRenderAllTotals();
         const cashInput = document.getElementById('cash-on-hand');
-        if (cashInput && report.cashOnHand > 0 && cashInput.value !== report.cashOnHand) {
+        if (cashInput && report.cashOnHand != null && cashInput.value !== String(report.cashOnHand)) {
             cashInput.value = report.cashOnHand;
         }
         calculateCashDifference();
     }
-
+    
     function updateInputValue(row, selector, value) {
         const el = row.querySelector(selector);
         if (el && el.value != value && document.activeElement !== el) {
@@ -1438,14 +1394,36 @@
             el.textContent = value;
         }
     }
+    
+
+    // --- CALCULATIONS & EVENT HANDLERS ---
+
+    function recalculateAndRenderAllTotals() {
+        const categoryTotals = {};
+        RICE_CATEGORIES.forEach(cat => categoryTotals[cat] = { sold: 0, sales: 0, profit: 0 });
+
+        document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
+            const category = row.dataset.category;
+            const sold = parseFloat(row.querySelector('.sold-val')?.value) || 0;
+            const sales = parseFloat(row.querySelector('.total-sales-val')?.textContent) || 0;
+            const profit = parseFloat(row.querySelector('.profit-val')?.textContent) || 0;
+
+            if (categoryTotals[category]) {
+                categoryTotals[category].sold += sold > 0 ? sold : 0;
+                categoryTotals[category].sales += sales;
+                categoryTotals[category].profit += profit;
+            }
+        });
+
+        updateTotalsFromData(categoryTotals);
+    }
 
     function updateTotalsFromData(categoryTotals) {
         let overallTotalSold = 0, overallTotalSales = 0, overallTotalProfit = 0;
 
         for(const cat in categoryTotals) {
             const totals = categoryTotals[cat];
-            const cleanCat = cat.replace(' ', '-');
-            const totalRow = document.querySelector(`tr[data-category-total="${cleanCat}"]`);
+            const totalRow = document.querySelector(`tr[data-category-total="${cat}"]`);
             if (totalRow) {
                 updateTextContent(totalRow, '.category-total-sold', totals.sold);
                 updateTextContent(totalRow, '.category-total-sales', `₱${formatCurrency(totals.sales)}`);
@@ -1460,6 +1438,7 @@
         updateTextContent(document, '#overall-total-sales', `₱${formatCurrency(overallTotalSales)}`);
         updateTextContent(document, '#overall-total-profit', `₱${formatCurrency(overallTotalProfit)}`);
         updateTextContent(document, '#expected-cash', `₱${formatCurrency(overallTotalSales)}`);
+        calculateCashDifference();
     }
 
     function calculateCashDifference() {
@@ -1492,6 +1471,11 @@
         }
     }
 
+    function debouncedCalculate(inputElement, dateString) {
+        clearTimeout(calculationTimeout);
+        calculationTimeout = setTimeout(() => calculate(inputElement, dateString), 400);
+    }
+
     async function calculate(inputElement, dateString) {
         if (inputElement.classList.contains('invalid')) return;
         const row = inputElement.closest('tr');
@@ -1500,59 +1484,12 @@
         const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
         const end = parseFloat(row.querySelector('.end-input').value) || 0;
         await saveInventoryData(dateString, productId, { newStock, end });
-        renderRemainingStockSummary();
     }
     
-    function debouncedCalculate(inputElement, dateString) {
+    function debouncedUpdatePrice(inputElement, dateString) {
         clearTimeout(calculationTimeout);
-        calculationTimeout = setTimeout(() => calculate(inputElement, dateString), 400);
+        calculationTimeout = setTimeout(() => updatePrice(inputElement, dateString), 400);
     }
-    
-    async function submitOpenSack(buttonElement, productId, dateString) {
-        const parentDiv = buttonElement.parentElement;
-        const addSacksInput = parentDiv.querySelector('.open-sacks-add-input');
-        const sacksToAdd = parseInt(addSacksInput.value) || 0;
-
-        if (sacksToAdd <= 0) {
-            return Toast.fire({ icon: 'info', title: 'Enter a positive number.' });
-        }
-
-        const sourceProduct = shopProducts.find(p => p.id === productId);
-        if (!sourceProduct || sourceProduct.category !== '25 KG') return;
-
-        try {
-            const reportRef = db.collection('reports').doc(dateString);
-            await db.runTransaction(async (transaction) => {
-                const reportDoc = await transaction.get(reportRef);
-                if (!reportDoc.exists) throw "Report not found!";
-                
-                const report = reportDoc.data();
-                const sourceData = report.data[sourceProduct.id] || { end: 0 };
-                const availableStock = sourceData.end;
-
-                if (availableStock < sacksToAdd) {
-                    throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} available.`;
-                }
-
-                const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
-                if (!targetProduct) throw `No corresponding "Per Kilo" product found for ${sourceProduct.name}.`;
-
-                const kilosToAdd = sacksToAdd * 25;
-                
-                const updatePayload = {};
-                updatePayload[`data.${sourceProduct.id}.openedSacks`] = firebase.firestore.FieldValue.increment(sacksToAdd);
-                updatePayload[`data.${targetProduct.id}.begin`] = firebase.firestore.FieldValue.increment(kilosToAdd);
-                updatePayload[`data.${targetProduct.id}.end`] = firebase.firestore.FieldValue.increment(kilosToAdd);
-                transaction.update(reportRef, updatePayload);
-                addSacksInput.value = '';
-            });
-            Toast.fire({ icon: 'success', title: 'Stock transferred!' });
-        } catch (error) {
-            console.error("Error submitting open sack:", error);
-            Swal.fire('Error', typeof error === 'string' ? error : 'An unexpected error occurred.', 'error');
-        }
-    }
-
 
     async function updatePrice(priceInputElement, dateString) {
         if (priceInputElement.classList.contains('invalid')) return;
@@ -1567,401 +1504,330 @@
             await db.collection('reports').doc(dateString).update({ [`data.${productId}.price`]: newPrice });
             await loadProducts();
         } catch (error) {
-            console.error("Error updating price:", error);
-            Toast.fire({ icon: 'error', title: 'Could not save price change.' });
+            Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
+        }
+    }
+    
+    async function submitOpenSack(buttonElement, productId, dateString) {
+        const parentDiv = buttonElement.parentElement;
+        const addSacksInput = parentDiv.querySelector('.open-sacks-add-input');
+        const sacksToAdd = parseInt(addSacksInput.value) || 0;
+
+        if (sacksToAdd <= 0) {
+            return Toast.fire({ icon: 'info', title: 'Enter a positive number.' });
+        }
+
+        const sourceProduct = shopProducts.find(p => p.id === productId);
+        if (!sourceProduct || sourceProduct.category !== '25 KG') return;
+
+        const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
+        if (!targetProduct) {
+            return Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}. Please add it in Settings.`, 'error');
+        }
+        
+        const { isConfirmed } = await Swal.fire({
+            title: 'Confirm Transfer',
+            html: `Are you sure you want to open <b>${sacksToAdd}</b> sack(s) of <b>${sourceProduct.name}</b>?<br><br>This will add <b>${sacksToAdd * 25} kg</b> to the "Per Kilo" inventory.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3b82f6',
+            confirmButtonText: 'Yes, transfer it!'
+        });
+
+        if (!isConfirmed) return;
+
+        try {
+            const reportRef = db.collection('reports').doc(dateString);
+            await db.runTransaction(async (transaction) => {
+                const reportDoc = await transaction.get(reportRef);
+                if (!reportDoc.exists) throw "Report not found!";
+                
+                const report = reportDoc.data();
+                const sourceData = report.data[sourceProduct.id] || { end: 0 };
+                const availableStock = (sourceData.begin + sourceData.newStock) - (sourceData.openedSacks || 0) - sourceData.end;
+
+                if (availableStock < sacksToAdd) {
+                    throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} available to open.`;
+                }
+
+                const kilosToAdd = sacksToAdd * 25;
+                
+                const updatePayload = {};
+                updatePayload[`data.${sourceProduct.id}.openedSacks`] = firebase.firestore.FieldValue.increment(sacksToAdd);
+                updatePayload[`data.${targetProduct.id}.begin`] = firebase.firestore.FieldValue.increment(kilosToAdd);
+                updatePayload[`data.${targetProduct.id}.end`] = firebase.firestore.FieldValue.increment(kilosToAdd);
+                transaction.update(reportRef, updatePayload);
+                addSacksInput.value = '';
+            });
+            Toast.fire({ icon: 'success', title: 'Stock transferred!' });
+        } catch (error) {
+            const errorMessage = typeof error === 'string' ? error : handleFirestoreError(error);
+            Swal.fire('Error', errorMessage, 'error');
+        }
+    }
+    
+    async function getPassword() {
+        const securityDoc = await db.collection('settings').doc('security').get();
+        const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null;
+        if (!storedPasswordHash) return { success: true }; 
+        const { value: password } = await Swal.fire({
+            title: 'Enter Password to Proceed',
+            input: 'password',
+            inputPlaceholder: 'Enter your password',
+            inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
+            showCancelButton: true
+        });
+        if (password && hashPassword(password) === storedPasswordHash) {
+            return { success: true };
+        } else if (password) {
+            Swal.fire('Incorrect Password', '', 'error');
+            return { success: false };
+        }
+        return { success: false };
+    }
+    
+    async function editPastReport(dateString) {
+        const password = await getPassword();
+        if (!password.success) return;
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'Warning: Editing Past Report',
+            html: `You are about to edit the report for <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>. <br><br>Changes to "Ending" stock will <strong>NOT</strong> automatically update the "Beginning" stock of future days.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'I understand, proceed'
+        });
+
+        if (isConfirmed) {
+            showInventory(dateString, { isEditingPast: true });
         }
     }
 
-    function debouncedUpdatePrice(inputElement, dateString) {
-        clearTimeout(calculationTimeout);
-        calculationTimeout = setTimeout(() => updatePrice(inputElement, dateString), 400);
+    async function savePastReportChanges(dateString) {
+        const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
+        try {
+            await db.collection('reports').doc(dateString).update({ cashOnHand });
+            Toast.fire({ icon: 'success', title: 'Changes saved successfully!' });
+            showHistory();
+        } catch (error) {
+            Swal.fire('Error', handleFirestoreError(error), 'error');
+        }
     }
-    
-    async function showReviewModal() {
+
+    async function showFinalizeModal() {
         const { isConfirmed } = await Swal.fire({
             title: `Finalize Report for Today?`,
-            text: `This action will save today's report and advance the system to the next working day. It cannot be undone.`,
+            text: `This will lock today's report from further edits. You can still make corrections later from the History page (password required).`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10b981',
             confirmButtonText: 'Yes, Finalize It!',
             showLoaderOnConfirm: true,
-            preConfirm: () => {
-                return finalizeReport().catch(err => {
-                    Swal.showValidationMessage(`Request failed: ${err}`);
-                });
-            },
+            preConfirm: () => finalizeReport().catch(err => Swal.showValidationMessage(`Request failed: ${err}`)),
             allowOutsideClick: () => !Swal.isLoading()
         });
     }
 
-    // --- History View Functions ---
+    // --- HISTORY VIEW FUNCTIONS ---
 
     async function showHistory() {
         showView('history-view');
         const historyList = document.getElementById('history-list');
-        historyList.innerHTML = '<div class="p-4 text-center"><div class="loader" role="status"></div></div>';
+        historyList.innerHTML = '<div class="p-4 text-center"><div class="loader"></div></div>';
         try {
             const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get();
-            const reportDates = [];
-            reportsSnapshot.forEach(doc => reportDates.push(doc.id));
-            renderHistoryList(reportDates);
+            renderHistoryList(reportsSnapshot.docs);
         } catch (error) {
              console.error("Error loading history:", error);
-             historyList.innerHTML = '<p class="p-4 text-center text-red-500">Could not load report history.</p>';
+             historyList.innerHTML = `<p class="p-4 text-center text-red-500">${handleFirestoreError(error)}</p>`;
         }
     }
     
-    function renderHistoryList(reportDates) {
+    function renderHistoryList(reportDocs) {
         const listEl = document.getElementById('history-list');
-        if(reportDates.length === 0) {
+        if(reportDocs.length === 0) {
             listEl.innerHTML = '<p class="text-center text-slate-500 p-8">No saved reports found.</p>';
             return;
         }
-        listEl.innerHTML = reportDates.map(dateString => `
+        listEl.innerHTML = reportDocs.map(doc => {
+            const report = doc.data();
+            const dateString = report.date;
+            const isFinalized = report.isFinalized;
+            return `
             <div class="p-4 hover:bg-slate-50 transition-colors history-item" data-date="${dateString}">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                    <div>
-                        <div class="font-medium">${dayjs(dateString).format('dddd, MMMM D, YYYY')}</div>
-                        <div class="text-sm text-slate-500" aria-hidden="true">${dateString}</div>
+                    <div class="flex items-center gap-3">
+                        ${isFinalized ? '<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' : '<svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 9a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd"></path></svg>'}
+                        <div>
+                            <div class="font-medium">${dayjs(dateString).format('dddd, MMMM D, YYYY')}</div>
+                            <div class="text-sm text-slate-500">${isFinalized ? 'Finalized' : 'In Progress'}</div>
+                        </div>
                     </div>
-                    <div class="flex gap-2 mt-2 sm:mt-0">
-                        <button onclick="viewPastReport('${dateString}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Report</button>
+                    <div class="flex gap-4 mt-2 sm:mt-0">
+                        <button onclick="showInventory('${dateString}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</button>
+                        <button onclick="editPastReport('${dateString}')" class="text-amber-600 hover:text-amber-800 text-sm font-medium">Edit</button>
                         <button onclick="deleteReport('${dateString}')" class="text-red-600 hover:text-red-800 text-sm font-medium no-print">Delete</button>
                     </div>
                 </div>
-            </div>`).join('');
-    }
-
-    async function viewPastReport(dateString) {
-        isTableRendered = false;
-        showInventory(dateString);
-    }
-    
-    function filterHistory() {
-        const searchTerm = document.getElementById('history-search').value.toLowerCase();
-        const historyItems = document.querySelectorAll('#history-list .history-item');
-        historyItems.forEach(item => {
-            const dateText = item.textContent.toLowerCase();
-            item.style.display = dateText.includes(searchTerm) ? '' : 'none';
-        });
+            </div>`
+        }).join('');
     }
     
     async function deleteReport(dateString) {
         if (dateString === todayDateString) {
-            return Swal.fire('Action Denied', 'You cannot delete the report for the current working day.', 'error');
+            return Swal.fire('Action Denied', 'You cannot delete the active report for today.', 'error');
         }
+        const password = await getPassword();
+        if(!password.success) return;
+
         const { isConfirmed } = await Swal.fire({ 
             title: 'Delete Report?', 
-            text: `This will permanently delete the report for ${dayjs(dateString).format('MMMM D, YYYY')}.`, 
+            text: `This will permanently delete the report for ${dayjs(dateString).format('MMMM D, YYYY')}. This cannot be undone.`, 
             icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!' 
         });
         if (isConfirmed) {
             try {
                 await db.collection('reports').doc(dateString).delete();
+                await db.collection('expenses').where('date', '==', dateString).get().then(snap => {
+                    const batch = db.batch();
+                    snap.forEach(doc => batch.delete(doc.ref));
+                    return batch.commit();
+                });
                 Toast.fire({ icon: 'success', title: 'Report deleted!' });
                 showHistory();
             } catch (error) {
-                Swal.fire('Error', 'Could not delete the report.', 'error');
+                Swal.fire('Error', handleFirestoreError(error), 'error');
             }
         }
     }
 
-    // --- Analytics Functions ---
-    function showAnalyticsSubTab(contentId) { document.querySelectorAll('#settings-analytics-content .analytics-tab-content').forEach(content => { content.classList.add('hidden'); content.setAttribute('aria-hidden', 'true'); }); document.querySelectorAll('#settings-analytics-content .analytics-tab').forEach(tab => { tab.classList.remove('active'); tab.setAttribute('aria-selected', 'false'); }); const selectedContent = document.getElementById(contentId); if (selectedContent) { selectedContent.classList.remove('hidden'); selectedContent.setAttribute('aria-hidden', 'false'); const correspondingTab = document.querySelector(`#settings-analytics-content [aria-controls="${contentId}"]`); if (correspondingTab) { correspondingTab.classList.add('active'); correspondingTab.setAttribute('aria-selected', 'true'); } } if (contentId === 'analytics-overview-content' || contentId === 'analytics-products-content') { loadAnalytics(); } else if (contentId === 'analytics-financial-summary-content') { loadFinancialSummary(); } }
-    function toggleAnalyticsDateInputs() { const mode = document.getElementById('analytics-mode-select').value; document.getElementById('daily-date-input').classList.toggle('hidden', mode !== 'daily'); document.getElementById('range-date-inputs').classList.toggle('hidden', mode !== 'range'); }
-    async function loadAnalytics() { const mode = document.getElementById('analytics-mode-select').value; let startDate, endDate; if (mode === 'daily') { startDate = document.getElementById('analytics-single-date').value; endDate = startDate; } else { startDate = document.getElementById('analytics-from-date').value; endDate = document.getElementById('analytics-to-date').value; } if (!startDate || !endDate || dayjs(startDate).isAfter(dayjs(endDate))) { return; } try { const reportsSnapshot = await db.collection('reports') .where('date', '>=', startDate) .where('date', '<=', endDate) .get(); let totalSales = 0; let totalProfit = 0; let numDays = reportsSnapshot.size; const productPerformance = {}; shopProducts.forEach(p => productPerformance[p.id] = { sold: 0, sales: 0, profit: 0, name: p.name, category: p.category }); reportsSnapshot.forEach(doc => { const report = doc.data(); for (const productId in report.data) { const product = shopProducts.find(p => p.id === productId); if (!product) continue; const item = report.data[productId]; const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; if(sold <= 0) continue; const sales = sold * item.price; const profit = sales - (sold * item.cost); totalSales += sales; totalProfit += profit; if (productPerformance[productId]) { productPerformance[productId].sold += sold; productPerformance[productId].sales += sales; productPerformance[productId].profit += profit; } } }); numDays = numDays || 1; document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`; document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`; document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(totalSales / numDays)}`; document.getElementById('analytics-avg-margin').textContent = `${formatCurrency((totalSales > 0 ? (totalProfit / totalSales) * 100 : 0))}%`; renderTopPerformingProducts(productPerformance); } catch (error) { console.error("Error loading sales overview analytics:", error); } }
-    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data found for the selected period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full flex items-center justify-center ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}">${i + 1}</div><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div></div><div class="text-right"><div class="font-semibold">₱${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">₱${formatCurrency(p.profit)} profit</div></div></div>`).join(''); }
-    async function loadFinancialSummary() { const monthValue = document.getElementById('financial-month-select').value; if (!monthValue) return; const startDate = dayjs(monthValue).startOf('month').format('YYYY-MM-DD'); const endDate = dayjs(monthValue).endOf('month').format('YYYY-MM-DD'); let totalSales = 0, totalCOGS = 0, totalExpenses = 0, totalNewStockCost = 0; const dailyFlow = {}; try { const reportsSnapshot = await db.collection('reports') .where('date', '>=', startDate).where('date', '<=', endDate).get(); const expensesSnapshot = await db.collection('expenses') .where('date', '>=', startDate).where('date', '<=', endDate).get(); reportsSnapshot.forEach(doc => { const report = doc.data(); if (!report || !report.data) return; let dailyNetProfit = 0; let dailyNewStockCost = 0; for (const productId in report.data) { const product = shopProducts.find(p => p.id === productId); if (!product) continue; const item = report.data[productId]; const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; if (sold > 0) { const sales = sold * item.price; const cogs = sold * item.cost; totalSales += sales; totalCOGS += cogs; dailyNetProfit += (sales - cogs); } if (item.newStock > 0) { const newStockCost = item.newStock * item.cost; totalNewStockCost += newStockCost; dailyNewStockCost += newStockCost; } } dailyFlow[report.date] = { profit: dailyNetProfit, reinvested: dailyNewStockCost }; }); expensesSnapshot.forEach(doc => { const expense = doc.data(); totalExpenses += expense.amount; if (dailyFlow[expense.date]) { dailyFlow[expense.date].profit -= expense.amount; } }); const grossProfit = totalSales - totalCOGS; const netProfit = grossProfit - totalExpenses; document.getElementById('fs-total-sales').textContent = `₱${formatCurrency(totalSales)}`; document.getElementById('fs-total-cogs').textContent = `₱${formatCurrency(totalCOGS)}`; document.getElementById('fs-gross-profit').textContent = `₱${formatCurrency(grossProfit)}`; document.getElementById('fs-total-expenses').textContent = `₱${formatCurrency(totalExpenses)}`; document.getElementById('fs-new-stock-cost').textContent = `₱${formatCurrency(totalNewStockCost)}`; document.getElementById('fs-net-profit').textContent = `₱${formatCurrency(netProfit)}`; renderMoneyFlowChart(dailyFlow); } catch (error) { console.error("Error loading financial summary:", error); Swal.fire('Error', 'Could not load financial summary data.', 'error'); } }
-    function renderMoneyFlowChart(data) { if (moneyFlowChartInstance) moneyFlowChartInstance.destroy(); const ctx = document.getElementById('moneyFlowChart').getContext('2d'); const sortedDates = Object.keys(data).sort(); const labels = sortedDates.map(date => dayjs(date).format('MMM D')); const profitData = sortedDates.map(date => data[date].profit); const reinvestedData = sortedDates.map(date => data[date].reinvested); moneyFlowChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Net Profit', data: profitData, backgroundColor: 'rgba(16, 185, 129, 0.7)', }, { label: 'Capital Reinvested', data: reinvestedData, backgroundColor: 'rgba(59, 130, 246, 0.7)', }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { callback: value => `₱${value.toLocaleString()}` } } }, plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ₱${formatCurrency(c.raw)}` } } } } }); }
+    // --- DASHBOARD, EXPENSES, ANALYTICS ---
     
-    // --- Dashboard Renderer ---
-    async function renderDashboard() {
-      try {
-        const previousDayDateString = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
-        
-        document.getElementById('dashboard-title').textContent = "Dashboard Overview";
-        document.getElementById('dashboard-date').textContent = `Showing final report for ${dayjs(previousDayDateString).format('MMMM D, YYYY')}`;
-        
-        const { totalSales, totalProfit } = await getDailySummary(previousDayDateString);
-        const totalExpenses = await getExpensesForDate(previousDayDateString);
+    function listenForDashboardData() {
+        renderDashboardPlaceholders();
 
-        const { monthlyNetProfit } = await getMonthlySummary(todayDateString);
-        const currentReportDoc = await db.collection('reports').doc(todayDateString).get();
-        let lowStockItems = [];
-        if(currentReportDoc.exists){
-            const report = currentReportDoc.data();
-            lowStockItems = shopProducts
-                .map(p => ({ ...p, stock: report.data[p.id]?.end }))
-                .filter(p => p.minStock > 0 && p.stock !== undefined && p.stock <= p.minStock);
+        const todayReportRef = db.collection('reports').doc(todayDateString);
+        const todayReportListener = todayReportRef.onSnapshot(doc => {
+            const reportData = doc.exists ? doc.data() : null;
+            updateDashboardLowStock(reportData);
+            updateDashboardMonthlyProfit();
+        }, (error) => console.error("Dashboard listener error (today's report):", error));
+
+        const todayExpensesQuery = db.collection('expenses').where('date', '==', todayDateString);
+        const todayExpensesListener = todayExpensesQuery.onSnapshot(() => {
+            updateDashboardMonthlyProfit();
+        }, (error) => console.error("Dashboard listener error (today's expenses):", error));
+
+        const yesterday = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
+        const yesterdayReportRef = db.collection('reports').doc(yesterday);
+        const yesterdayReportListener = yesterdayReportRef.onSnapshot(async (doc) => {
+            const reportData = doc.exists ? doc.data() : null;
+            const summary = calculateDailySummaryFromData(reportData);
+            const expenses = await getExpensesForDate(yesterday);
+            updateDashboardCards(summary.totalSales, expenses, summary.totalProfit);
+        }, (error) => console.error("Dashboard listener error (yesterday's report):", error));
+
+        dashboardListeners.push(todayReportListener, todayExpensesListener, yesterdayReportListener);
+    }
+    
+    function calculateDailySummaryFromData(report) {
+        let totalSales = 0, totalProfit = 0;
+        if (report && report.data) {
+            for (const productId in report.data) {
+                const item = report.data[productId];
+                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
+                if (sold > 0) {
+                    const sales = sold * item.price;
+                    const profit = sales - (sold * item.cost);
+                    totalSales += sales;
+                    totalProfit += profit;
+                }
+            }
         }
+        return { totalSales, totalProfit };
+    }
 
+    function renderDashboardPlaceholders() {
+        const yesterday = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
+        document.getElementById('dashboard-date').textContent = `Showing final numbers for yesterday, ${dayjs(yesterday).format('MMMM D, YYYY')}`;
+        document.getElementById('dashboard-total-sales').outerHTML = `<div id="dashboard-total-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>`;
+        document.getElementById('dashboard-total-expenses').outerHTML = `<div id="dashboard-total-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>`;
+        document.getElementById('dashboard-total-profit').outerHTML = `<div id="dashboard-total-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>`;
+        document.getElementById('dashboard-monthly-net-profit').outerHTML = `<div id="dashboard-monthly-net-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-36 mt-1"></div></div>`;
+    }
+
+    function updateDashboardCards(totalSales, totalExpenses, totalProfit) {
         document.getElementById('dashboard-total-sales').outerHTML = `<p id="dashboard-total-sales" class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p>`;
         document.getElementById('dashboard-total-expenses').outerHTML = `<p id="dashboard-total-expenses" class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalExpenses)}</p>`;
         document.getElementById('dashboard-total-profit').outerHTML = `<p id="dashboard-total-profit" class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p>`;
+    }
+
+    async function updateDashboardMonthlyProfit() {
+        const { monthlyNetProfit } = await getMonthlySummary(todayDateString);
         document.getElementById('dashboard-monthly-net-profit').outerHTML = `<p id="dashboard-monthly-net-profit" class="text-3xl font-bold text-teal-700">₱${formatCurrency(monthlyNetProfit)}</p>`;
-        
+    }
+    
+    function updateDashboardLowStock(report) {
         const lowStockList = document.getElementById('low-stock-list');
+        let lowStockItems = [];
+        if (report && report.data) {
+             lowStockItems = shopProducts
+                .map(p => ({ ...p, stock: report.data[p.id]?.end }))
+                .filter(p => (p.minStock || 0) > 0 && p.stock !== undefined && p.stock <= p.minStock);
+        }
+
         if (lowStockItems.length > 0) {
-            lowStockList.innerHTML = lowStockItems.map(item => 
-                `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`
-            ).join('');
+            lowStockList.innerHTML = lowStockItems.map(item => `<div class="flex justify-between items-center text-sm p-2 bg-white rounded"><span class="font-semibold">${item.name} <span class="font-normal text-slate-500">(${item.category})</span></span><span class="font-semibold text-red-600">${item.stock} left (Min: ${item.minStock})</span></div>`).join('');
         } else {
             lowStockList.innerHTML = '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>';
         }
-      } catch(error) {
-        console.error("Error rendering dashboard:", error);
-        document.getElementById('dashboard-content').innerHTML = '<div class="col-span-full card p-6 text-center text-red-600"><h3 class="font-bold">Dashboard Error</h3><p>Could not load dashboard data.</p></div>';
-      }
     }
+
+    function showAnalyticsSubTab(contentId) { document.querySelectorAll('#settings-analytics-content .analytics-tab-content').forEach(content => content.classList.add('hidden')); document.querySelectorAll('#settings-analytics-content .analytics-tab').forEach(tab => tab.classList.remove('active')); const selectedContent = document.getElementById(contentId); if (selectedContent) { selectedContent.classList.remove('hidden'); const correspondingTab = document.querySelector(`#settings-analytics-content [aria-controls="${contentId}"]`); if (correspondingTab) { correspondingTab.classList.add('active'); } } if (contentId === 'analytics-financial-summary-content') { loadFinancialSummary(); } else { loadAnalytics(); } }
+    function toggleAnalyticsDateInputs() { const mode = document.getElementById('analytics-mode-select').value; document.getElementById('daily-date-input').classList.toggle('hidden', mode !== 'daily'); document.getElementById('range-date-inputs').classList.toggle('hidden', mode !== 'range'); }
+    async function loadAnalytics() { const mode = document.getElementById('analytics-mode-select').value; let startDate, endDate; if (mode === 'daily') { startDate = endDate = document.getElementById('analytics-single-date').value; } else { startDate = document.getElementById('analytics-from-date').value; endDate = document.getElementById('analytics-to-date').value; } if (!startDate || !endDate || dayjs(startDate).isAfter(dayjs(endDate))) return; const reportsSnapshot = await db.collection('reports').where('date', '>=', startDate).where('date', '<=', endDate).get(); let totalSales = 0, totalProfit = 0, numDays = reportsSnapshot.size; const productPerformance = {}; shopProducts.forEach(p => productPerformance[p.id] = { sold: 0, sales: 0, profit: 0, name: p.name, category: p.category }); reportsSnapshot.forEach(doc => { const report = doc.data(); for (const productId in report.data) { const item = report.data[productId]; const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; if (sold > 0) { const sales = sold * item.price; const profit = sales - (sold * item.cost); totalSales += sales; totalProfit += profit; if (productPerformance[productId]) { productPerformance[productId].sold += sold; productPerformance[productId].sales += sales; productPerformance[productId].profit += profit; } } } }); numDays = numDays || 1; document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`; document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`; document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(totalSales / numDays)}`; document.getElementById('analytics-avg-margin').textContent = `${formatCurrency((totalSales > 0 ? (totalProfit / totalSales) * 100 : 0))}%`; renderTopPerformingProducts(productPerformance); }
+    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div><div class="text-right"><div class="font-semibold">₱${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">₱${formatCurrency(p.profit)} profit</div></div></div>`).join(''); }
+    async function loadFinancialSummary() { const monthValue = document.getElementById('financial-month-select').value; if (!monthValue) return; const startDate = dayjs(monthValue).startOf('month').format('YYYY-MM-DD'); const endDate = dayjs(monthValue).endOf('month').format('YYYY-MM-DD'); let totalSales = 0, totalCOGS = 0, totalExpenses = 0, totalNewStockCost = 0; const dailyFlow = {}; const reportsSnapshot = await db.collection('reports').where('date', '>=', startDate).where('date', '<=', endDate).get(); const expensesSnapshot = await db.collection('expenses').where('date', '>=', startDate).where('date', '<=', endDate).get(); reportsSnapshot.forEach(doc => { const report = doc.data(); let dailyNetProfit = 0; let dailyNewStockCost = 0; for (const productId in report.data) { const item = report.data[productId]; const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; if (sold > 0) { const sales = sold * item.price; const cogs = sold * item.cost; totalSales += sales; totalCOGS += cogs; dailyNetProfit += (sales - cogs); } if (item.newStock > 0) { const newStockCost = item.newStock * item.cost; totalNewStockCost += newStockCost; dailyNewStockCost += newStockCost; } } dailyFlow[report.date] = { profit: dailyNetProfit, reinvested: dailyNewStockCost }; }); expensesSnapshot.forEach(doc => { const expense = doc.data(); totalExpenses += expense.amount; if (dailyFlow[expense.date]) { dailyFlow[expense.date].profit -= expense.amount; } }); const grossProfit = totalSales - totalCOGS; const netProfit = grossProfit - totalExpenses; document.getElementById('fs-total-sales').textContent = `₱${formatCurrency(totalSales)}`; document.getElementById('fs-total-cogs').textContent = `₱${formatCurrency(totalCOGS)}`; document.getElementById('fs-gross-profit').textContent = `₱${formatCurrency(grossProfit)}`; document.getElementById('fs-total-expenses').textContent = `₱${formatCurrency(totalExpenses)}`; document.getElementById('fs-new-stock-cost').textContent = `₱${formatCurrency(totalNewStockCost)}`; document.getElementById('fs-net-profit').textContent = `₱${formatCurrency(netProfit)}`; renderMoneyFlowChart(dailyFlow); }
+    function renderMoneyFlowChart(data) { if (moneyFlowChartInstance) moneyFlowChartInstance.destroy(); const ctx = document.getElementById('moneyFlowChart').getContext('2d'); const sortedDates = Object.keys(data).sort(); const labels = sortedDates.map(date => dayjs(date).format('MMM D')); const profitData = sortedDates.map(date => data[date].profit); const reinvestedData = sortedDates.map(date => data[date].reinvested); moneyFlowChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Net Profit', data: profitData, backgroundColor: 'rgba(16, 185, 129, 0.7)', }, { label: 'Capital Reinvested', data: reinvestedData, backgroundColor: 'rgba(59, 130, 246, 0.7)', }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { callback: value => `₱${value.toLocaleString()}` } } }, plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ₱${formatCurrency(c.raw)}` } } } } }); }
+    async function renderExpensesView(dateString) { document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg"><div><p class="font-medium">${expense.description}</p><p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p></div><div class="no-print"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
+    async function saveExpense() { const saveBtn = document.getElementById('save-expense-btn'); const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Invalid description or amount.' }); return; } toggleButtonLoading(saveBtn, true); try { const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description, amount, date: todayDateString }; await db.collection('expenses').doc(docId).set(expenseData); Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' }); clearExpenseForm(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } finally { toggleButtonLoading(saveBtn, false); } }
+    function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; document.getElementById('save-expense-btn').textContent = 'Save Expense'; }
+    async function editExpense(id) { try { const expense = (await db.collection('expenses').doc(id).get()).data(); if (expense) { document.getElementById('expense-id').value = expense.id; document.getElementById('expense-description').value = expense.description; document.getElementById('expense-amount').value = expense.amount; document.getElementById('expense-form-title').textContent = 'Edit Expense'; document.getElementById('save-expense-btn').textContent = 'Update Expense'; } } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } }
+    async function deleteExpense(expenseId) { const { isConfirmed } = await Swal.fire({ title: 'Delete Expense?', icon: 'warning', showCancelButton: true }); if (isConfirmed) { try { await db.collection('expenses').doc(expenseId).delete(); Toast.fire({ icon: 'success', title: 'Expense deleted!' }); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
     
-    // --- Expense Functions ---
-    async function renderExpensesView(dateString) { document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = []; snapshot.forEach(doc => expenses.push(doc.data())); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => ` <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg"> <div> <p class="font-medium">${expense.description}</p> <p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p> </div> <div class="no-print"> <button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button> <button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button> </div> </div> `).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = '<p class="text-center text-red-500 py-8">Could not load expenses.</p>'; }); }
-    async function saveExpense() {
-        const saveBtn = document.getElementById('save-expense-btn');
-        const originalText = saveBtn.innerHTML;
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = `<span class="btn-loader"></span> Saving...`;
-
-        try {
-            const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Please enter a valid description and amount.' }); return; } const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description: description, amount: amount, date: todayDateString };
-            await db.collection('expenses').doc(docId).set(expenseData);
-            Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' });
-            clearExpenseForm();
-        } catch (error) {
-            console.error("Error saving expense:", error);
-            Swal.fire('Error', 'Could not save the expense.', 'error');
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = originalText;
-        }
-    }
-    function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; }
-    async function editExpense(id) { const expenseDoc = await db.collection('expenses').doc(id).get(); if (expenseDoc.exists) { const expense = expenseDoc.data(); document.getElementById('expense-id').value = expense.id; document.getElementById('expense-description').value = expense.description; document.getElementById('expense-amount').value = expense.amount; document.getElementById('expense-form-title').textContent = 'Edit Expense'; document.getElementById('expense-description').focus(); } }
-    async function deleteExpense(expenseId) { const { isConfirmed } = await Swal.fire({ title: 'Delete Expense?', text: 'This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it' }); if (isConfirmed) { try { await db.collection('expenses').doc(expenseId).delete(); Toast.fire({ icon: 'success', title: 'Expense deleted!' }); } catch (error) { Swal.fire('Error', 'Could not delete the expense.', 'error'); } } }
+    // --- SETTINGS PANEL FUNCTIONS ---
     
-    // --- Settings Panel Functions ---
-    function showSettingsTab(contentId) { document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden')); document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.getElementById(contentId).classList.remove('hidden'); document.querySelector(`[aria-controls="${contentId}"]`).classList.add('active'); if (contentId === 'settings-analytics-content') { showAnalyticsSubTab('analytics-overview-content'); } if (contentId === 'settings-performance-content') { renderPerformanceBreakdown(); renderRemainingStockSummary(); } }
-    async function openSettingsPanel() { document.getElementById('settings-panel').classList.add('open'); document.getElementById('settings-panel').focus(); showSettingsTab('settings-product-management-content'); }
-    function closeSettingsPanel() { document.getElementById('settings-panel').classList.remove('open'); document.querySelector('[onclick="openSettingsWithPassword()"]')?.focus(); }
-    async function openSettingsWithPassword() { const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (!storedPasswordHash) { const { value: password } = await Swal.fire({ title: 'Set Your Settings Password', input: 'password', inputPlaceholder: 'Minimum 4 characters', inputAttributes: { minlength: 4 }, showCancelButton: true, validationMessage: 'Password must be at least 4 characters long.', customClass: { input: 'w-full max-w-xs mx-auto' } }); if (password && password.length >= 4) { await db.collection('settings').doc('security').set({ passwordHash: hashPassword(password) }); Toast.fire({ icon: 'success', title: 'Password set!' }); openSettingsPanel(); } else if (password) { Swal.fire('Password Not Set', 'Password must be at least 4 characters long.', 'error'); } } else { const { value: password } = await Swal.fire({ title: 'Enter Password to Access Settings', input: 'password', showCancelButton: true, inputAttributes: { autocomplete: 'current-password' }, customClass: { input: 'w-full max-w-xs mx-auto' } }); if (password && hashPassword(password) === storedPasswordHash) openSettingsPanel(); else if (password) Swal.fire('Incorrect Password', '', 'error'); } }
-    function renderProductList() { const container = document.getElementById('product-list-container'); if (shopProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No products added yet.</p>'; return; } container.innerHTML = shopProducts.sort((a,b) => a.name.localeCompare(b.name)).map(p => `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Min: ${p.minStock}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); }
-    function clearProductForm() { document.getElementById('product-form-title').textContent = 'Add New Product'; ['product-id', 'product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).value = ''); document.getElementById('product-category').value = '25 KG'; ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid')); }
-    async function saveProduct() {
-        const saveBtn = document.getElementById('save-product-btn');
-        const originalText = saveBtn.textContent;
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = `<span class="btn-loader"></span> Saving...`;
-
-        try {
-            const nameInput = document.getElementById('product-name'); const priceInput = document.getElementById('product-price'); const costInput = document.getElementById('product-cost'); const minStockInput = document.getElementById('product-minstock'); const isValid = [validateNumberInput(priceInput), validateNumberInput(costInput), validateNumberInput(minStockInput, true), nameInput.value.trim() !== ''].every(Boolean); if (!nameInput.value.trim()) nameInput.classList.add('invalid'); else nameInput.classList.remove('invalid'); if (!isValid) { Toast.fire({ icon: 'error', title: 'Please correct invalid inputs!' }); return; } const productId = document.getElementById('product-id').value; const docId = productId || 'prod_' + Date.now(); const productData = { id: docId, name: nameInput.value.trim().toUpperCase(), price: parseFloat(priceInput.value), cost: parseFloat(costInput.value), category: document.getElementById('product-category').value, minStock: parseInt(minStockInput.value) || 0 }; const existingProduct = shopProducts.find(p => p.name === productData.name && p.category === productData.category && p.id !== productData.id); if (existingProduct) { Swal.fire('Duplicate Product', `A product named "${productData.name}" already exists in the "${productData.category}" category.`, 'error'); return; }
-            await db.collection('products').doc(docId).set(productData);
-            Toast.fire({ icon: 'success', title: productId ? 'Product updated!' : 'Product added!' });
-            await loadProducts();
-            renderProductList();
-            clearProductForm();
-        } catch (error) {
-            Swal.fire('Error', 'Could not save the product.', 'error');
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.textContent = originalText;
-        }
-    }
-    function editProduct(id) { const product = shopProducts.find(p => p.id === id); if (!product) return; document.getElementById('product-form-title').textContent = `Edit Product: ${product.name}`; document.getElementById('product-id').value = product.id; document.getElementById('product-name').value = product.name; document.getElementById('product-price').value = product.price; document.getElementById('product-cost').value = product.cost; document.getElementById('product-minstock').value = product.minStock; document.getElementById('product-category').value = product.category; ['product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).classList.remove('invalid')); }
-    async function deleteProduct(id) { const productToDelete = shopProducts.find(p => p.id === id); if (!productToDelete) return; const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', html: `Delete <strong>${productToDelete.name} (${productToDelete.category})</strong>? This is irreversible.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, delete it!', confirmButtonColor: '#d33' }); if (isConfirmed) { try { await db.collection('products').doc(id).delete(); Toast.fire({ icon: 'success', title: 'Product deleted!' }); await loadProducts(); renderProductList(); } catch (error) { Swal.fire('Error', 'Could not delete the product.', 'error'); } } }
-    async function savePassword() { const current = document.getElementById('currentPassword').value; const newPass = document.getElementById('newPassword').value; const confirm = document.getElementById('confirmPassword').value; const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (hashPassword(current) !== storedPasswordHash) return Swal.fire('Error', 'Current password incorrect.', 'error'); if (newPass.length < 4) return Swal.fire('Error', 'New password must be at least 4 characters long.', 'error'); if (newPass !== confirm) return Swal.fire('Error', 'New passwords do not match.', 'error'); await db.collection('settings').doc('security').set({ passwordHash: hashPassword(newPass) }); Swal.fire('Success', 'Password changed successfully!', 'success'); ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = ''); }
-    async function promptForCategoryThenEdit(editType) { const { value: selectedCategory } = await Swal.fire({ title: 'Select a Category to Edit', html: `<select id="swal-category-select" class="swal2-select w-full max-w-xs mx-auto"><option value="all">All Categories</option>${RICE_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}</select>`, focusConfirm: false, showCancelButton: true, confirmButtonText: 'Next &rarr;', preConfirm: () => document.getElementById('swal-category-select').value }); if (selectedCategory) { const categoryFilter = selectedCategory === 'all' ? null : selectedCategory; if (editType === 'begin') editBeginningStock(categoryFilter); else if (editType === 'price') editPrices(categoryFilter); } }
-    async function editBeginningStock(categoryFilter = null) { const dateToEdit = todayDateString; const reportDoc = await db.collection('reports').doc(dateToEdit).get(); if (!reportDoc.exists) return Swal.fire('Cannot Edit', 'Can only edit beginning stock for the current day.', 'error'); const initialReport = reportDoc.data(); const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (storedPasswordHash) { const { value: password } = await Swal.fire({ title: 'Enter Password to Edit Beginning Stock', input: 'password', showCancelButton: true, customClass: { input: 'w-full max-w-xs mx-auto' } }); if (!password || hashPassword(password) !== storedPasswordHash) return password && Swal.fire('Incorrect Password', '', 'error'); } const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); if (products.length === 0) return Swal.fire('No Products', 'No products found in this category.', 'info'); let modalHtml = '<div class="max-h-[60vh] overflow-y-auto p-2 border rounded space-y-2">'; let currentCategory = ''; products.forEach(p => { if (p.category !== currentCategory && !categoryFilter) { currentCategory = p.category; modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`; } modalHtml += `<div class="grid grid-cols-2 gap-x-4 items-center" data-product-id="${p.id}"><label for="begin-stock-${p.id}" class="font-medium text-right pr-2">${p.name}</label><input type="number" id="begin-stock-${p.id}" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded" oninput="validateNumberInput(this, true)"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Beginning Stock ${categoryFilter ? `for ${categoryFilter}` : ''}`, html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, preConfirm: () => { if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) { Swal.showValidationMessage('Please correct invalid inputs.'); return false; } } }); if (isConfirmed) { const reportRef = db.collection('reports').doc(dateToEdit); const updatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newBegin = parseInt(row.querySelector('input').value) || 0; const diff = newBegin - (initialReport.data[productId]?.begin || 0); updatePayload[`data.${productId}.begin`] = newBegin; updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff); }); await reportRef.update(updatePayload); Toast.fire({ icon: 'success', title: 'Beginning stock updated!' }); } }
-    async function editPrices(categoryFilter = null) { const products = (categoryFilter ? shopProducts.filter(p => p.category === categoryFilter) : shopProducts).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)); if (products.length === 0) return Swal.fire('No Products Found', '', 'info'); let modalHtml = '<div class="max-h-[60vh] overflow-y-auto p-2 border rounded space-y-2">'; let currentCategory = ''; products.forEach(p => { if (p.category !== currentCategory && !categoryFilter) { currentCategory = p.category; modalHtml += `<div class="font-bold text-lg p-2 bg-slate-100 rounded my-2">${currentCategory}</div>`; } modalHtml += `<div class="grid grid-cols-2 gap-x-4 items-center" data-product-id="${p.id}"><label for="price-input-${p.id}" class="font-medium text-right pr-2">${p.name}</label><input type="number" id="price-input-${p.id}" step="0.01" value="${p.price.toFixed(2)}" class="border p-1 w-full rounded" oninput="validateNumberInput(this)"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Selling Prices ${categoryFilter ? `for ${categoryFilter}` : ''}`, html: modalHtml, width: '90%', maxWidth: '600px', showCancelButton: true, preConfirm: () => { if (Array.from(document.querySelectorAll('.swal2-html-container input.invalid')).length > 0) { Swal.showValidationMessage('Please correct invalid inputs.'); return false; } } }); if (isConfirmed) { const batch = db.batch(); const reportRef = db.collection('reports').doc(todayDateString); const reportUpdatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newPrice = parseFloat(row.querySelector('input').value) || 0; const productRef = db.collection('products').doc(productId); batch.update(productRef, { price: newPrice }); reportUpdatePayload[`data.${productId}.price`] = newPrice; }); batch.update(reportRef, reportUpdatePayload); await batch.commit(); await loadProducts(); Toast.fire({ icon: 'success', title: 'Prices updated!' }); } }
+    function showSettingsTab(contentId) { document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden')); document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active')); document.getElementById(contentId).classList.remove('hidden'); document.querySelector(`[aria-controls="${contentId}"]`).classList.add('active'); if (contentId === 'settings-analytics-content') showAnalyticsSubTab('analytics-overview-content'); if (contentId === 'settings-performance-content') renderPerformanceBreakdown(); }
+    function openSettingsPanel() { document.getElementById('settings-panel').classList.add('open'); }
+    function closeSettingsPanel() { document.getElementById('settings-panel').classList.remove('open'); }
+    async function openSettingsWithPassword() { const password = await getPassword(); if (password.success) openSettingsPanel(); }
+    function renderProductList() { const container = document.getElementById('product-list-container'); if (shopProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No products yet.</p>'; return; } container.innerHTML = shopProducts.map(p => `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Min: ${p.minStock || 0}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); }
+    function clearProductForm() { document.getElementById('product-form-title').textContent = 'Add New Product'; ['product-id', 'product-name', 'product-price', 'product-cost', 'product-minstock'].forEach(id => document.getElementById(id).value = ''); document.getElementById('save-product-btn').textContent = 'Save Product'; }
+    async function saveProduct() { const saveBtn = document.getElementById('save-product-btn'); const nameInput = document.getElementById('product-name'); const priceInput = document.getElementById('product-price'); const costInput = document.getElementById('product-cost'); const minStockInput = document.getElementById('product-minstock'); if (!nameInput.value.trim() || !priceInput.value || !costInput.value) { Toast.fire({ icon: 'error', title: 'Name, Price, and Cost are required.'}); return; } toggleButtonLoading(saveBtn, true); try { const productId = document.getElementById('product-id').value; const docId = productId || 'prod_' + Date.now(); const productData = { id: docId, name: nameInput.value.trim().toUpperCase(), price: parseFloat(priceInput.value), cost: parseFloat(costInput.value), category: document.getElementById('product-category').value, minStock: parseInt(minStockInput.value) || 0 }; await db.collection('products').doc(docId).set(productData); Toast.fire({ icon: 'success', title: productId ? 'Product updated!' : 'Product added!' }); await loadProducts(); renderProductList(); clearProductForm(); } catch(error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } finally { toggleButtonLoading(saveBtn, false); } }
+    function editProduct(id) { const product = shopProducts.find(p => p.id === id); if (product) { document.getElementById('product-form-title').textContent = `Edit Product: ${product.name}`; document.getElementById('product-id').value = product.id; document.getElementById('product-name').value = product.name; document.getElementById('product-price').value = product.price; document.getElementById('product-cost').value = product.cost; document.getElementById('product-minstock').value = product.minStock; document.getElementById('product-category').value = product.category; document.getElementById('save-product-btn').textContent = 'Update Product'; } }
+    async function deleteProduct(id) { const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', text: 'This product will be permanently deleted.', icon: 'warning', showCancelButton: true }); if (isConfirmed) { try { await db.collection('products').doc(id).delete(); Toast.fire({ icon: 'success', title: 'Product deleted!' }); await loadProducts(); renderProductList(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
+    async function savePassword() { const saveBtn = document.getElementById('save-password-btn'); const current = document.getElementById('currentPassword').value; const newPass = document.getElementById('newPassword').value; const confirm = document.getElementById('confirmPassword').value; toggleButtonLoading(saveBtn, true); try { const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (storedPasswordHash && hashPassword(current) !== storedPasswordHash) { Swal.fire('Error', 'Current password incorrect.', 'error'); return; } if (newPass.length < 4) { Swal.fire('Error', 'New password must be at least 4 characters.', 'error'); return; } if (newPass !== confirm) { Swal.fire('Error', 'New passwords do not match.', 'error'); return; } await db.collection('settings').doc('security').set({ passwordHash: hashPassword(newPass) }); Swal.fire('Success', 'Password changed!', 'success'); ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = ''); } catch (error) { Swal.fire('Error', handleFirestoreError(error), 'error'); } finally { toggleButtonLoading(saveBtn, false); } }
+    async function promptForCategoryThenEdit(editType) { const { value: selectedCategory } = await Swal.fire({ title: 'Select a Category to Edit', input: 'select', inputOptions: { all: 'All Categories', ...Object.fromEntries(RICE_CATEGORIES.map(cat => [cat, cat])) }, showCancelButton: true }); if (selectedCategory) { if (editType === 'begin') editBeginningStock(selectedCategory); else if (editType === 'price') editPrices(selectedCategory); } }
+    async function editBeginningStock(categoryFilter) { const password = await getPassword(); if (!password.success) return; const products = categoryFilter === 'all' ? shopProducts : shopProducts.filter(p => p.category === categoryFilter); const reportDoc = await db.collection('reports').doc(todayDateString).get(); if (!reportDoc.exists) return; const initialReport = reportDoc.data(); let modalHtml = '<div class="max-h-[60vh] overflow-y-auto p-2">'; products.forEach(p => { modalHtml += `<div class="grid grid-cols-2 gap-x-4 items-center mb-2" data-product-id="${p.id}"><label class="font-medium text-right">${p.name}</label><input type="number" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Beginning Stock`, html: modalHtml, showCancelButton: true, confirmButtonText: 'Update All' }); if (isConfirmed) { try { const updatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newBegin = parseInt(row.querySelector('input').value) || 0; const diff = newBegin - (initialReport.data[productId]?.begin || 0); updatePayload[`data.${productId}.begin`] = newBegin; updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff); }); await db.collection('reports').doc(todayDateString).update(updatePayload); Toast.fire({ icon: 'success', title: 'Beginning stock updated!' }); } catch(error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
+    async function editPrices(categoryFilter) { const products = categoryFilter === 'all' ? shopProducts : shopProducts.filter(p => p.category === categoryFilter); let modalHtml = '<div class="max-h-[60vh] overflow-y-auto p-2">'; products.forEach(p => { modalHtml += `<div class="grid grid-cols-2 gap-x-4 items-center mb-2" data-product-id="${p.id}"><label class="font-medium text-right">${p.name}</label><input type="number" step="0.01" value="${p.price.toFixed(2)}" class="border p-1 w-full rounded"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Selling Prices`, html: modalHtml, showCancelButton: true, confirmButtonText: 'Update All' }); if (isConfirmed) { try { const batch = db.batch(); const reportUpdatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newPrice = parseFloat(row.querySelector('input').value) || 0; batch.update(db.collection('products').doc(productId), { price: newPrice }); reportUpdatePayload[`data.${productId}.price`] = newPrice; }); batch.update(db.collection('reports').doc(todayDateString), reportUpdatePayload); await batch.commit(); await loadProducts(); Toast.fire({ icon: 'success', title: 'Prices updated!' }); } catch(error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
+    async function renderPerformanceBreakdown() { const tbody = document.getElementById('performance-tbody'); tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4"><div class="loader"></div></td></tr>'; const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get(); let tableHtml = ''; for (const doc of reportsSnapshot.docs) { const report = doc.data(); const summary = calculateDailySummaryFromData(report); const cashOnHand = report.cashOnHand || 0; const difference = cashOnHand - summary.totalSales; let differenceHtml; if (!report.isFinalized && summary.totalSales === 0) differenceHtml = '<span>-</span>'; else if (difference < 0) differenceHtml = `<span class="cash-short font-semibold">(₱${formatCurrency(Math.abs(difference))})</span>`; else if (difference > 0) differenceHtml = `<span class="cash-over font-semibold">+₱${formatCurrency(difference)}</span>`; else differenceHtml = `<span class="cash-balanced font-semibold">Balanced</span>`; tableHtml += `<tr class="bg-white border-b"> <td class="py-4 px-6 font-medium text-slate-900">${dayjs(report.date).format('MMM D, YYYY')}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(summary.totalSales)}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(cashOnHand)}</td> <td class="py-4 px-6 text-right">${differenceHtml}</td></tr>`; } tbody.innerHTML = tableHtml || '<tr><td colspan="4" class="text-center p-4">No reports found.</td></tr>'; }
+    async function backupAllData() { Swal.fire({ title: 'Backing up...', didOpen: () => Swal.showLoading() }); const backupData = {}; for (const collectionName of COLLECTIONS_TO_BACKUP) { const snapshot = await db.collection(collectionName).get(); backupData[collectionName] = {}; snapshot.forEach(doc => { backupData[collectionName][doc.id] = doc.data(); }); } const jsonString = JSON.stringify(backupData, null, 2); const blob = new Blob([jsonString], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `rice-inventory-backup-${dayjs().format('YYYY-MM-DD')}.json`; a.click(); URL.revokeObjectURL(url); Swal.close(); Toast.fire({ icon: 'success', title: 'Backup successful!' }); }
+    function restoreDataFromFile() { document.getElementById('import-file-input').click(); }
+    async function handleFileSelect(event) { const file = event.target.files[0]; if (!file) return; const { isConfirmed } = await Swal.fire({ title: 'ARE YOU SURE?', html: `This will <strong>overwrite all current data</strong>. This cannot be undone. Type <strong>OVERWRITE</strong> to confirm.`, icon: 'warning', input: 'text', showCancelButton: true, confirmButtonColor: '#d33', preConfirm: (v) => v.toUpperCase() !== 'OVERWRITE' && Swal.showValidationMessage('Type "OVERWRITE" to confirm.') }); if (!isConfirmed) return; const reader = new FileReader(); reader.onload = async (e) => { try { const backupData = JSON.parse(e.target.result); Swal.fire({ title: 'Restoring...', text: 'Deleting old data...', didOpen: () => Swal.showLoading() }); for (const collectionName of COLLECTIONS_TO_BACKUP) { const snapshot = await db.collection(collectionName).get(); if (!snapshot.empty) { const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } } Swal.update({ text: 'Uploading new data...' }); for (const collectionName of COLLECTIONS_TO_BACKUP) { const collectionData = backupData[collectionName]; if (Object.keys(collectionData).length > 0) { const batch = db.batch(); for (const docId in collectionData) { batch.set(db.collection(collectionName).doc(docId), collectionData[docId]); } await batch.commit(); } } await Swal.fire('Restore Complete', 'Page will now reload.', 'success'); location.reload(); } catch (error) { Swal.fire('Restore Failed', error.message || 'Error restoring data.', 'error'); } }; reader.readAsText(file); }
+    async function resetSalesData() { const { isConfirmed } = await Swal.fire({ title: 'Reset Sales Data?', html: `Deletes all <strong>reports</strong> and <strong>expenses</strong>. Products and settings are kept.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }); if (isConfirmed) { Swal.fire({ title: 'Resetting...', didOpen: () => Swal.showLoading() }); for (const collectionName of ['reports', 'expenses']) { const snapshot = await db.collection(collectionName).get(); if (!snapshot.empty) { const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } } await Swal.fire('Reset Complete', 'Page will reload.', 'success'); location.reload(); } }
+    async function factoryReset() { const { isConfirmed } = await Swal.fire({ title: 'ARE YOU SURE?', html: `Deletes ALL data. Type <strong>RESET</strong> to confirm.`, icon: 'warning', input: 'text', showCancelButton: true, confirmButtonColor: '#d33', preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('Type "RESET" to confirm.') }); if (isConfirmed) { Swal.fire({ title: 'Deleting all data...', didOpen: () => Swal.showLoading() }); for (const collectionName of COLLECTIONS_TO_BACKUP) { const snapshot = await db.collection(collectionName).get(); if (!snapshot.empty) { const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } } await Swal.fire('Factory Reset Complete', 'Page will reload.', 'success'); location.reload(); } }
     
-    // --- Performance Tab ---
-    async function renderPerformanceBreakdown() { const tbody = document.getElementById('performance-tbody'); tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>'; try { const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get(); let tableHtml = ''; for (const doc of reportsSnapshot.docs) { const report = doc.data(); const dateObj = dayjs(report.date); const summary = await getDailySummary(report.date); const cashOnHand = report.cashOnHand || 0; const difference = cashOnHand - summary.totalSales; let differenceHtml; if (cashOnHand === 0 && summary.totalSales > 0) { differenceHtml = `<span>-</span>`; } else if (difference < 0) { differenceHtml = `<span class="cash-short font-semibold">(₱${formatCurrency(Math.abs(difference))})</span>`; } else if (difference > 0) { differenceHtml = `<span class="cash-over font-semibold">+₱${formatCurrency(difference)}</span>`; } else { differenceHtml = `<span class="cash-balanced font-semibold">Balanced</span>`; } tableHtml += ` <tr class="bg-white border-b performance-row" data-date="${dateObj.format('MMM D, YYYY')}"> <td class="py-4 px-6 font-medium text-slate-900">${dateObj.format('MMM D, YYYY')}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(summary.totalSales)}</td> <td class="py-4 px-6 text-right">₱${formatCurrency(cashOnHand)}</td> <td class="py-4 px-6 text-right">${differenceHtml}</td> <td class="py-4 px-6 text-center"> <button class="text-blue-600 hover:underline text-xs font-medium" onclick="setWorkingDay('${report.date}')">Set as Working Day</button> </td> </tr>`; } tbody.innerHTML = tableHtml || '<tr><td colspan="5" class="text-center p-4">No reports found.</td></tr>'; } catch(error) { tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-red-500">Could not load performance data.</td></tr>'; } }
-    async function renderRemainingStockSummary() { try { const reportDoc = await db.collection('reports').doc(todayDateString).get(); if (!reportDoc.exists) return; const report = reportDoc.data(); const categoryValues = { '25 KG': 0, '10 KG': 0, '5 KG': 0, 'Per Kilo': 0 }; let grandTotal = 0; for (const product of shopProducts) { const itemData = report.data[product.id]; if (itemData) { const remainingStock = Math.max(0, itemData.end); const value = remainingStock * itemData.cost; categoryValues[product.category] += value; grandTotal += value; } } for (const category of RICE_CATEGORIES) { const cleanCatId = category.replace(/\s+/g, '-'); const el = document.getElementById(`stock-value-${cleanCatId}`); if (el) el.textContent = `₱${formatCurrency(categoryValues[category])}`; } document.getElementById('stock-value-grand-total').textContent = `₱${formatCurrency(grandTotal)}`; } catch (error) { console.error("Error rendering stock value summary:", error); } }
-    function filterPerformanceTable() { const searchTerm = document.getElementById('performance-search').value.toLowerCase(); document.querySelectorAll('#performance-tbody .performance-row').forEach(row => { const dateText = row.dataset.date.toLowerCase(); row.style.display = dateText.includes(searchTerm) ? '' : 'none'; }); }
-    async function setWorkingDay(dateString) { if(dateString === todayDateString) return; const { isConfirmed } = await Swal.fire({ title: 'Change Working Day?', html: `This will set your active working day to <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>.`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, change it!', confirmButtonColor: '#3085d6' }); if (isConfirmed) { await db.collection('settings').doc('main').update({ workingDate: dateString }); await Swal.fire('Working Day Changed', 'The application will now reload.', 'success'); location.reload(); } }
-    
-    // --- Advanced Data Management Functions ---
+    async function getExpensesForDate(dateString) { const expensesSnapshot = await db.collection('expenses').where('date', '==', dateString).get(); return expensesSnapshot.docs.reduce((acc, doc) => acc + doc.data().amount, 0); }
+    async function getMonthlySummary(dateString) { const startOfMonth = dayjs(dateString).startOf('month').format('YYYY-MM-DD'); const endOfMonth = dayjs(dateString).endOf('month').format('YYYY-MM-DD'); let totalProfit = 0; let totalExpenses = 0; const reportsSnapshot = await db.collection('reports').where('date', '>=', startOfMonth).where('date', '<=', endOfMonth).get(); reportsSnapshot.forEach(doc => { totalProfit += calculateDailySummaryFromData(doc.data()).totalProfit; }); const expensesSnapshot = await db.collection('expenses').where('date', '>=', startOfMonth).where('date', '<=', endOfMonth).get(); expensesSnapshot.forEach(doc => { totalExpenses += doc.data().amount; }); return { monthlyNetProfit: totalProfit - totalExpenses }; }
 
-    async function backupAllData() {
-        Swal.fire({
-            title: 'Backing up data...',
-            text: 'Please wait while we collect all your data.',
-            didOpen: () => { Swal.showLoading() },
-            allowOutsideClick: false
-        });
-
-        try {
-            const backupData = {};
-            for (const collectionName of COLLECTIONS_TO_BACKUP) {
-                const snapshot = await db.collection(collectionName).get();
-                backupData[collectionName] = {};
-                snapshot.forEach(doc => {
-                    backupData[collectionName][doc.id] = doc.data();
-                });
-            }
-
-            const jsonString = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `rice-inventory-backup-${dayjs().format('YYYY-MM-DD')}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            Swal.close();
-            Toast.fire({ icon: 'success', title: 'Backup successful!' });
-        } catch (error) {
-            console.error("Backup failed:", error);
-            Swal.fire('Backup Failed', 'An error occurred while creating the backup file.', 'error');
-        }
-    }
-
-    function restoreDataFromFile() {
-        document.getElementById('import-file-input').click();
-    }
-
-    async function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const { isConfirmed } = await Swal.fire({
-            title: 'ARE YOU SURE?',
-            html: `This will <strong>overwrite all current data</strong> with the contents of <code>${file.name}</code>. This cannot be undone. Type <strong>OVERWRITE</strong> to confirm.`,
-            icon: 'warning',
-            input: 'text',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, Overwrite!',
-            customClass: { input: 'w-full max-w-xs mx-auto' },
-            preConfirm: (v) => v.toUpperCase() !== 'OVERWRITE' && Swal.showValidationMessage('You must type "OVERWRITE" to confirm.')
-        });
-
-        if (!isConfirmed) {
-            event.target.value = ''; // Reset file input
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const backupData = JSON.parse(e.target.result);
-                // Basic validation
-                if (!COLLECTIONS_TO_BACKUP.every(c => backupData[c] !== undefined)) {
-                    throw new Error('Invalid or corrupted backup file format.');
-                }
-
-                Swal.fire({
-                    title: 'Restoring data...',
-                    text: 'Deleting old data first. Please wait.',
-                    didOpen: () => { Swal.showLoading() },
-                    allowOutsideClick: false
-                });
-
-                // Delete existing data
-                for (const collectionName of COLLECTIONS_TO_BACKUP) {
-                    const snapshot = await db.collection(collectionName).get();
-                    if (snapshot.empty) continue;
-                    const batch = db.batch();
-                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                }
-
-                Swal.update({ text: 'Uploading new data. This may take a moment.' });
-
-                // Restore new data
-                for (const collectionName of COLLECTIONS_TO_BACKUP) {
-                    const collectionData = backupData[collectionName];
-                    if (Object.keys(collectionData).length === 0) continue;
-                    const batch = db.batch();
-                    for (const docId in collectionData) {
-                        const docRef = db.collection(collectionName).doc(docId);
-                        batch.set(docRef, collectionData[docId]);
-                    }
-                    await batch.commit();
-                }
-
-                await Swal.fire('Restore Complete', 'All data has been restored. The page will now reload.', 'success');
-                location.reload();
-
-            } catch (error) {
-                console.error("Restore failed:", error);
-                Swal.fire('Restore Failed', error.message || 'An error occurred while restoring data.', 'error');
-            } finally {
-                event.target.value = ''; // Reset file input
-            }
-        };
-        reader.readAsText(file);
-    }
-    
-    async function resetSalesData() {
-        const { isConfirmed } = await Swal.fire({
-            title: 'Reset Sales Data?',
-            html: `This will permanently delete all <strong>reports</strong> and <strong>expenses</strong>. Your product list and settings will NOT be affected.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, reset it!'
-        });
-        if (isConfirmed) {
-            Swal.fire({ title: 'Resetting...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-            try {
-                const collectionsToDelete = ['reports', 'expenses'];
-                for (const collectionName of collectionsToDelete) {
-                    const snapshot = await db.collection(collectionName).get();
-                    if (snapshot.empty) continue;
-                    const batch = db.batch();
-                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                }
-                await Swal.fire('Reset Complete', 'Sales and expense data has been deleted. The page will reload.', 'success');
-                location.reload();
-            } catch (error) {
-                Swal.fire('Reset Failed', 'Could not clear sales data.', 'error');
-            }
-        }
-    }
-
-    async function factoryReset() {
-        const { isConfirmed } = await Swal.fire({
-            title: 'ARE YOU SURE?',
-            html: `This will permanently delete ALL data from the database. Type <strong>RESET</strong> to confirm.`,
-            icon: 'warning',
-            input: 'text',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, Factory Reset!',
-            customClass: { input: 'w-full max-w-xs mx-auto' },
-            preConfirm: (v) => v.toUpperCase() !== 'RESET' && Swal.showValidationMessage('You must type "RESET" to confirm.')
-        });
-        if (isConfirmed) {
-            Swal.fire({ title: 'Deleting all data...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-            try {
-                for (const collectionName of COLLECTIONS_TO_BACKUP) {
-                    const snapshot = await db.collection(collectionName).get();
-                    if (snapshot.empty) continue;
-                    const batch = db.batch();
-                    snapshot.docs.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                }
-                await Swal.fire('Factory Reset Complete', 'All data has been deleted. The page will reload.', 'success');
-                location.reload();
-            } catch (error) {
-                Swal.fire('Reset Failed', 'Could not clear all data.', 'error');
-            }
-        }
-    }
-
-    // --- Event Listeners ---
+    // --- GLOBAL EVENT LISTENERS ---
     document.addEventListener('DOMContentLoaded', initializeApp);
-
     const inventoryTbody = document.getElementById('inventory-tbody');
-    inventoryTbody.addEventListener('focusin', (event) => { if (event.target.matches('input')) { inventoryTbody.querySelectorAll('.active-row').forEach(row => row.classList.remove('active-row')); event.target.closest('tr')?.classList.add('active-row'); } });
+    inventoryTbody.addEventListener('focusin', (event) => { if (event.target.matches('input')) { event.target.closest('tr')?.classList.add('active-row'); } });
     inventoryTbody.addEventListener('focusout', (event) => { if (event.target.matches('input')) { event.target.closest('tr')?.classList.remove('active-row'); } });
-    
-    inventoryTbody.addEventListener('keydown', (event) => { const target = event.target; if (!target.matches('.new-stock-input, .end-input')) return; const currentTR = target.closest('tr'); if (!currentTR) return; let nextTR = null; let targetClass = target.classList.contains('new-stock-input') ? '.new-stock-input' : '.end-input'; if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); nextTR = currentTR.nextElementSibling; while(nextTR && !nextTR.querySelector(targetClass)) { nextTR = nextTR.nextElementSibling; } } else if (event.key === 'ArrowUp') { event.preventDefault(); nextTR = currentTR.previousElementSibling; while(nextTR && !nextTR.querySelector(targetClass)) { nextTR = nextTR.previousElementSibling; } } if (nextTR) { const nextInput = nextTR.querySelector(targetClass); if (nextInput && !nextInput.disabled) { nextInput.focus(); nextInput.select(); } } });
+    inventoryTbody.addEventListener('keydown', (event) => { const target = event.target; if (!target.matches('.new-stock-input, .end-input')) return; const currentTR = target.closest('tr'); let nextTR; let targetClass = target.classList.contains('new-stock-input') ? 'new-stock-input' : 'end-input'; if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); nextTR = currentTR.nextElementSibling; while(nextTR && !nextTR.querySelector(`.${targetClass}`)) nextTR = nextTR.nextElementSibling; } else if (event.key === 'ArrowUp') { event.preventDefault(); nextTR = currentTR.previousElementSibling; while(nextTR && !nextTR.querySelector(`.${targetClass}`)) nextTR = nextTR.previousElementSibling; } if (nextTR) { const nextInput = nextTR.querySelector(`.${targetClass}`); if (nextInput && !nextInput.disabled) { nextInput.focus(); nextInput.select(); } } });
   </script>
 </body>
 </html>
-`````````
+``````
