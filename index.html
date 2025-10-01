@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -244,6 +243,18 @@
         border-color: #ef4444; /* Red-500 */
         box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
     }
+    
+    /* NEW: GCash input styling */
+    .gcash-input {
+        background-color: #e0f2fe; /* Sky-100 */
+        border-color: #7dd3fc; /* Sky-300 */
+    }
+    .gcash-input:focus {
+        background-color: #ffffff;
+        border-color: #0ea5e9; /* Sky-500 */
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+    }
+
 
     /* New: Profit Margin Input styling */
     .profit-margin-input {
@@ -1386,7 +1397,8 @@
             };
         });
 
-        const report = { date: dateString, data: newReportData, cashOnHand: 0, discountAmount: 0, isFinalized: false };
+        // UPDATED: Added gcashPayment to the new report object
+        const report = { date: dateString, data: newReportData, cashOnHand: 0, discountAmount: 0, gcashPayment: 0, isFinalized: false };
         await reportRef.set(report);
         Toast.fire({ icon: 'info', title: `Started new report for ${dayjs(dateString).format('MMM D')}` });
         return report;
@@ -1406,6 +1418,7 @@
         }
     }
 
+    // UPDATED: Added gcashPayment to the update payload
     async function finalizeReport() {
         // Step 1: Perform global validation check before proceeding
         let hasLogicErrors = false;
@@ -1447,7 +1460,13 @@
             const reportRef = db.collection('reports').doc(todayDateString);
             const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
             const discountAmount = parseFloat(document.getElementById('discount-given')?.value) || 0; 
-            await reportRef.update({ cashOnHand: cashOnHand, discountAmount: discountAmount, isFinalized: true }); 
+            const gcashPayment = parseFloat(document.getElementById('gcash-payment')?.value) || 0;
+            await reportRef.update({ 
+                cashOnHand: cashOnHand, 
+                discountAmount: discountAmount, 
+                gcashPayment: gcashPayment,
+                isFinalized: true 
+            }); 
 
             await Swal.fire({
                 title: 'Report Finalized!',
@@ -1527,6 +1546,7 @@
         }
     }
 
+    // UPDATED: Added GCash input to the reconciliation HTML
     function renderInventoryTable(dateString, report, options) {
         const { isEditable, isFinalized, isEditingPast, isToday } = options;
         const inventoryTbody = document.getElementById('inventory-tbody');
@@ -1555,8 +1575,6 @@
                                 </td>
                               </tr>`;
                 
-                // Add sub-header only if not '25 KG'
-                // The main table header already serves this purpose for the first category.
                 if (cat !== '25 KG') {
                     tableHtml += `
                     <tr class="sub-header no-print" data-category-child-of="${cat}">
@@ -1573,7 +1591,6 @@
                 }
 
                 productsInCategory.forEach(product => {
-                    // Get profit margin and cost from the report or fallback to product defaults
                     const itemData = report.data[product.id] || {};
                     const effectiveProfitMargin = itemData.profitMargin !== undefined ? itemData.profitMargin : product.profitMargin;
                     const effectiveCost = itemData.cost !== undefined ? itemData.cost : product.cost;
@@ -1588,7 +1605,6 @@
                         </td>
                         <td><input type="number" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));"/></td>
                         <td><input type="number" class="sold-val" disabled /></td>
-                        <!-- Display calculated selling price, not an input -->
                         <td class="selling-price-display font-medium">₱${formatCurrency(calculatedSellingPrice)}</td> 
                         <td class="total-sales-val font-semibold" aria-live="polite"></td>
                         <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
@@ -1599,8 +1615,14 @@
         });
         
         tableHtml += `<tr class="grand-total-row"><td colspan="5" class="text-right p-4">OVERALL GRAND TOTAL</td><td id="overall-total-sold" class="p-4"></td><td></td><td id="overall-total-sales" class="p-4"></td><td id="overall-total-profit" class="p-4 text-green-400"></td></tr>`;
-        // Updated cash reconciliation section with Discount Given
-        tableHtml += `<tr><td colspan="9" class="p-2 bg-white"><div class="max-w-4xl mx-auto p-4 bg-white border-t-4 border-blue-500 rounded-b-lg shadow-inner"><div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4 items-center"><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Expected Sales:</span><span id="expected-cash" class="font-bold text-slate-800 text-lg"></span></div><div class="flex justify-between items-center p-2 rounded"><label for="discount-given" class="text-sm font-medium text-slate-600 mr-2">Discount Given:</label><input type="number" id="discount-given" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded discount-input" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div><div class="flex justify-between items-center p-2 rounded"><label for="cash-on-hand" class="text-sm font-medium text-slate-600 mr-2">Cash on Hand:</label><input type="number" id="cash-on-hand" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div><div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Difference:</span><span id="cash-difference-display" class="font-bold text-lg">-</span></div></div></div></td></tr>`;
+        
+        tableHtml += `<tr><td colspan="9" class="p-2 bg-white"><div class="max-w-5xl mx-auto p-4 bg-white border-t-4 border-blue-500 rounded-b-lg shadow-inner"><div class="grid grid-cols-1 md:grid-cols-5 gap-x-6 gap-y-4 items-center">
+            <div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Expected Sales:</span><span id="expected-cash" class="font-bold text-slate-800 text-lg"></span></div>
+            <div class="flex justify-between items-center p-2 rounded"><label for="discount-given" class="text-sm font-medium text-slate-600 mr-2">Discount:</label><input type="number" id="discount-given" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded discount-input" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div>
+            <div class="flex justify-between items-center p-2 rounded"><label for="gcash-payment" class="text-sm font-medium text-slate-600 mr-2">GCash Pmt:</label><input type="number" id="gcash-payment" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded gcash-input" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div>
+            <div class="flex justify-between items-center p-2 rounded"><label for="cash-on-hand" class="text-sm font-medium text-slate-600 mr-2">Cash on Hand:</label><input type="number" id="cash-on-hand" placeholder="0.00" class="w-32 text-right font-bold border-slate-300 p-1 rounded" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} /></div>
+            <div class="flex justify-between items-center p-2 rounded"><span class="text-sm font-medium text-slate-600">Difference:</span><span id="cash-difference-display" class="font-bold text-lg">-</span></div>
+        </div></div></td></tr>`;
         
         let footerHtml = '';
         if(isEditingPast) {
@@ -1616,6 +1638,7 @@
         inventoryTbody.innerHTML = tableHtml;
     }
 
+    // UPDATED: Populate gcash-payment input on load
     function updateInventoryTable(report) {
         const reportData = report.data;
         shopProducts.forEach(product => {
@@ -1632,7 +1655,6 @@
             updateInputValue(row, '.new-stock-input', data.newStock);
             updateInputValue(row, '.end-input', data.end);
             
-            // Display calculated selling price
             updateTextContent(row, '.selling-price-display', `₱${formatCurrency(calculatedSellingPrice)}`);
 
             const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
@@ -1650,6 +1672,7 @@
             checkRowCompletion(row); 
         });
         recalculateAndRenderAllTotals();
+        
         const cashInput = document.getElementById('cash-on-hand');
         if (cashInput && report.cashOnHand != null && cashInput.value !== String(report.cashOnHand)) {
             cashInput.value = report.cashOnHand;
@@ -1657,6 +1680,10 @@
         const discountInput = document.getElementById('discount-given');
         if (discountInput && report.discountAmount != null && discountInput.value !== String(report.discountAmount)) {
             discountInput.value = report.discountAmount;
+        }
+        const gcashInput = document.getElementById('gcash-payment');
+        if (gcashInput && report.gcashPayment != null && gcashInput.value !== String(report.gcashPayment)) {
+            gcashInput.value = report.gcashPayment;
         }
         calculateCashDifference();
     }
@@ -1678,24 +1705,13 @@
 
     // --- CALCULATIONS & EVENT HANDLERS ---
 
-    /**
-     * Checks if a row's required inputs (newStock, end) are filled and applies/removes .row-complete class.
-     * @param {HTMLElement} row The table row element.
-     */
     function checkRowCompletion(row) {
         if (!row || !row.dataset.id) return;
-
         const newStockInput = row.querySelector('.new-stock-input');
         const endInput = row.querySelector('.end-input');
-
         const isNewStockFilled = newStockInput && newStockInput.value.trim() !== '';
         const isEndFilled = endInput && endInput.value.trim() !== '';
-
-        if (isNewStockFilled && isEndFilled) {
-            row.classList.add('row-complete');
-        } else {
-            row.classList.remove('row-complete');
-        }
+        row.classList.toggle('row-complete', isNewStockFilled && isEndFilled);
     }
 
     function recalculateAndRenderAllTotals() {
@@ -1741,26 +1757,30 @@
         calculateCashDifference();
     }
 
+    // UPDATED: Added gcashPayment to the calculation
     function calculateCashDifference() {
         const totalSalesEl = document.getElementById('overall-total-sales');
         const cashInput = document.getElementById('cash-on-hand');
         const discountInput = document.getElementById('discount-given');
+        const gcashInput = document.getElementById('gcash-payment');
         const differenceDisplay = document.getElementById('cash-difference-display');
         
-        if (!totalSalesEl || !cashInput || !discountInput || !differenceDisplay) return;
+        if (!totalSalesEl || !cashInput || !discountInput || !gcashInput || !differenceDisplay) return;
 
         const totalSales = parseFloat(totalSalesEl.textContent.replace(/[₱,]/g, '')) || 0;
         const discountAmount = parseFloat(discountInput.value) || 0;
         
-        if (cashInput.value.trim() === '' && discountInput.value.trim() === '') {
+        if (cashInput.value.trim() === '' && discountInput.value.trim() === '' && gcashInput.value.trim() === '') {
             differenceDisplay.textContent = '-';
             differenceDisplay.className = 'font-bold text-lg';
             return;
         }
-
+        
         const cashOnHand = parseFloat(cashInput.value) || 0;
+        const gcashPayment = parseFloat(gcashInput.value) || 0;
         const adjustedTotalSales = totalSales - discountAmount; 
-        const difference = cashOnHand - adjustedTotalSales;
+        const difference = (cashOnHand + gcashPayment) - adjustedTotalSales;
+
         differenceDisplay.className = 'font-bold text-lg';
         
         if (difference < 0) {
@@ -1781,11 +1801,7 @@
     }
 
     async function calculate(inputElement, dateString) {
-        // First, check if the input itself is invalid (NaN or negative)
-        if (inputElement.classList.contains('invalid')) {
-            // Already invalid due to direct number validation, just return and let the user correct it
-            return;
-        }
+        if (inputElement.classList.contains('invalid')) return;
 
         const row = inputElement.closest('tr');
         if (!row || !row.dataset.id) return;
@@ -1797,7 +1813,6 @@
 
         const availableStockIncludingNew = begin + newStock;
 
-        // --- NEW: Error handling for illogical stock values ---
         if (end > availableStockIncludingNew) {
             Swal.fire({
                 icon: 'error',
@@ -1807,18 +1822,15 @@
                        Please correct the "Ending" value.`,
                 confirmButtonText: 'Understood'
             });
-            inputElement.classList.add('invalid'); // Highlight the invalid input
-            // Do NOT save to Firestore if there's a logic error
-            recalculateAndRenderAllTotals(); // Still update totals based on current (potentially incorrect) display
+            inputElement.classList.add('invalid');
+            recalculateAndRenderAllTotals();
             return; 
         } else {
-            inputElement.classList.remove('invalid'); // Remove highlight if corrected
-            // Proceed to save only if valid
+            inputElement.classList.remove('invalid');
             await saveInventoryData(dateString, productId, { newStock, end });
         }
     }
     
-    // --- UPDATED AND FIXED FUNCTION ---
     async function submitOpenSack(buttonElement, productId, dateString) {
         const parentDiv = buttonElement.parentElement;
         const addSacksInput = parentDiv.querySelector('.open-sacks-add-input');
@@ -1855,25 +1867,16 @@
                 
                 const report = reportDoc.data();
                 const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
-                
-                // --- BUG FIX ---
-                // The number of sacks physically available to be opened is the current ending stock count for that product.
                 const availableStock = sourceData.end;
 
                 if (availableStock < sacksToAdd) {
-                    // Update the error message to be clearer.
                     throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} sack(s) are physically available to open.`;
                 }
 
                 const kilosToAdd = sacksToAdd * 25;
-                
                 const updatePayload = {};
-                // Increment the count of opened sacks for the source product (25 KG).
                 updatePayload[`data.${sourceProduct.id}.openedSacks`] = firebase.firestore.FieldValue.increment(sacksToAdd);
-                // IMPORTANT: Decrement the ending stock of the source product because it has been used.
                 updatePayload[`data.${sourceProduct.id}.end`] = firebase.firestore.FieldValue.increment(-sacksToAdd);
-                
-                // Increment the beginning and ending stock for the target product (Per Kilo).
                 updatePayload[`data.${targetProduct.id}.begin`] = firebase.firestore.FieldValue.increment(kilosToAdd);
                 updatePayload[`data.${targetProduct.id}.end`] = firebase.firestore.FieldValue.increment(kilosToAdd);
                 
@@ -1925,11 +1928,13 @@
         }
     }
 
+    // UPDATED: Added gcashPayment to the update payload
     async function savePastReportChanges(dateString) {
         const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
         const discountAmount = parseFloat(document.getElementById('discount-given')?.value) || 0;
+        const gcashPayment = parseFloat(document.getElementById('gcash-payment')?.value) || 0;
         try {
-            await db.collection('reports').doc(dateString).update({ cashOnHand, discountAmount });
+            await db.collection('reports').doc(dateString).update({ cashOnHand, discountAmount, gcashPayment });
             Toast.fire({ icon: 'success', title: 'Changes saved successfully!' });
             showHistory();
         } catch (error) {
@@ -1938,28 +1943,22 @@
     }
 
     async function showFinalizeModal() {
-        // Step 1: Perform global validation check before proceeding
         let hasLogicErrors = false;
         const errorMessages = [];
 
         document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
             const productName = row.querySelector('.product-name').textContent;
-            const beginInput = row.querySelector('.begin-val');
-            const newStockInput = row.querySelector('.new-stock-input');
-            const endInput = row.querySelector('.end-input');
-
-            const begin = parseFloat(beginInput.value) || 0;
-            const newStock = parseFloat(newStockInput.value) || 0;
-            const end = parseFloat(endInput.value) || 0;
-
+            const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
+            const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
+            const end = parseFloat(row.querySelector('.end-input').value) || 0;
             const availableStockIncludingNew = begin + newStock;
 
             if (end > availableStockIncludingNew) {
                 hasLogicErrors = true;
-                endInput.classList.add('invalid'); // Highlight invalid field
+                row.querySelector('.end-input').classList.add('invalid');
                 errorMessages.push(`Ending stock for "${productName}" (${end}) is greater than available stock (${availableStockIncludingNew}).`);
             } else {
-                endInput.classList.remove('invalid'); // Ensure no highlight if fixed
+                row.querySelector('.end-input').classList.remove('invalid');
             }
         });
 
@@ -1970,10 +1969,9 @@
                 html: `Please correct the following errors before finalizing the report:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
                 confirmButtonText: 'Understood'
             });
-            return; // Stop the finalization process
+            return;
         }
 
-        // If no logic errors, proceed with original finalization logic
         const { isConfirmed } = await Swal.fire({
             title: `Finalize Report for Today?`,
             text: `This will lock today's report from further edits. You can still make corrections later from the History page (password required).`,
@@ -1982,16 +1980,9 @@
             confirmButtonColor: '#10b981',
             confirmButtonText: 'Yes, Finalize It!',
             showLoaderOnConfirm: true,
-            preConfirm: () => finalizeReport().catch(err => Swal.showValidationMessage(`Request failed: ${err}`)), // This preConfirm is now internal to original finalizeReport
+            preConfirm: () => finalizeReport().catch(err => Swal.showValidationMessage(`Request failed: ${err}`)),
             allowOutsideClick: () => !Swal.isLoading()
         });
-
-        if (isConfirmed) {
-            // Only proceed if the internal logic check in preConfirm also passes
-            // The preConfirm returns a promise that resolves on success or rejects on failure
-            // If it rejects, the Swal.showValidationMessage is displayed.
-            // If it resolves, the main `finalizeReport` function is considered successful.
-        }
     }
 
     // --- HISTORY VIEW FUNCTIONS ---
@@ -2300,7 +2291,6 @@
         }
     }
 
-    // NEW: Function to open profit margin settings directly (without password)
     function openQuickProfitMarginModal(preselectCategory = null) {
         document.getElementById('quick-profit-modal-overlay').classList.add('open');
         const categorySelect = document.getElementById('quick-profit-category-select');
@@ -2308,7 +2298,7 @@
             categorySelect.value = preselectCategory;
             renderQuickProfitMarginProducts(preselectCategory);
         } else {
-            categorySelect.value = ''; // Reset category selection
+            categorySelect.value = '';
             document.getElementById('quick-profit-products-container').innerHTML = '<p class="text-center text-slate-500">Select a category to view products.</p>';
         }
     }
@@ -2317,9 +2307,7 @@
         document.getElementById('quick-profit-modal-overlay').classList.remove('open');
     }
 
-    // NEW: Helper to update selling price display in modals dynamically
     function updateModalSellingPrice(productId, isQuickModal = false) {
-        // Correctly target inputs based on whether it's the quick modal or main settings modal
         const prefix = isQuickModal ? 'quick-' : '';
         const costInput = document.getElementById(`${prefix}cost-${productId}`);
         const profitInput = document.getElementById(`${prefix}profit-margin-${productId}`);
@@ -2333,12 +2321,10 @@
         }
     }
 
-
-    // NEW: Render products in the quick profit margin modal (IMPROVED LAYOUT)
     async function renderQuickProfitMarginProducts(category) {
         const container = document.getElementById('quick-profit-products-container');
         container.innerHTML = '<div class="loader"></div>';
-        await loadProducts(); // Ensure products are up-to-date
+        await loadProducts();
 
         if (!category) {
             container.innerHTML = '<p class="text-center text-slate-500">Select a category to view products.</p>';
@@ -2354,7 +2340,7 @@
             return;
         }
 
-        let html = '<div class="space-y-3">'; // Consistent spacing between product rows
+        let html = '<div class="space-y-3">';
         productsInCategory.forEach(p => {
             const currentSellingPrice = (p.cost || 0) + (p.profitMargin || 0);
             html += `
@@ -2381,18 +2367,16 @@
         container.innerHTML = html;
     }
 
-    // NEW: Save profit margins and costs from the quick access modal
     async function saveQuickProfitMarginsFromModal() {
         const saveBtn = document.querySelector('#quick-profit-modal-overlay .btn-primary');
         toggleButtonLoading(saveBtn, true);
 
         try {
-            const productBatch = db.batch(); // Batch for updating the 'products' collection
-            const reportUpdatePayload = {}; // Object for updating today's report document
+            const productBatch = db.batch();
+            const reportUpdatePayload = {};
             let hasErrors = false;
             let errorMessages = [];
 
-            // --- Step 1: Validation ---
             document.querySelectorAll('#quick-profit-products-container input[data-product-id]').forEach(input => {
                 const productId = input.dataset.productId;
                 if (input.classList.contains('invalid')) {
@@ -2404,16 +2388,10 @@
             });
 
             if (hasErrors) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    html: `Please correct the highlighted input fields before saving:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
-                    confirmButtonText: 'Understood'
-                });
-                return; // Stop execution
+                Swal.fire({ icon: 'error', title: 'Validation Error', html: `Please correct the highlighted input fields:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>` });
+                return;
             }
 
-            // --- Step 2: Prepare updates for both 'products' and today's 'report' ---
             const productInputs = Array.from(document.querySelectorAll('#quick-profit-products-container input[data-product-id]'));
             const productIdsToUpdate = [...new Set(productInputs.map(input => input.dataset.productId))];
 
@@ -2422,31 +2400,20 @@
                 const profitInput = document.getElementById(`quick-profit-margin-${productId}`);
                 const newCost = parseFloat(costInput.value) || 0;
                 const newProfitMargin = parseFloat(profitInput.value) || 0;
-
-                // Prepare update for the main 'products' collection
                 const productRef = db.collection('products').doc(productId);
                 productBatch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
-
-                // Prepare update for today's 'reports' document using dot notation
                 reportUpdatePayload[`data.${productId}.cost`] = newCost;
                 reportUpdatePayload[`data.${productId}.profitMargin`] = newProfitMargin;
             });
 
-            // --- Step 3: Execute the updates concurrently if there's anything to update ---
             if (Object.keys(reportUpdatePayload).length > 0) {
                 const reportRef = db.collection('reports').doc(todayDateString);
-                await Promise.all([
-                    productBatch.commit(),
-                    reportRef.update(reportUpdatePayload)
-                ]);
+                await Promise.all([ productBatch.commit(), reportRef.update(reportUpdatePayload) ]);
             }
 
-            // --- Step 4: Refresh global data and close modal ---
             await loadProducts();
             Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
             closeQuickProfitMarginModal();
-            // The UI will update automatically because of the real-time listener on the report.
-
         } catch (error) {
             Swal.fire('Error', handleFirestoreError(error), 'error');
         } finally {
@@ -2466,14 +2433,13 @@
         }).join(''); 
     }
 
-    // This is the password-protected Profit Margin Management in Settings
     async function renderProfitMarginManagement() {
         const container = document.getElementById('profit-margin-list-container');
         container.innerHTML = '<div class="text-center p-4"><div class="loader"></div></div>';
         await loadProducts(); 
 
         if (shopProducts.length === 0) {
-            container.innerHTML = '<p class="text-center text-slate-500 py-4">No products available to manage profit margins.</p>';
+            container.innerHTML = '<p class="text-center text-slate-500 py-4">No products available.</p>';
             return;
         }
 
@@ -2499,40 +2465,31 @@
                         <span class="font-medium text-slate-700 md:col-span-1">${p.name}</span>
                         <div class="flex items-center gap-1">
                             <label for="cost-${p.id}" class="text-sm text-slate-600">Cost:</label>
-                            <input type="number" id="cost-${p.id}" data-product-id="${p.id}" 
-                                value="${formatCurrency(p.cost || 0)}" 
-                                class="cost-input w-20 text-right text-sm" 
-                                step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}');">
+                            <input type="number" id="cost-${p.id}" data-product-id="${p.id}" value="${formatCurrency(p.cost || 0)}" class="cost-input w-20 text-right text-sm" step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}');">
                         </div>
                         <div class="flex items-center gap-1">
                             <label for="profit-margin-${p.id}" class="text-sm text-slate-600">Profit:</label>
-                            <input type="number" id="profit-margin-${p.id}" data-product-id="${p.id}" 
-                                value="${formatCurrency(p.profitMargin || 0)}" 
-                                class="profit-margin-input w-20 text-right text-sm" 
-                                step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}');">
+                            <input type="number" id="profit-margin-${p.id}" data-product-id="${p.id}" value="${formatCurrency(p.profitMargin || 0)}" class="profit-margin-input w-20 text-right text-sm" step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}');">
                         </div>
                         <span class="font-semibold text-blue-600 text-right">Sell: ₱<span id="selling-price-${p.id}">${formatCurrency(currentSellingPrice)}</span></span>
                     </div>`;
                 });
-                html += `   </div>
-                        </div>`;
+                html += `</div></div>`;
             }
         });
         container.innerHTML = html;
     }
 
-    // This is the password-protected Save All Profit Margins in Settings
     async function saveAllProfitMargins() {
         const saveBtn = document.querySelector('#settings-profit-margin-content .btn-primary');
         toggleButtonLoading(saveBtn, true);
 
         try {
-            const productBatch = db.batch(); // Batch for updating the 'products' collection
-            const reportUpdatePayload = {}; // Object for updating today's report document
+            const productBatch = db.batch();
+            const reportUpdatePayload = {};
             let hasErrors = false;
             let errorMessages = [];
 
-            // --- Step 1: Validation ---
             document.querySelectorAll('#profit-margin-list-container input[data-product-id]').forEach(input => {
                 if (input.classList.contains('invalid')) {
                     hasErrors = true;
@@ -2544,16 +2501,10 @@
             });
 
             if (hasErrors) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    html: `Please correct the highlighted input fields before saving:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
-                    confirmButtonText: 'Understood'
-                });
-                return; // Stop execution
+                Swal.fire({ icon: 'error', title: 'Validation Error', html: `Please correct the highlighted input fields:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>` });
+                return;
             }
 
-            // --- Step 2: Prepare updates for both 'products' and today's 'report' ---
             const productInputs = Array.from(document.querySelectorAll('#profit-margin-list-container input[data-product-id]'));
             const productIdsToUpdate = [...new Set(productInputs.map(input => input.dataset.productId))];
 
@@ -2562,37 +2513,26 @@
                 const profitInput = document.getElementById(`profit-margin-${productId}`);
                 const newCost = parseFloat(costInput.value) || 0;
                 const newProfitMargin = parseFloat(profitInput.value) || 0;
-
-                // Prepare update for the main 'products' collection
                 const productRef = db.collection('products').doc(productId);
                 productBatch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
-
-                // Prepare update for today's 'reports' document using dot notation
                 reportUpdatePayload[`data.${productId}.cost`] = newCost;
                 reportUpdatePayload[`data.${productId}.profitMargin`] = newProfitMargin;
             });
             
-            // --- Step 3: Execute the updates concurrently if there's anything to update ---
             if (Object.keys(reportUpdatePayload).length > 0) {
                 const reportRef = db.collection('reports').doc(todayDateString);
-                await Promise.all([
-                    productBatch.commit(),
-                    reportRef.update(reportUpdatePayload)
-                ]);
+                await Promise.all([ productBatch.commit(), reportRef.update(reportUpdatePayload) ]);
             }
 
-            // --- Step 4: Refresh global data and UI ---
             await loadProducts();
             Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
-            renderProfitMarginManagement(); // Re-render the settings view
-
+            renderProfitMarginManagement();
         } catch (error) {
             Swal.fire('Error', handleFirestoreError(error), 'error');
         } finally {
             toggleButtonLoading(saveBtn, false);
         }
     }
-
 
     function clearProductForm() { 
         document.getElementById('product-form-title').textContent = 'Add New Product'; 
@@ -2657,23 +2597,19 @@
     async function deleteProduct(id) { const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', text: 'This product will be permanently deleted.', icon: 'warning', showCancelButton: true }); if (isConfirmed) { try { await db.collection('products').doc(id).delete(); Toast.fire({ icon: 'success', title: 'Product deleted!' }); await loadProducts(); renderProductList(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
     async function savePassword() { const saveBtn = document.getElementById('save-password-btn'); const current = document.getElementById('currentPassword').value; const newPass = document.getElementById('newPassword').value; const confirm = document.getElementById('confirmPassword').value; toggleButtonLoading(saveBtn, true); try { const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (storedPasswordHash && hashPassword(current) !== storedPasswordHash) { Swal.fire('Error', 'Current password incorrect.', 'error'); return; } if (newPass.length < 4) { Swal.fire('Error', 'New password must be at least 4 characters.', 'error'); return; } if (newPass !== confirm) { Swal.fire('Error', 'New passwords do not match.', 'error'); return; } await db.collection('settings').doc('security').set({ passwordHash: hashPassword(newPass) }); Swal.fire('Success', 'Password changed!', 'success'); ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = ''); } catch (error) { Swal.fire('Error', handleFirestoreError(error), 'error'); } finally { toggleButtonLoading(saveBtn, false); } }
     
-    // Modified `promptForCategoryThenEdit` to open the quick profit modal for 'price'
     async function promptForCategoryThenEdit(editType, targetCategory = null) { 
         if (editType === 'price') { 
-            openQuickProfitMarginModal(targetCategory); // Pass category to the quick modal
+            openQuickProfitMarginModal(targetCategory);
             return;
         }
 
         let selectedCategory = targetCategory;
 
-        if (!selectedCategory) { // Only prompt if no targetCategory is provided (e.g., from global header)
+        if (!selectedCategory) {
             const { value: swalSelectedCategory } = await Swal.fire({
                 title: 'Select a Category to Edit',
                 input: 'select',
-                inputOptions: {
-                    all: 'All Categories',
-                    ...Object.fromEntries(RICE_CATEGORIES.map(cat => [cat, cat]))
-                },
+                inputOptions: { all: 'All Categories', ...Object.fromEntries(RICE_CATEGORIES.map(cat => [cat, cat])) },
                 showCancelButton: true
             });
             if (!swalSelectedCategory) return;
@@ -2698,7 +2634,8 @@
                 const report = doc.data();
                 const summary = calculateDailySummaryFromData(report); 
                 const cashOnHand = report.cashOnHand || 0;
-                const difference = cashOnHand - summary.totalSales; 
+                const gcashPayment = report.gcashPayment || 0;
+                const difference = (cashOnHand + gcashPayment) - summary.totalSales; 
                 
                 let differenceHtml;
                 if (!report.isFinalized && summary.totalSales === 0 && report.discountAmount === 0) { 
@@ -2861,7 +2798,7 @@
         let totalProfit = 0; 
         let totalExpenses = 0; 
         
-        const reportsSnapshot = await db.collection('reports').where('date', '>=', startOfMonth).where('date', '<=', endDate).get(); 
+        const reportsSnapshot = await db.collection('reports').where('date', '>=', startOfMonth).where('date', '<=', endOfMonth).get(); 
         
         reportsSnapshot.forEach(doc => { 
             const reportData = doc.data();
@@ -2869,7 +2806,7 @@
             totalProfit += dailySummary.totalProfit;
         }); 
 
-        const expensesSnapshot = await db.collection('expenses').where('date', '>=', startOfMonth).where('date', '<=', endDate).get(); 
+        const expensesSnapshot = await db.collection('expenses').where('date', '>=', startOfMonth).where('date', '<=', endOfMonth).get(); 
         expensesSnapshot.forEach(doc => { 
             totalExpenses += doc.data().amount; 
         }); 
@@ -2877,31 +2814,15 @@
         return { monthlyNetProfit: totalProfit - totalExpenses }; 
     }
 
-    /**
-     * Toggles the visibility of product rows within a given category.
-     * @param {string} categoryId The data-category-id of the category header row.
-     */
     function toggleCategoryRows(categoryId) {
         const categoryHeader = document.querySelector(`tr[data-category-id="${categoryId}"]`);
         if (!categoryHeader) return;
-
         const toggleIcon = categoryHeader.querySelector('.toggle-icon');
-        const isExpanded = !categoryHeader.classList.contains('collapsed'); // Assuming not having 'collapsed' means expanded
-
-        if (isExpanded) {
-            categoryHeader.classList.add('collapsed');
-            toggleIcon.classList.add('rotated');
-        } else {
-            categoryHeader.classList.remove('collapsed');
-            toggleIcon.classList.remove('rotated');
-        }
-
-        // Select all direct children rows of this category, including the sub-header and total row
+        const isExpanded = !categoryHeader.classList.contains('collapsed');
+        categoryHeader.classList.toggle('collapsed', isExpanded);
+        toggleIcon.classList.toggle('rotated', isExpanded);
         const childRows = document.querySelectorAll(`#inventory-tbody tr[data-category-child-of="${categoryId}"]`);
-        
-        childRows.forEach(row => {
-            row.classList.toggle('hidden', isExpanded);
-        });
+        childRows.forEach(row => row.classList.toggle('hidden', isExpanded));
     }
 
 
@@ -2914,4 +2835,4 @@
   </script>
 </body>
 </html>
-``````
+`````````
