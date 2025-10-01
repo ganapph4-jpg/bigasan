@@ -1818,6 +1818,7 @@
         }
     }
     
+    // --- UPDATED AND FIXED FUNCTION ---
     async function submitOpenSack(buttonElement, productId, dateString) {
         const parentDiv = buttonElement.parentElement;
         const addSacksInput = parentDiv.querySelector('.open-sacks-add-input');
@@ -1853,19 +1854,29 @@
                 if (!reportDoc.exists) throw "Report not found!";
                 
                 const report = reportDoc.data();
-                const sourceData = report.data[sourceProduct.id] || { end: 0 };
-                const availableStock = (sourceData.begin + sourceData.newStock) - (sourceData.openedSacks || 0) - sourceData.end;
+                const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
+                
+                // --- BUG FIX ---
+                // The number of sacks physically available to be opened is the current ending stock count for that product.
+                const availableStock = sourceData.end;
 
                 if (availableStock < sacksToAdd) {
-                    throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} available to open.`;
+                    // Update the error message to be clearer.
+                    throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} sack(s) are physically available to open.`;
                 }
 
                 const kilosToAdd = sacksToAdd * 25;
                 
                 const updatePayload = {};
+                // Increment the count of opened sacks for the source product (25 KG).
                 updatePayload[`data.${sourceProduct.id}.openedSacks`] = firebase.firestore.FieldValue.increment(sacksToAdd);
+                // IMPORTANT: Decrement the ending stock of the source product because it has been used.
+                updatePayload[`data.${sourceProduct.id}.end`] = firebase.firestore.FieldValue.increment(-sacksToAdd);
+                
+                // Increment the beginning and ending stock for the target product (Per Kilo).
                 updatePayload[`data.${targetProduct.id}.begin`] = firebase.firestore.FieldValue.increment(kilosToAdd);
                 updatePayload[`data.${targetProduct.id}.end`] = firebase.firestore.FieldValue.increment(kilosToAdd);
+                
                 transaction.update(reportRef, updatePayload);
                 addSacksInput.value = '';
             });
@@ -2370,7 +2381,6 @@
         container.innerHTML = html;
     }
 
-    // --- UPDATED FUNCTION ---
     // NEW: Save profit margins and costs from the quick access modal
     async function saveQuickProfitMarginsFromModal() {
         const saveBtn = document.querySelector('#quick-profit-modal-overlay .btn-primary');
@@ -2511,7 +2521,6 @@
         container.innerHTML = html;
     }
 
-    // --- UPDATED FUNCTION ---
     // This is the password-protected Save All Profit Margins in Settings
     async function saveAllProfitMargins() {
         const saveBtn = document.querySelector('#settings-profit-margin-content .btn-primary');
