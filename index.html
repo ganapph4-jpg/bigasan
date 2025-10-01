@@ -283,7 +283,7 @@
     /* Loader Animation */
     .loader { 
       border: 4px solid #f3f3f3;
-      border-top: 44px solid var(--primary); 
+      border-top: 4px solid var(--primary); 
       border-radius: 50%; 
       width: 30px; 
       height: 30px; 
@@ -1627,15 +1627,7 @@
             const effectiveProfitMargin = data.profitMargin !== undefined ? data.profitMargin : (product ? product.profitMargin : 0);
             const effectiveCost = data.cost !== undefined ? data.cost : (product ? product.cost : 0);
             const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
-
-            // --- DEBUG LOGS START ---
-            console.log(`--- Product: ${product.name} (ID: ${product.id}) ---`);
-            console.log(`  Report Data - begin: ${data.begin}, newStock: ${data.newStock}, end: ${data.end}, openedSacks: ${data.openedSacks}`);
-            console.log(`  Product defaults - cost: ${product.cost}, profitMargin: ${product.profitMargin}`);
-            console.log(`  Effective Cost: ${effectiveCost}, Effective Profit Margin: ${effectiveProfitMargin}`);
-            console.log(`  Calculated Selling Price: ${calculatedSellingPrice}`);
-            // --- DEBUG LOGS END ---
-
+            
             updateInputValue(row, '.begin-val', data.begin);
             updateInputValue(row, '.new-stock-input', data.newStock);
             updateInputValue(row, '.end-input', data.end);
@@ -1646,12 +1638,6 @@
             const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
             const totalSales = Math.max(0, sold) * calculatedSellingPrice; 
             const profit = totalSales - (Math.max(0, sold) * effectiveCost); 
-
-            // --- DEBUG LOGS START ---
-            console.log(`  Sold Quantity: ${sold}`);
-            console.log(`  Total Sales: ${totalSales}`);
-            console.log(`  Calculated Profit: ${profit}`);
-            // --- DEBUG LOGS END ---
 
             updateInputValue(row, '.sold-val', sold);
             updateTextContent(row, '.total-sales-val', formatCurrency(totalSales));
@@ -1831,9 +1817,6 @@
             await saveInventoryData(dateString, productId, { newStock, end });
         }
     }
-    
-    // `debouncedUpdatePrice` and `updatePrice` are removed as selling price is no longer directly editable.
-    // Price changes will now be handled via `editPrices` (which now edits profit margins).
     
     async function submitOpenSack(buttonElement, productId, dateString) {
         const parentDiv = buttonElement.parentElement;
@@ -2123,13 +2106,7 @@
             }
         }
         const discount = report?.discountAmount || 0;
-
-        // --- DEBUG LOGS START (for dashboard/analytics summary) ---
-        console.log(`--- Daily Summary for Report ${report?.date || 'N/A'} ---`);
-        console.log(`  Initial Total Sales: ${totalSales}, Initial Total Profit: ${totalProfit}, Discount: ${discount}`);
-        console.log(`  Adjusted Total Sales (after discount): ${totalSales - discount}, Adjusted Total Profit (after discount): ${totalProfit - discount}`);
-        // --- DEBUG LOGS END ---
-
+        
         return { totalSales: totalSales - discount, totalProfit: totalProfit - discount };
     }
 
@@ -2393,23 +2370,26 @@
         container.innerHTML = html;
     }
 
+    // --- UPDATED FUNCTION ---
     // NEW: Save profit margins and costs from the quick access modal
     async function saveQuickProfitMarginsFromModal() {
         const saveBtn = document.querySelector('#quick-profit-modal-overlay .btn-primary');
         toggleButtonLoading(saveBtn, true);
 
         try {
-            const batch = db.batch();
+            const productBatch = db.batch(); // Batch for updating the 'products' collection
+            const reportUpdatePayload = {}; // Object for updating today's report document
             let hasErrors = false;
             let errorMessages = [];
 
+            // --- Step 1: Validation ---
             document.querySelectorAll('#quick-profit-products-container input[data-product-id]').forEach(input => {
                 const productId = input.dataset.productId;
                 if (input.classList.contains('invalid')) {
                     hasErrors = true;
-                    // Add specific message for individual invalid input
-                    const label = input.previousElementSibling ? input.previousElementSibling.textContent : input.id;
-                    errorMessages.push(`"${label}" for product "${productId}" is invalid.`);
+                    const productName = shopProducts.find(p => p.id === productId)?.name || 'Unknown Product';
+                    const label = input.id.includes('cost') ? 'Cost' : 'Profit';
+                    errorMessages.push(`Invalid ${label} for "${productName}".`);
                 }
             });
 
@@ -2420,30 +2400,43 @@
                     html: `Please correct the highlighted input fields before saving:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
                     confirmButtonText: 'Understood'
                 });
-                return;
+                return; // Stop execution
             }
 
-            // If no validation errors, proceed to update
-            document.querySelectorAll('#quick-profit-products-container input[data-product-id]').forEach(input => {
-                const productId = input.dataset.productId;
-                
-                // Find the corresponding cost and profit inputs for this product ID
+            // --- Step 2: Prepare updates for both 'products' and today's 'report' ---
+            const productInputs = Array.from(document.querySelectorAll('#quick-profit-products-container input[data-product-id]'));
+            const productIdsToUpdate = [...new Set(productInputs.map(input => input.dataset.productId))];
+
+            productIdsToUpdate.forEach(productId => {
                 const costInput = document.getElementById(`quick-cost-${productId}`);
                 const profitInput = document.getElementById(`quick-profit-margin-${productId}`);
-
                 const newCost = parseFloat(costInput.value) || 0;
                 const newProfitMargin = parseFloat(profitInput.value) || 0;
-                
+
+                // Prepare update for the main 'products' collection
                 const productRef = db.collection('products').doc(productId);
-                batch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
+                productBatch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
+
+                // Prepare update for today's 'reports' document using dot notation
+                reportUpdatePayload[`data.${productId}.cost`] = newCost;
+                reportUpdatePayload[`data.${productId}.profitMargin`] = newProfitMargin;
             });
 
+            // --- Step 3: Execute the updates concurrently if there's anything to update ---
+            if (Object.keys(reportUpdatePayload).length > 0) {
+                const reportRef = db.collection('reports').doc(todayDateString);
+                await Promise.all([
+                    productBatch.commit(),
+                    reportRef.update(reportUpdatePayload)
+                ]);
+            }
 
-            await batch.commit();
-            await loadProducts(); 
+            // --- Step 4: Refresh global data and close modal ---
+            await loadProducts();
             Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
             closeQuickProfitMarginModal();
-            showCurrentDayReport(); 
+            // The UI will update automatically because of the real-time listener on the report.
+
         } catch (error) {
             Swal.fire('Error', handleFirestoreError(error), 'error');
         } finally {
@@ -2518,22 +2511,26 @@
         container.innerHTML = html;
     }
 
+    // --- UPDATED FUNCTION ---
     // This is the password-protected Save All Profit Margins in Settings
     async function saveAllProfitMargins() {
         const saveBtn = document.querySelector('#settings-profit-margin-content .btn-primary');
         toggleButtonLoading(saveBtn, true);
 
         try {
-            const batch = db.batch();
+            const productBatch = db.batch(); // Batch for updating the 'products' collection
+            const reportUpdatePayload = {}; // Object for updating today's report document
             let hasErrors = false;
             let errorMessages = [];
 
+            // --- Step 1: Validation ---
             document.querySelectorAll('#profit-margin-list-container input[data-product-id]').forEach(input => {
-                const productId = input.dataset.productId;
                 if (input.classList.contains('invalid')) {
                     hasErrors = true;
-                    const label = input.previousElementSibling ? input.previousElementSibling.textContent : input.id;
-                    errorMessages.push(`"${label}" for product "${productId}" is invalid.`);
+                    const productId = input.dataset.productId;
+                    const productName = shopProducts.find(p => p.id === productId)?.name || 'Unknown Product';
+                    const label = input.id.includes('cost') ? 'Cost' : 'Profit';
+                    errorMessages.push(`Invalid ${label} for "${productName}".`);
                 }
             });
 
@@ -2544,28 +2541,42 @@
                     html: `Please correct the highlighted input fields before saving:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
                     confirmButtonText: 'Understood'
                 });
-                return;
+                return; // Stop execution
             }
 
-            // If no validation errors, proceed to update
-            document.querySelectorAll('#profit-margin-list-container input[data-product-id]').forEach(input => {
-                const productId = input.dataset.productId;
-                
+            // --- Step 2: Prepare updates for both 'products' and today's 'report' ---
+            const productInputs = Array.from(document.querySelectorAll('#profit-margin-list-container input[data-product-id]'));
+            const productIdsToUpdate = [...new Set(productInputs.map(input => input.dataset.productId))];
+
+            productIdsToUpdate.forEach(productId => {
                 const costInput = document.getElementById(`cost-${productId}`);
                 const profitInput = document.getElementById(`profit-margin-${productId}`);
-                
                 const newCost = parseFloat(costInput.value) || 0;
                 const newProfitMargin = parseFloat(profitInput.value) || 0;
 
+                // Prepare update for the main 'products' collection
                 const productRef = db.collection('products').doc(productId);
-                batch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
-            });
+                productBatch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
 
-            await batch.commit();
-            await loadProducts(); 
+                // Prepare update for today's 'reports' document using dot notation
+                reportUpdatePayload[`data.${productId}.cost`] = newCost;
+                reportUpdatePayload[`data.${productId}.profitMargin`] = newProfitMargin;
+            });
+            
+            // --- Step 3: Execute the updates concurrently if there's anything to update ---
+            if (Object.keys(reportUpdatePayload).length > 0) {
+                const reportRef = db.collection('reports').doc(todayDateString);
+                await Promise.all([
+                    productBatch.commit(),
+                    reportRef.update(reportUpdatePayload)
+                ]);
+            }
+
+            // --- Step 4: Refresh global data and UI ---
+            await loadProducts();
             Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
-            renderProfitMarginManagement(); 
-            showCurrentDayReport(); 
+            renderProfitMarginManagement(); // Re-render the settings view
+
         } catch (error) {
             Swal.fire('Error', handleFirestoreError(error), 'error');
         } finally {
@@ -2576,7 +2587,7 @@
 
     function clearProductForm() { 
         document.getElementById('product-form-title').textContent = 'Add New Product'; 
-        ['product-id', 'product-name', 'product-cost', 'product-profit-margin'].forEach(id => document.getElementById(id).value = ''); 
+        ['product-id', 'product-name', 'product-cost', 'product-profit-margin', 'product-minstock'].forEach(id => document.getElementById(id).value = ''); 
         document.getElementById('save-product-btn').textContent = 'Save Product'; 
     }
 
@@ -2625,6 +2636,7 @@
         if (product) { 
             document.getElementById('product-form-title').textContent = `Edit Product: ${product.name}`; 
             document.getElementById('product-id').value = product.id; 
+            document.getElementById('product-name').value = product.name;
             document.getElementById('product-cost').value = product.cost; 
             document.getElementById('product-profit-margin').value = product.profitMargin; 
             document.getElementById('product-minstock').value = product.minStock; 
@@ -2666,10 +2678,6 @@
 
     async function editBeginningStock(categoryFilter) { const password = await getPassword(); if (!password.success) return; const products = categoryFilter === 'all' ? shopProducts : shopProducts.filter(p => p.category === categoryFilter); const reportDoc = await db.collection('reports').doc(todayDateString).get(); if (!reportDoc.exists) return; const initialReport = reportDoc.data(); let modalHtml = '<div class="max-h-[60vh] overflow-y-auto p-2">'; products.forEach(p => { modalHtml += `<div class="grid grid-cols-2 gap-x-4 items-center mb-2" data-product-id="${p.id}"><label class="font-medium text-right">${p.name}</label><input type="number" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Beginning Stock`, html: modalHtml, showCancelButton: true, confirmButtonText: 'Update All' }); if (isConfirmed) { try { const updatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newBegin = parseInt(row.querySelector('input').value) || 0; const diff = newBegin - (initialReport.data[productId]?.begin || 0); updatePayload[`data.${productId}.begin`] = newBegin; updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff); }); await db.collection('reports').doc(todayDateString).update(updatePayload); Toast.fire({ icon: 'success', title: 'Beginning stock updated!' }); } catch(error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
     
-    // `editPrices` logic is now integrated into `saveAllProfitMargins` via `renderProfitMarginManagement`
-    // but the `promptForCategoryThenEdit` (for price) can be modified to go to the new profit margin panel.
-
-
     async function renderPerformanceBreakdown() { 
         const tbody = document.getElementById('performance-tbody');
         tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>'; 
