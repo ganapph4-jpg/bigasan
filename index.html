@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -785,9 +786,12 @@
       <div class="flex items-center gap-4">
         <h2 id="report-title" class="text-xl font-bold text-slate-800">Daily Inventory Report</h2>
       </div>
-      <div id="report-actions" class="flex gap-2">
+      <div id="report-actions" class="flex flex-wrap gap-2">
         <button onclick="window.print()" class="btn-primary no-print" aria-label="Print this report">
             Print Report
+        </button>
+        <button id="reset-today-btn" onclick="resetTodaysReport()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md font-medium no-print" aria-label="Reset today's report">
+            Reset Today's Report
         </button>
       </div>
     </div>
@@ -1551,6 +1555,12 @@
         const { isEditable, isFinalized, isEditingPast, isToday } = options;
         const inventoryTbody = document.getElementById('inventory-tbody');
         document.getElementById('report-title').textContent = `Daily Report - ${dayjs(dateString).format('MMMM D, YYYY')}`;
+
+        const resetButton = document.getElementById('reset-today-btn');
+        if (resetButton) {
+            // Only show the button if it's today's report.
+            resetButton.style.display = isToday ? 'inline-flex' : 'none';
+        }
             
         const groupedProducts = {};
         RICE_CATEGORIES.forEach(cat => groupedProducts[cat] = []);
@@ -1599,11 +1609,11 @@
                     tableHtml += `<tr data-id="${product.id}" data-category="${product.category}" data-category-child-of="${cat}">
                         <td class="font-bold product-name">${product.name}</td>
                         <td><input type="number" class="begin-val" disabled /></td>
-                        <td><input type="number" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));"/></td>
+                        <td><input type="number" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td class="!p-1">
                             ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!isEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
                         </td>
-                        <td><input type="number" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));"/></td>
+                        <td><input type="number" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="sold-val" disabled /></td>
                         <td class="selling-price-display font-medium">₱${formatCurrency(calculatedSellingPrice)}</td> 
                         <td class="total-sales-val font-semibold" aria-live="polite"></td>
@@ -1797,7 +1807,12 @@
 
     function debouncedCalculate(inputElement, dateString) {
         clearTimeout(calculationTimeout);
-        calculationTimeout = setTimeout(() => calculate(inputElement, dateString), 400);
+        calculationTimeout = setTimeout(() => calculate(inputElement, dateString), 800);
+    }
+
+    function triggerImmediateCalculate(inputElement, dateString) {
+        clearTimeout(calculationTimeout);
+        calculate(inputElement, dateString);
     }
 
     async function calculate(inputElement, dateString) {
@@ -2032,7 +2047,7 @@
     
     async function deleteReport(dateString) {
         if (dateString === todayDateString) {
-            return Swal.fire('Action Denied', 'You cannot delete the active report for today.', 'error');
+            return Swal.fire('Action Denied', 'You cannot delete the active report for today. Use the "Reset Today\'s Report" button instead.', 'error');
         }
         const password = await getPassword();
         if(!password.success) return;
@@ -2054,6 +2069,55 @@
                 showHistory();
             } catch (error) {
                 Swal.fire('Error', handleFirestoreError(error), 'error');
+            }
+        }
+    }
+
+    async function resetTodaysReport() {
+        const { isConfirmed } = await Swal.fire({
+            title: 'Are you absolutely sure?',
+            html: `This will permanently delete <strong>all entries and expenses for today</strong> and reset the report.<br><br>The beginning stock will be restored from yesterday's ending values. This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, reset it!'
+        });
+
+        if (isConfirmed) {
+            Swal.fire({
+                title: 'Resetting Report...',
+                html: 'Please wait while we restore your data.',
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+
+            try {
+                const reportRef = db.collection('reports').doc(todayDateString);
+                const expensesQuery = db.collection('expenses').where('date', '==', todayDateString);
+                const expensesSnapshot = await expensesQuery.get();
+                
+                const batch = db.batch();
+                expensesSnapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit(); 
+
+                await reportRef.delete(); 
+                
+                setTimeout(() => {
+                    Swal.close();
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Report has been reset!'
+                    });
+                    showCurrentDayReport(); 
+                }, 1000);
+
+            } catch (error) {
+                console.error("Error resetting report:", error);
+                Swal.fire('Reset Failed', handleFirestoreError(error), 'error');
             }
         }
     }
@@ -2835,4 +2899,4 @@
   </script>
 </body>
 </html>
-`````````
+``````
