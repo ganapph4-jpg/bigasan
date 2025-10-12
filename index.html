@@ -234,12 +234,12 @@
         box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
     }
 
-    /* New: Discount input styling */
-    .discount-input {
+    /* NEW: Returns/Damaged input styling */
+    .returns-input {
         background-color: #fef2f2; /* Red-50 */
         border-color: #fca5a5; /* Red-300 */
     }
-    .discount-input:focus {
+    .returns-input:focus {
         background-color: #ffffff;
         border-color: #ef4444; /* Red-500 */
         box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
@@ -655,6 +655,16 @@
     .quick-modal-overlay.open .quick-modal-content {
       transform: translateY(0);
     }
+    
+    /* NEW: Shake animation for password modal */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    .animate-shake {
+      animation: shake 0.5s ease-in-out;
+    }
 
 
     @media (max-width: 768px) {
@@ -867,16 +877,17 @@
               <th>PRODUCT</th>
               <th>BEGIN <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('begin')" aria-label="Edit all beginning stock">EDIT ALL</button></th>
               <th>NEW STOCK</th>
+              <th>RETURNS</th>
               <th>OPEN SACKS</th>
               <th>ENDING</th>
               <th>SOLD</th>
-              <th>SELLING PRICE (₱) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th> <!-- Modified this button to open quick profit modal -->
+              <th>SELLING PRICE (₱) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
               <th>TOTAL SALES (₱)</th>
               <th>PROFIT (₱)</th>
             </tr>
           </thead>
           <tbody id="inventory-tbody">
-            <tr><td colspan="9" class="text-center p-4"><div class="loader" role="status" aria-label="Loading inventory report"></div></td></tr>
+            <tr><td colspan="10" class="text-center p-4"><div class="loader" role="status" aria-label="Loading inventory report"></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -953,7 +964,7 @@
             <div id="settings-products-view" class="settings-view-pane">
                 <div class="settings-card">
                     <h3>Product Management</h3>
-                    <div id="product-list-container" class="space-y-2 mb-4 max-h-64 overflow-y-auto border p-2 rounded bg-slate-50" aria-live="polite" aria-atomic="true">
+                    <div id="product-list-container" class="space-y-2 mb-4 max-h-[50vh] overflow-y-auto border p-2 rounded bg-slate-50" aria-live="polite" aria-atomic="true">
                         <p class="text-center text-slate-500 py-4">No products yet.</p>
                     </div>
                     <div class="p-3 bg-slate-50 rounded border">
@@ -991,14 +1002,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="settings-card">
-                    <h3>Manage Profit Margins by Category</h3>
-                    <p>Adjust the profit amount added to the cost price for each product. The selling price will be calculated automatically.</p>
-                    <div id="profit-margin-list-container" class="space-y-6">
-                        <div class="text-center p-4"><div class="loader"></div></div>
-                    </div>
-                    <button onclick="saveAllProfitMargins()" class="btn-primary w-full mt-6">Save All Profit Margins</button>
                 </div>
             </div>
 
@@ -1090,9 +1093,13 @@
                             <div class="card p-4 bg-purple-50"><p class="text-sm text-slate-500">Capital for New Stock</p><p id="fs-new-stock-cost" class="text-2xl font-bold text-slate-800">₱0.00</p></div>
                             <div class="card p-4 bg-green-50"><p class="text-sm text-green-800 font-bold">Net Profit (Take-Home)</p><p id="fs-net-profit" class="text-3xl font-bold text-green-700">₱0.00</p></div>
                         </div>
-                        <div class="border rounded-lg p-6">
-                            <h4 class="text-lg font-bold text-slate-800 mb-4">Daily Money Flow (Sales vs. Reinvestment & Profit)</h4>
-                            <canvas id="moneyFlowChart" height="250" role="img" aria-label="Daily Money Flow Chart"></canvas>
+                        <!-- UPDATED CHART CONTAINER -->
+                        <div class="bg-white p-6 rounded-2xl shadow-lg w-full">
+                            <div class="flex justify-between items-center mb-4">
+                              <h1 class="text-xl font-semibold text-gray-800">Monthly Money Flow</h1>
+                              <span id="financial-chart-date-range" class="text-sm text-gray-600"></span>
+                            </div>
+                            <canvas id="financialFlowChart" class="w-full" style="height: 320px;"></canvas>
                         </div>
                     </div>
                     
@@ -1207,12 +1214,65 @@
         <p class="text-center text-slate-500">Select a category to view products.</p>
       </div>
 
-      <div class="flex justify-center gap-2"> <!-- Added justify-center here -->
+      <div class="flex justify-center gap-2">
         <button onclick="saveQuickProfitMarginsFromModal()" class="btn-primary">Save Changes</button>
         <button onclick="closeQuickProfitMarginModal()" class="btn-secondary">Cancel</button>
       </div>
     </div>
   </div>
+  
+  <!-- NEW: Edit Beginning Stock Modal -->
+  <div id="begin-stock-modal-overlay" class="quick-modal-overlay no-print">
+    <div class="quick-modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="begin-stock-modal-title" class="text-xl font-bold text-slate-800">Edit Beginning Stock</h3>
+        <button onclick="closeBeginStockModal()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close modal">&times;</button>
+      </div>
+
+      <input type="hidden" id="begin-stock-category-filter">
+      
+      <div id="begin-stock-products-container" class="space-y-3 mb-6 max-h-64 overflow-y-auto border p-3 rounded bg-slate-50">
+        <p class="text-center text-slate-500">Loading products...</p>
+      </div>
+
+      <div class="flex justify-center gap-2">
+        <button onclick="saveBeginStockFromModal()" class="btn-primary">Save Changes</button>
+        <button onclick="closeBeginStockModal()" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- NEW: Custom Password Modal -->
+  <div id="password-modal-overlay" class="quick-modal-overlay no-print">
+    <div class="quick-modal-content max-w-md">
+      <div class="text-center">
+        <h1 class="block text-2xl font-bold text-gray-800">Settings Locked</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Please enter your password to continue.
+        </p>
+      </div>
+
+      <div class="mt-5">
+        <form id="password-form">
+          <div class="grid gap-y-4">
+            <div>
+              <label for="settings-password-input" class="block text-sm font-bold ml-1 mb-2">Password</label>
+              <div class="relative">
+                <input type="password" id="settings-password-input" name="password" class="py-3 px-4 block w-full border-2 border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500 shadow-sm" required>
+              </div>
+              <p class="hidden text-xs text-red-600 mt-2" id="password-error">Password is incorrect. Please try again.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="cancelPasswordEntry()" class="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 transition-all text-sm">Cancel</button>
+                <button type="submit" class="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border border-transparent font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm">Unlock</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 
   <script>
     // --- FIREBASE & APP INITIALIZATION ---
@@ -1461,14 +1521,13 @@
                 begin: lastEndStock, 
                 newStock: 0, 
                 openedSacks: 0,
+                returns: 0, // Added for returns/damaged
                 end: lastEndStock, 
-                // Store profitMargin, not price, in the report data
                 profitMargin: p.profitMargin !== undefined ? p.profitMargin : 0, 
                 cost: p.cost 
             };
         });
 
-        // UPDATED: Added gcashPayment to the new report object
         const report = { date: dateString, data: newReportData, cashOnHand: 0, discountAmount: 0, gcashPayment: 0, isFinalized: false };
         await reportRef.set(report);
         Toast.fire({ icon: 'info', title: `Started new report for ${dayjs(dateString).format('MMM D')}` });
@@ -1489,7 +1548,6 @@
         }
     }
 
-    // UPDATED: Added gcashPayment to the update payload
     async function finalizeReport() {
         // Step 1: Perform global validation check before proceeding
         let hasLogicErrors = false;
@@ -1606,7 +1664,7 @@
                     renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday });
                     updateInventoryTable(reportData);
                 } else {
-                    document.getElementById('inventory-tbody').innerHTML = `<tr><td colspan="9" class="text-center p-4 text-red-600">Report not found!</td></tr>`;
+                    document.getElementById('inventory-tbody').innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-600">Report not found!</td></tr>`;
                 }
             }, (error) => {
                 console.error("Error listening to report changes:", error);
@@ -1617,7 +1675,6 @@
         }
     }
 
-    // UPDATED: Compact financial summary section
     function renderInventoryTable(dateString, report, options) {
         const { isEditable, isFinalized, isEditingPast, isToday } = options;
         const inventoryTbody = document.getElementById('inventory-tbody');
@@ -1641,7 +1698,7 @@
             if (productsInCategory && productsInCategory.length > 0) {
                 const cleanCatClass = cat.replace(/\s+/g, '-');
                 tableHtml += `<tr class="category-header category-header-${cleanCatClass}" data-category-id="${cat}">
-                                <td colspan="9" class="font-bold uppercase text-lg">
+                                <td colspan="10" class="font-bold uppercase text-lg">
                                     <div class="category-header-clickable" onclick="toggleCategoryRows('${cat}')">
                                         ${cat}
                                         <svg class="w-5 h-5 toggle-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -1657,6 +1714,7 @@
                         <th>PRODUCT</th>
                         <th>BEGIN <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('begin', '${cat}')" aria-label="Edit all beginning stock in ${cat}">EDIT ALL</button></th>
                         <th>NEW STOCK</th>
+                        <th>RETURNS</th>
                         <th>OPEN SACKS</th>
                         <th>ENDING</th>
                         <th>SOLD</th>
@@ -1676,6 +1734,7 @@
                         <td class="font-bold product-name">${product.name}</td>
                         <td><input type="number" class="begin-val" disabled /></td>
                         <td><input type="number" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
+                        <td><input type="number" class="returns-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
                         <td class="!p-1">
                             ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!isEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
                         </td>
@@ -1686,14 +1745,14 @@
                         <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
                     </tr>`;
                 });
-                tableHtml += `<tr class="category-total-row" data-category-total="${cat}" data-category-child-of="${cat}"><td colspan="5" class="text-right p-3">Total for ${cat}</td><td class="category-total-sold p-3"></td><td></td><td class="category-total-sales p-3"></td><td class="category-total-profit p-3 text-green-600"></td></tr>`;
+                tableHtml += `<tr class="category-total-row" data-category-total="${cat}" data-category-child-of="${cat}"><td colspan="6" class="text-right p-3">Total for ${cat}</td><td class="category-total-sold p-3"></td><td></td><td class="category-total-sales p-3"></td><td class="category-total-profit p-3 text-green-600"></td></tr>`;
             }
         });
         
-        tableHtml += `<tr class="grand-total-row"><td colspan="5" class="text-right p-4">OVERALL GRAND TOTAL</td><td id="overall-total-sold" class="p-4"></td><td></td><td id="overall-total-sales" class="p-4"></td><td id="overall-total-profit" class="p-4 text-green-400"></td></tr>`;
+        tableHtml += `<tr class="grand-total-row"><td colspan="6" class="text-right p-4">OVERALL GRAND TOTAL</td><td id="overall-total-sold" class="p-4"></td><td></td><td id="overall-total-sales" class="p-4"></td><td id="overall-total-profit" class="p-4 text-green-400"></td></tr>`;
         
         let reconciliationHtml = `
-        <tr><td colspan="9" class="p-4 bg-slate-50 no-print">
+        <tr><td colspan="10" class="p-4 bg-slate-50 no-print">
             <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg border border-slate-200">
                 <h3 class="text-lg font-semibold text-center mb-4 text-slate-700">Daily Financial Summary</h3>
                 
@@ -1740,14 +1799,13 @@
         inventoryTbody.innerHTML = tableHtml;
     }
 
-    // UPDATED: Populate gcash-payment input on load
     function updateInventoryTable(report) {
         const reportData = report.data;
         shopProducts.forEach(product => {
             const row = document.querySelector(`#inventory-tbody tr[data-id="${product.id}"]`);
             if (!row) return;
             
-            const data = reportData[product.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0, profitMargin: product.profitMargin, cost: product.cost };
+            const data = reportData[product.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0, profitMargin: product.profitMargin, cost: product.cost };
             
             const effectiveProfitMargin = data.profitMargin !== undefined ? data.profitMargin : (product ? product.profitMargin : 0);
             const effectiveCost = data.cost !== undefined ? data.cost : (product ? product.cost : 0);
@@ -1755,11 +1813,12 @@
             
             updateInputValue(row, '.begin-val', data.begin);
             updateInputValue(row, '.new-stock-input', data.newStock);
+            updateInputValue(row, '.returns-input', data.returns || 0);
             updateInputValue(row, '.end-input', data.end);
             
             updateTextContent(row, '.selling-price-display', `₱${formatCurrency(calculatedSellingPrice)}`);
 
-            const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - data.end;
+            const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - (data.returns || 0) - data.end;
             const totalSales = Math.max(0, sold) * calculatedSellingPrice; 
             const profit = totalSales - (Math.max(0, sold) * effectiveCost); 
 
@@ -1858,7 +1917,6 @@
         calculateCashDifference();
     }
 
-    // UPDATED: Added gcashPayment to the calculation
     function calculateCashDifference() {
         const totalSalesEl = document.getElementById('overall-total-sales');
         const cashInput = document.getElementById('cash-on-hand');
@@ -1918,6 +1976,7 @@
 
         const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
         const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
+        const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
         const end = parseFloat(row.querySelector('.end-input').value) || 0;
 
         const availableStockIncludingNew = begin + newStock;
@@ -1936,7 +1995,7 @@
             return; 
         } else {
             inputElement.classList.remove('invalid');
-            await saveInventoryData(dateString, productId, { newStock, end });
+            await saveInventoryData(dateString, productId, { newStock, returns, end });
         }
     }
     
@@ -1999,24 +2058,93 @@
         }
     }
     
+    // --- UPDATED PASSWORD MODAL LOGIC ---
+
+    let passwordModalResolver = null; // To handle the async result of the modal
+
+    /**
+     * Opens the custom password modal and focuses the input.
+     */
+    function openPasswordModal() {
+        const modal = document.getElementById('password-modal-overlay');
+        const input = document.getElementById('settings-password-input');
+        const error = document.getElementById('password-error');
+        
+        error.classList.add('hidden'); // Hide previous errors
+        input.value = ''; // Clear previous input
+        modal.classList.add('open');
+        input.focus();
+
+        // Attach event listener to the form
+        document.getElementById('password-form').onsubmit = (e) => {
+            e.preventDefault();
+            submitPassword();
+        };
+    }
+
+    /**
+     * Closes the custom password modal.
+     */
+    function closePasswordModal() {
+        document.getElementById('password-modal-overlay').classList.remove('open');
+    }
+
+    /**
+     * Handles the password submission from the modal.
+     */
+    async function submitPassword() {
+        const input = document.getElementById('settings-password-input');
+        const error = document.getElementById('password-error');
+        const password = input.value;
+
+        const securityDoc = await db.collection('settings').doc('security').get();
+        const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null;
+
+        if (hashPassword(password) === storedPasswordHash) {
+            error.classList.add('hidden');
+            closePasswordModal();
+            if (passwordModalResolver) {
+                passwordModalResolver({ success: true, password: password });
+            }
+        } else {
+            error.classList.remove('hidden');
+            // Optional: Add a shake animation for better feedback
+            document.querySelector('#password-modal-overlay .quick-modal-content').classList.add('animate-shake');
+            setTimeout(() => {
+                document.querySelector('#password-modal-overlay .quick-modal-content').classList.remove('animate-shake');
+            }, 500);
+        }
+    }
+
+    /**
+     * Handles the cancellation action from the modal.
+     */
+    function cancelPasswordEntry() {
+        closePasswordModal();
+        if (passwordModalResolver) {
+            passwordModalResolver({ success: false });
+        }
+    }
+
+    /**
+     * REPLACES the old getPassword function. It now shows the custom modal 
+     * and waits for the user's input.
+     * @returns {Promise<{success: boolean, password?: string}>}
+     */
     async function getPassword() {
         const securityDoc = await db.collection('settings').doc('security').get();
         const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null;
-        if (!storedPasswordHash) return { success: true }; 
-        const { value: password } = await Swal.fire({
-            title: 'Enter Password to Proceed',
-            input: 'password',
-            inputPlaceholder: 'Enter your password',
-            inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
-            showCancelButton: true
-        });
-        if (password && hashPassword(password) === storedPasswordHash) {
-            return { success: true, password: password }; 
-        } else if (password) {
-            Swal.fire('Incorrect Password', '', 'error');
-            return { success: false };
+        
+        // If no password is set, grant access immediately.
+        if (!storedPasswordHash) {
+            return { success: true };
         }
-        return { success: false };
+
+        // Show the modal and wait for it to be resolved (by submitPassword or cancelPasswordEntry)
+        openPasswordModal();
+        return new Promise(resolve => {
+            passwordModalResolver = resolve;
+        });
     }
     
     async function editPastReport(dateString) {
@@ -2037,7 +2165,6 @@
         }
     }
 
-    // UPDATED: Added gcashPayment to the update payload
     async function savePastReportChanges(dateString) {
         const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
         const discountAmount = parseFloat(document.getElementById('discount-given')?.value) || 0;
@@ -2253,7 +2380,7 @@
                 const product = shopProducts.find(p => p.id === productId); 
                 const effectiveCost = item.cost !== undefined ? item.cost : (product ? product.cost : 0);
 
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end;
+                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end;
                 if (sold > 0) {
                     const effectiveProfitMargin = item.profitMargin !== undefined ? item.profitMargin : (product ? product.profitMargin : 0);
                     const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
@@ -2329,7 +2456,7 @@
                 const product = shopProducts.find(p => p.id === productId);
                 const effectiveCost = item.cost !== undefined ? item.cost : (product ? product.cost : 0);
 
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; 
+                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end; 
                 if (sold > 0) { 
                     const effectiveProfitMargin = item.profitMargin !== undefined ? item.profitMargin : (product ? product.profitMargin : 0);
                     const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
@@ -2356,16 +2483,22 @@
         renderTopPerformingProducts(productPerformance); 
     }
     function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div><div class="text-right"><div class="font-semibold">₱${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">₱${formatCurrency(p.profit)} profit</div></div></div>`).join(''); }
+    
+    // UPDATED to support new chart
     async function loadFinancialSummary() { 
         const monthValue = document.getElementById('financial-month-select').value; 
         if (!monthValue) return; 
-        const startDate = dayjs(monthValue).startOf('month').format('YYYY-MM-DD'); 
-        const endDate = dayjs(monthValue).endOf('month').format('YYYY-MM-DD'); 
+        const startDate = dayjs(monthValue).startOf('month');
+        const endDate = dayjs(monthValue).endOf('month');
+        
+        // Update date range display
+        document.getElementById('financial-chart-date-range').textContent = `${startDate.format('D, MMM YY')} - ${endDate.format('D, MMM YY')}`;
+
         let totalSales = 0, totalCOGS = 0, totalExpenses = 0, totalNewStockCost = 0; 
         const dailyFlow = {}; 
         
-        const reportsSnapshot = await db.collection('reports').where('date', '>=', startDate).where('date', '<=', endDate).get(); 
-        const expensesSnapshot = await db.collection('expenses').where('date', '>=', startDate).where('date', '<=', endDate).get(); 
+        const reportsSnapshot = await db.collection('reports').where('date', '>=', startDate.format('YYYY-MM-DD')).where('date', '<=', endDate.format('YYYY-MM-DD')).get(); 
+        const expensesSnapshot = await db.collection('expenses').where('date', '>=', startDate.format('YYYY-MM-DD')).where('date', '<=', endDate.format('YYYY-MM-DD')).get(); 
         
         reportsSnapshot.forEach(doc => { 
             const report = doc.data(); 
@@ -2378,7 +2511,7 @@
                 const product = shopProducts.find(p => p.id === productId); 
                 const effectiveCost = item.cost !== undefined ? item.cost : (product ? product.cost : 0);
 
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - item.end; 
+                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end; 
                 if (sold > 0) { 
                     const effectiveProfitMargin = item.profitMargin !== undefined ? item.profitMargin : (product ? product.profitMargin : 0);
                     const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
@@ -2417,7 +2550,80 @@
         document.getElementById('fs-net-profit').textContent = `₱${formatCurrency(netProfit)}`; 
         renderMoneyFlowChart(dailyFlow); 
     }
-    function renderMoneyFlowChart(data) { if (moneyFlowChartInstance) moneyFlowChartInstance.destroy(); const ctx = document.getElementById('moneyFlowChart').getContext('2d'); const sortedDates = Object.keys(data).sort(); const labels = sortedDates.map(date => dayjs(date).format('MMM D')); const profitData = sortedDates.map(date => data[date].profit); const reinvestedData = sortedDates.map(date => data[date].reinvested); moneyFlowChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Net Profit', data: profitData, backgroundColor: 'rgba(16, 185, 129, 0.7)', }, { label: 'Capital Reinvested', data: reinvestedData, backgroundColor: 'rgba(59, 130, 246, 0.7)', }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { callback: value => `₱${value.toLocaleString()}` } } }, plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ₱${formatCurrency(c.raw)}` } } } } }); }
+
+    // UPDATED to render the new chart style
+    function renderMoneyFlowChart(data) { 
+        if (moneyFlowChartInstance) {
+            moneyFlowChartInstance.destroy();
+        }
+        
+        const ctx = document.getElementById('financialFlowChart').getContext('2d');
+        const sortedDates = Object.keys(data).sort();
+        const labels = sortedDates.map(date => dayjs(date).format('MMM D'));
+        const profitData = sortedDates.map(date => data[date].profit);
+        const reinvestedData = sortedDates.map(date => data[date].reinvested);
+
+        const chartData = {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Net Profit',
+              data: profitData,
+              type: 'bar',
+              backgroundColor: '#22c55e',
+              borderWidth: 0,
+              borderRadius: 5,
+              order: 2 // Ensure bars are drawn behind the line
+            },
+            {
+              label: 'Capital Reinvested',
+              data: reinvestedData,
+              type: 'line',
+              borderColor: '#3b82f6',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              order: 1 // Ensure line is drawn on top
+            }
+          ],
+        };
+
+        const config = {
+          type: 'bar', // Set base type to bar, but datasets can override
+          data: chartData,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+              },
+              tooltip: {
+                callbacks: {
+                  label: (context) => `${context.dataset.label}: ₱${formatCurrency(context.raw)}`
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { drawBorder: false },
+                ticks: {
+                  callback: (value) => `₱${value.toLocaleString()}`
+                }
+              },
+            },
+          },
+        };
+
+        moneyFlowChartInstance = new Chart(ctx, config);
+    }
+    
     async function renderExpensesView(dateString) { document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200"><div><p class="font-medium">${expense.description}</p><p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p></div><div class="no-print"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
     async function saveExpense() { const saveBtn = document.getElementById('save-expense-btn'); const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Invalid description or amount.' }); return; } toggleButtonLoading(saveBtn, true); try { const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description, amount, date: todayDateString }; await db.collection('expenses').doc(docId).set(expenseData); Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' }); clearExpenseForm(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } finally { toggleButtonLoading(saveBtn, false); } }
     function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; document.getElementById('save-expense-btn').textContent = 'Save Expense'; }
@@ -2434,9 +2640,7 @@
         navElement.classList.add('active');
 
         // Load data for specific tabs when they are shown
-        if (targetId === 'settings-products-view') {
-            renderProfitMarginManagement();
-        } else if (targetId === 'settings-analytics-view') {
+        if (targetId === 'settings-analytics-view') {
             showAnalyticsSubTab('analytics-overview-content');
             renderPerformanceBreakdown();
         }
@@ -2470,6 +2674,10 @@
 
     function closeQuickProfitMarginModal() {
         document.getElementById('quick-profit-modal-overlay').classList.remove('open');
+    }
+    
+    function closeBeginStockModal() {
+        document.getElementById('begin-stock-modal-overlay').classList.remove('open');
     }
 
     function updateModalSellingPrice(productId, isQuickModal = false) {
@@ -2543,7 +2751,6 @@
             let errorMessages = [];
 
             document.querySelectorAll('#quick-profit-products-container input[data-product-id]').forEach(input => {
-                const productId = input.dataset.productId;
                 if (input.classList.contains('invalid')) {
                     hasErrors = true;
                     const productName = shopProducts.find(p => p.id === productId)?.name || 'Unknown Product';
@@ -2596,107 +2803,6 @@
             const calculatedSellingPrice = (p.cost || 0) + (p.profitMargin || 0);
             return `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Cost: ₱${formatCurrency(p.cost || 0)}</span> <span class="text-xs text-slate-400">Profit: ₱${formatCurrency(p.profitMargin || 0)}</span> <span class="text-xs font-semibold text-blue-600">Sell: ₱${formatCurrency(calculatedSellingPrice)}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`
         }).join(''); 
-    }
-
-    async function renderProfitMarginManagement() {
-        const container = document.getElementById('profit-margin-list-container');
-        container.innerHTML = '<div class="text-center p-4"><div class="loader"></div></div>';
-        await loadProducts(); 
-
-        if (shopProducts.length === 0) {
-            container.innerHTML = '<p class="text-center text-slate-500 py-4">No products available.</p>';
-            return;
-        }
-
-        const groupedProducts = {};
-        RICE_CATEGORIES.forEach(cat => groupedProducts[cat] = []);
-        shopProducts.forEach(p => {
-            if (!groupedProducts[p.category]) groupedProducts[p.category] = [];
-            groupedProducts[p.category].push(p)
-        });
-
-        let html = '';
-        RICE_CATEGORIES.forEach(cat => {
-            const productsInCategory = groupedProducts[cat]?.sort((a, b) => a.name.localeCompare(b.name));
-            if (productsInCategory && productsInCategory.length > 0) {
-                const cleanCatClass = cat.replace(/\s+/g, '-');
-                html += `<div class="p-4 border rounded-md mb-4">
-                            <h4 class="font-bold text-lg text-slate-700 mb-3">${cat}</h4>
-                            <div class="space-y-2">`;
-                productsInCategory.forEach(p => {
-                    const currentSellingPrice = (p.cost || 0) + (p.profitMargin || 0);
-                    html += `
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-center py-2 border-b last:border-b-0">
-                        <span class="font-medium text-slate-700 md:col-span-1">${p.name}</span>
-                        <div class="flex items-center gap-1">
-                            <label for="cost-${p.id}" class="text-sm text-slate-600">Cost:</label>
-                            <input type="number" id="cost-${p.id}" data-product-id="${p.id}" value="${formatForInput(p.cost || 0)}" class="cost-input w-20 text-right text-sm" step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}');">
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <label for="profit-margin-${p.id}" class="text-sm text-slate-600">Profit:</label>
-                            <input type="number" id="profit-margin-${p.id}" data-product-id="${p.id}" value="${formatForInput(p.profitMargin || 0)}" class="profit-margin-input w-20 text-right text-sm" step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}');">
-                        </div>
-                        <span class="font-semibold text-blue-600 text-right">Sell: ₱<span id="selling-price-${p.id}">${formatCurrency(currentSellingPrice)}</span></span>
-                    </div>`;
-                });
-                html += `</div></div>`;
-            }
-        });
-        container.innerHTML = html;
-    }
-
-    async function saveAllProfitMargins() {
-        const saveBtn = document.querySelector('#settings-products-view .btn-primary');
-        toggleButtonLoading(saveBtn, true);
-
-        try {
-            const productBatch = db.batch();
-            const reportUpdatePayload = {};
-            let hasErrors = false;
-            let errorMessages = [];
-
-            document.querySelectorAll('#profit-margin-list-container input[data-product-id]').forEach(input => {
-                if (input.classList.contains('invalid')) {
-                    hasErrors = true;
-                    const productId = input.dataset.productId;
-                    const productName = shopProducts.find(p => p.id === productId)?.name || 'Unknown Product';
-                    const label = input.id.includes('cost') ? 'Cost' : 'Profit';
-                    errorMessages.push(`Invalid ${label} for "${productName}".`);
-                }
-            });
-
-            if (hasErrors) {
-                Swal.fire({ icon: 'error', title: 'Validation Error', html: `Please correct the highlighted input fields:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>` });
-                return;
-            }
-
-            const productInputs = Array.from(document.querySelectorAll('#profit-margin-list-container input[data-product-id]'));
-            const productIdsToUpdate = [...new Set(productInputs.map(input => input.dataset.productId))];
-
-            productIdsToUpdate.forEach(productId => {
-                const costInput = document.getElementById(`cost-${productId}`);
-                const profitInput = document.getElementById(`profit-margin-${productId}`);
-                const newCost = parseFloat(costInput.value) || 0;
-                const newProfitMargin = parseFloat(profitInput.value) || 0;
-                const productRef = db.collection('products').doc(productId);
-                productBatch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
-                reportUpdatePayload[`data.${productId}.cost`] = newCost;
-                reportUpdatePayload[`data.${productId}.profitMargin`] = newProfitMargin;
-            });
-            
-            if (Object.keys(reportUpdatePayload).length > 0) {
-                const reportRef = db.collection('reports').doc(todayDateString);
-                await Promise.all([ productBatch.commit(), reportRef.update(reportUpdatePayload) ]);
-            }
-
-            await loadProducts();
-            Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
-            renderProfitMarginManagement();
-        } catch (error) {
-            Swal.fire('Error', handleFirestoreError(error), 'error');
-        } finally {
-            toggleButtonLoading(saveBtn, false);
-        }
     }
 
     function clearProductForm() { 
@@ -2786,7 +2892,69 @@
         }
     }
 
-    async function editBeginningStock(categoryFilter) { const password = await getPassword(); if (!password.success) return; const products = categoryFilter === 'all' ? shopProducts : shopProducts.filter(p => p.category === categoryFilter); const reportDoc = await db.collection('reports').doc(todayDateString).get(); if (!reportDoc.exists) return; const initialReport = reportDoc.data(); let modalHtml = '<div class="max-h-[60vh] overflow-y-auto p-2">'; products.forEach(p => { modalHtml += `<div class="grid grid-cols-2 gap-x-4 items-center mb-2" data-product-id="${p.id}"><label class="font-medium text-right">${p.name}</label><input type="number" value="${initialReport.data[p.id]?.begin || 0}" class="border p-1 w-full rounded"></div>`; }); modalHtml += '</div>'; const { isConfirmed } = await Swal.fire({ title: `Edit Beginning Stock`, html: modalHtml, showCancelButton: true, confirmButtonText: 'Update All' }); if (isConfirmed) { try { const updatePayload = {}; document.querySelectorAll('.swal2-html-container [data-product-id]').forEach(row => { const productId = row.dataset.productId; const newBegin = parseInt(row.querySelector('input').value) || 0; const diff = newBegin - (initialReport.data[productId]?.begin || 0); updatePayload[`data.${productId}.begin`] = newBegin; updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff); }); await db.collection('reports').doc(todayDateString).update(updatePayload); Toast.fire({ icon: 'success', title: 'Beginning stock updated!' }); } catch(error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
+    // UPDATED to use the new custom modal
+    async function editBeginningStock(categoryFilter) {
+        const password = await getPassword();
+        if (!password.success) return;
+
+        const products = categoryFilter === 'all' ? shopProducts : shopProducts.filter(p => p.category === categoryFilter);
+        const reportDoc = await db.collection('reports').doc(todayDateString).get();
+        if (!reportDoc.exists) return;
+
+        const initialReport = reportDoc.data();
+        const container = document.getElementById('begin-stock-products-container');
+        
+        let modalHtml = '<div class="space-y-2">';
+        products.forEach(p => {
+            const currentBegin = initialReport.data[p.id]?.begin || 0;
+            modalHtml += `
+            <div class="grid grid-cols-2 gap-x-4 items-center">
+                <label for="begin-${p.id}" class="font-medium text-right text-sm">${p.name}</label>
+                <input type="number" id="begin-${p.id}" data-product-id="${p.id}" data-old-begin="${currentBegin}" value="${currentBegin}" class="border p-1 w-full rounded text-sm">
+            </div>`;
+        });
+        modalHtml += '</div>';
+
+        container.innerHTML = modalHtml;
+        document.getElementById('begin-stock-category-filter').value = categoryFilter;
+        document.getElementById('begin-stock-modal-title').textContent = `Edit Beginning Stock for ${categoryFilter === 'all' ? 'All Categories' : categoryFilter}`;
+        document.getElementById('begin-stock-modal-overlay').classList.add('open');
+    }
+
+    async function saveBeginStockFromModal() {
+        const saveBtn = document.querySelector('#begin-stock-modal-overlay .btn-primary');
+        toggleButtonLoading(saveBtn, true);
+        
+        try {
+            const updatePayload = {};
+            const inputs = document.querySelectorAll('#begin-stock-products-container input');
+            
+            inputs.forEach(input => {
+                const productId = input.dataset.productId;
+                const oldBegin = parseFloat(input.dataset.oldBegin) || 0;
+                const newBegin = parseFloat(input.value) || 0;
+
+                if (oldBegin !== newBegin) {
+                    const diff = newBegin - oldBegin;
+                    updatePayload[`data.${productId}.begin`] = newBegin;
+                    updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff);
+                }
+            });
+
+            if (Object.keys(updatePayload).length > 0) {
+                await db.collection('reports').doc(todayDateString).update(updatePayload);
+                Toast.fire({ icon: 'success', title: 'Beginning stock updated!' });
+            } else {
+                Toast.fire({ icon: 'info', title: 'No changes were made.' });
+            }
+
+            closeBeginStockModal();
+        } catch (error) {
+            Swal.fire('Error', handleFirestoreError(error), 'error');
+        } finally {
+            toggleButtonLoading(saveBtn, false);
+        }
+    }
     
     async function renderPerformanceBreakdown() { 
         const tbody = document.getElementById('performance-tbody');
@@ -2996,8 +3164,8 @@
     const inventoryTbody = document.getElementById('inventory-tbody');
     inventoryTbody.addEventListener('focusin', (event) => { if (event.target.matches('input')) { event.target.closest('tr')?.classList.add('active-row'); } });
     inventoryTbody.addEventListener('focusout', (event) => { if (event.target.matches('input')) { event.target.closest('tr')?.classList.remove('active-row'); } });
-    inventoryTbody.addEventListener('keydown', (event) => { const target = event.target; if (!target.matches('.new-stock-input, .end-input')) return; const currentTR = target.closest('tr'); let nextTR; let targetClass = target.classList.contains('new-stock-input') ? 'new-stock-input' : 'end-input'; if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); nextTR = currentTR.nextElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.nextElementSibling; } else if (event.key === 'ArrowUp') { event.preventDefault(); nextTR = currentTR.previousElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.previousElementSibling; } if (nextTR) { const nextInput = nextTR.querySelector(`.${targetClass}`); if (nextInput && !nextInput.disabled) { nextInput.focus(); nextInput.select(); } } });
+    inventoryTbody.addEventListener('keydown', (event) => { const target = event.target; if (!target.matches('.new-stock-input, .end-input, .returns-input')) return; const currentTR = target.closest('tr'); let nextTR; let targetClass = 'new-stock-input'; if(target.classList.contains('end-input')) targetClass = 'end-input'; if(target.classList.contains('returns-input')) targetClass = 'returns-input'; if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); nextTR = currentTR.nextElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.nextElementSibling; } else if (event.key === 'ArrowUp') { event.preventDefault(); nextTR = currentTR.previousElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.previousElementSibling; } if (nextTR) { const nextInput = nextTR.querySelector(`.${targetClass}`); if (nextInput && !nextInput.disabled) { nextInput.focus(); nextInput.select(); } } });
   </script>
 </body>
 </html>
-````````````
+```````````
