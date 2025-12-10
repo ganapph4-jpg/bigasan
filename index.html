@@ -767,7 +767,7 @@
       </button>
       <button onclick="openSettingsWithPassword()" title="Settings" aria-label="Open Settings" class="text-slate-600 hover:text-blue-600 p-2 transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </button>
@@ -787,51 +787,59 @@
         <h2 id="dashboard-title" class="text-xl font-bold text-slate-800">Dashboard Overview</h2>
         <p class="text-sm text-slate-500" id="dashboard-date"></p>
       </div>
-      <!-- UPDATED Dashboard Grid with new labels and Skeleton UI -->
-      <div id="dashboard-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Skeleton Card 1 -->
+      <!-- UPDATED Dashboard Grid: Now 3 cards only, Monthly Net Profit removed. -->
+      <div id="dashboard-content" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Card 1: Yesterday's Total Sales -->
         <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500">
             <div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div>
             <div>
-                <p class="text-sm text-slate-500">Yesterday's Total Sales</p>
-                <div id="dashboard-total-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>
+                <p class="text-sm text-slate-500" id="yesterday-sales-label">Yesterday's Total Sales</p>
+                <div id="dashboard-yesterday-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>
             </div>
         </div>
-        <!-- Skeleton Card 2 -->
+        <!-- Card 2: Today's Total Sales (Live/Pending) -->
+        <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500">
+            <div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
+            <div>
+                <p class="text-sm text-slate-500">Today's Sales (Live)</p>
+                <div id="dashboard-today-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>
+            </div>
+        </div>
+        <!-- Card 3: Yesterday's Expenses -->
         <div class="card p-6 flex items-center gap-6 bg-yellow-50 border-l-4 border-yellow-500">
             <div class="bg-yellow-100 p-4 rounded-full"><svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg></div>
             <div>
                 <p class="text-sm text-slate-500">Yesterday's Expenses</p>
-                <div id="dashboard-total-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>
+                <div id="dashboard-yesterday-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>
             </div>
         </div>
-        <!-- Skeleton Card 3 -->
-        <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500">
-            <div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
-            <div>
-                <p class="text-sm text-slate-500">Yesterday's Profit</p>
-                <div id="dashboard-total-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>
-            </div>
-        </div>
-        <!-- Skeleton Card 4 -->
-        <div class="card p-6 flex items-center gap-6 bg-teal-50 border-l-4 border-teal-500">
-            <div class="bg-teal-100 p-4 rounded-full"><svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5h2m-2 2h2m-2 2h2"></path></svg></div>
-            <div>
-                <p class="text-sm text-slate-500">Monthly Net Profit (To Date)</p>
-                <div id="dashboard-monthly-net-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-36 mt-1"></div></div>
-            </div>
-        </div>
-        <!-- Update Profit Margins Button -->
-        <div class="lg:col-span-2">
-            <button onclick="openQuickProfitMarginModal()" class="btn-primary w-full py-3 text-lg font-semibold flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        
+        <!-- Action Buttons Row (Combined) -->
+        <div class="md:col-span-3 grid grid-cols-3 gap-4">
+            <button onclick="openQuickProfitMarginModal()" class="btn-primary w-full py-3 text-sm font-semibold flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
-                Quick Update Prices
+                Update Prices
+            </button>
+            <!-- QUICK ADD PRODUCT BUTTON -->
+            <button onclick="openQuickAddProductModal()" class="btn-success w-full py-3 text-sm font-semibold flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Product
+            </button>
+             <!-- QUICK DELETE PRODUCT BUTTON -->
+            <button onclick="openQuickDeleteProductModal()" class="bg-red-500 hover:bg-red-600 text-white w-full py-3 text-sm font-semibold flex items-center justify-center rounded-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Product
             </button>
         </div>
+        
         <!-- Skeleton Low Stock Card -->
-        <div class="card p-6 bg-red-50 border-l-4 border-red-500 md:col-span-2 lg:col-span-2">
+        <div class="card p-6 bg-red-50 border-l-4 border-red-500 md:col-span-3">
             <h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock (Live)</h3>
             <div id="low-stock-list" class="space-y-1 max-h-48 overflow-y-auto">
               <div class="animate-pulse flex justify-between items-center text-sm p-2 bg-white rounded">
@@ -955,6 +963,8 @@
     <div class="settings-grid">
         <nav class="settings-nav">
             <a class="settings-nav-link" data-target="settings-products-view" onclick="showSettingsView('settings-products-view', this)">Products</a>
+            <a class="settings-nav-link" data-target="settings-inventory-view" onclick="showSettingsView('settings-inventory-view', this)">Inventory/Stock</a>
+            <a class="settings-nav-link" data-target="settings-profit-view" onclick="showSettingsView('settings-profit-view', this)">Profit/Sales</a> <!-- NEW PROFIT/SALES LINK -->
             <a class="settings-nav-link" data-target="settings-analytics-view" onclick="showSettingsView('settings-analytics-view', this)">Reports & Analytics</a>
             <a class="settings-nav-link" data-target="settings-system-view" onclick="showSettingsView('settings-system-view', this)">System & Data</a>
         </nav>
@@ -1000,6 +1010,74 @@
                                 <button id="save-product-btn" onclick="saveProduct()" class="btn-success flex-1">Save Product</button>
                                 <button id="cancel-product-btn" onclick="clearProductForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Pane 1.5: Inventory/Stock Details (UPDATED COST LOGIC) -->
+            <div id="settings-inventory-view" class="settings-view-pane">
+                <div class="settings-card">
+                    <h3>Live Inventory Stock Worth (End of Day)</h3>
+                    <p class="text-sm text-slate-500 mb-4">Calculated based on today's end stock quantities and **Cost Price / Capital** (excluding profit margin).</p>
+                    
+                    <!-- Stock Summary Cards -->
+                    <div id="stock-summary-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <!-- Placeholder 1 -->
+                        <div class="card p-4 bg-purple-50 border-l-4 border-purple-500">
+                            <p class="text-sm text-slate-500">Remaining Rice Worth (Capital)</p>
+                            <p id="inv-rice-worth" class="text-2xl font-bold text-purple-700">Loading...</p>
+                        </div>
+                        <!-- Placeholder 2 -->
+                        <div class="card p-4 bg-red-50 border-l-4 border-red-500">
+                            <p class="text-sm text-slate-500">Total All Stock Worth (Capital)</p>
+                            <p id="inv-all-stock-worth" class="text-2xl font-bold text-red-700">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Stock Detail Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-500">
+                            <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                                <tr>
+                                    <th scope="col" class="py-3 px-3">Product Name</th>
+                                    <th scope="col" class="py-3 px-3 text-right">Category</th>
+                                    <th scope="col" class="py-3 px-3 text-right">End Stock (Qty)</th>
+                                    <th scope="col" class="py-3 px-3 text-right">Cost Price (₱)</th>
+                                    <th scope="col" class="py-3 px-3 text-right">Total Worth (Capital ₱)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-stock-tbody">
+                                <tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Pane 1.6: Profit/Sales Details (NEW) -->
+            <div id="settings-profit-view" class="settings-view-pane">
+                <div class="settings-card">
+                    <h3>Daily & Monthly Profit Metrics (Exclusive)</h3>
+                    <p class="text-sm text-slate-500 mb-4">Detailed sales and profit information.</p>
+                    
+                    <div id="profit-details-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="card p-4 bg-blue-50 border-l-4 border-blue-500">
+                            <p class="text-sm text-slate-500">Today's Sales (Live/Pending)</p>
+                            <p id="settings-today-sales" class="text-2xl font-bold text-slate-800">Loading...</p>
+                        </div>
+                        <div class="card p-4 bg-green-50 border-l-4 border-green-500">
+                            <p class="text-sm text-slate-500">Today's Profit (Live/Pending)</p>
+                            <p id="settings-today-profit" class="text-2xl font-bold text-green-700">Loading...</p>
+                        </div>
+                        <div class="card p-4 bg-yellow-50 border-l-4 border-yellow-500">
+                            <p class="text-sm text-slate-500">Yesterday's Final Profit</p>
+                            <p id="settings-yesterday-profit" class="text-2xl font-bold text-slate-800">Loading...</p>
+                        </div>
+                        <!-- Monthly Net Profit (Moved from Dashboard) -->
+                        <div class="card p-4 bg-teal-50 border-l-4 border-teal-500">
+                            <p class="text-sm text-slate-500">Monthly Net Profit (To Date)</p>
+                            <p id="settings-monthly-net-profit" class="text-2xl font-bold text-teal-700">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -1086,12 +1164,12 @@
                             </div>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6" aria-live="polite">
-                            <div class="card p-4 bg-blue-50"><p class="text-sm text-slate-500">Total Sales</p><p id="fs-total-sales" class="text-2xl font-bold text-slate-800">₱0.00</p></div>
-                            <div class="card p-4 bg-orange-50"><p class="text-sm text-slate-500">Cost of Goods Sold</p><p id="fs-total-cogs" class="text-2xl font-bold text-slate-800">₱0.00</p></div>
-                            <div class="card p-4 bg-cyan-50"><p class="text-sm text-slate-500">Gross Profit</p><p id="fs-gross-profit" class="text-2xl font-bold text-slate-800">₱0.00</p></div>
-                            <div class="card p-4 bg-yellow-50"><p class="text-sm text-slate-500">Expenses</p><p id="fs-total-expenses" class="text-2xl font-bold text-slate-800">₱0.00</p></div>
-                            <div class="card p-4 bg-purple-50"><p class="text-sm text-slate-500">Capital for New Stock</p><p id="fs-new-stock-cost" class="text-2xl font-bold text-slate-800">₱0.00</p></div>
-                            <div class="card p-4 bg-green-50"><p class="text-sm text-green-800 font-bold">Net Profit (Take-Home)</p><p id="fs-net-profit" class="text-3xl font-bold text-green-700">₱0.00</p></div>
+                            <div class="card p-4 bg-blue-50 border-l-4 border-blue-500"><p class="text-sm text-slate-500">Total Sales</p><p id="fs-total-sales" class="text-2xl font-bold text-slate-800">Loading...</p></div>
+                            <div class="card p-4 bg-orange-50 border-l-4 border-orange-500"><p class="text-sm text-slate-500">Cost of Goods Sold</p><p id="fs-total-cogs" class="text-2xl font-bold text-slate-800">Loading...</p></div>
+                            <div class="card p-4 bg-cyan-50 border-l-4 border-cyan-500"><p class="text-sm text-slate-500">Gross Profit</p><p id="fs-gross-profit" class="text-2xl font-bold text-slate-800">Loading...</p></div>
+                            <div class="card p-4 bg-yellow-50 border-l-4 border-yellow-500"><p class="text-sm text-slate-500">Expenses</p><p id="fs-total-expenses" class="text-2xl font-bold text-slate-800">Loading...</p></div>
+                            <div class="card p-4 bg-purple-50 border-l-4 border-purple-500"><p class="text-sm text-slate-500">Capital for New Stock</p><p id="fs-new-stock-cost" class="text-2xl font-bold text-slate-800">Loading...</p></div>
+                            <div class="card p-4 bg-green-50 border-l-4 border-green-500"><p class="text-sm text-green-800 font-bold">Net Profit (Take-Home)</p><p id="fs-net-profit" class="text-3xl font-bold text-green-700">Loading...</p></div>
                         </div>
                         <!-- UPDATED CHART CONTAINER -->
                         <div class="bg-white p-6 rounded-2xl shadow-lg w-full">
@@ -1220,6 +1298,70 @@
       </div>
     </div>
   </div>
+
+  <!-- NEW: Quick Add Product Modal -->
+  <div id="quick-add-product-modal-overlay" class="quick-modal-overlay no-print">
+    <div class="quick-modal-content max-w-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-800">Quick Add New Product</h3>
+        <button onclick="closeQuickAddProductModal()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close quick add product modal">&times;</button>
+      </div>
+
+      <div class="p-3 bg-slate-50 rounded border space-y-3">
+          <div>
+              <label for="quick-prod-name" class="block text-sm font-medium text-slate-700 mb-1">Product Name</label>
+              <input id="quick-prod-name" type="text" placeholder="e.g., Kylo" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
+          </div>
+          <div>
+              <label for="quick-prod-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (₱)</label>
+              <input id="quick-prod-cost" type="number" step="0.01" placeholder="e.g., 1150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
+          </div>
+          <div>
+              <label for="quick-prod-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (₱)</label>
+              <input id="quick-prod-profit-margin" type="number" step="0.01" placeholder="e.g., 50.00" class="border border-slate-300 p-2 w-full rounded-md profit-margin-input" oninput="validateNumberInput(this)" aria-required="true">
+          </div>
+          <div>
+              <label for="quick-prod-category" class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <select id="quick-prod-category" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
+                  <option value="25 KG">25 KG</option>
+                  <option value="10 KG">10 KG</option>
+                  <option value="5 KG">5 KG</option>
+                  <option value="Per Kilo">Per Kilo</option>
+              </select>
+          </div>
+      </div>
+
+      <div class="flex justify-center gap-2 mt-6">
+        <button onclick="saveQuickProductFromModal()" class="btn-primary" id="save-quick-product-btn">Add Product</button>
+        <button onclick="closeQuickAddProductModal()" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- NEW: Quick Delete Product Modal -->
+  <div id="quick-delete-product-modal-overlay" class="quick-modal-overlay no-print">
+    <div class="quick-modal-content max-w-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-800">Quick Delete Product</h3>
+        <button onclick="closeQuickDeleteProductModal()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close quick delete product modal">&times;</button>
+      </div>
+      
+      <p class="text-sm text-red-600 mb-4 font-medium">Warning: Deleting a product is permanent and will remove it from all past reports. Proceed with caution.</p>
+
+      <div class="mb-4">
+        <label for="quick-delete-product-select" class="block text-sm font-medium text-slate-700 mb-1">Select Product to Delete:</label>
+        <select id="quick-delete-product-select" class="w-full border border-slate-300 p-2 rounded-md">
+          <option value="">-- Select a Product --</option>
+        </select>
+      </div>
+
+      <div class="flex justify-center gap-2 mt-6">
+        <button onclick="deleteProductFromModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md" id="delete-product-btn">Delete Product</button>
+        <button onclick="closeQuickDeleteProductModal()" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   
   <!-- NEW: Edit Beginning Stock Modal -->
   <div id="begin-stock-modal-overlay" class="quick-modal-overlay no-print">
@@ -1367,22 +1509,77 @@
                 return 'An unexpected error occurred. Please try again.';
         }
     }
+    
+    // New function to initialize listeners and state for a given date
+    async function initializeListeners(dateString) {
+        // 1. Detach ALL old listeners
+        if (typeof reportListener === 'function') { reportListener(); reportListener = null; }
+        if (typeof expensesListener === 'function') { expensesListener(); expensesListener = null; }
+        dashboardListeners.forEach(unsubscribe => unsubscribe());
+        dashboardListeners = [];
+
+        todayDateString = dateString;
+        document.getElementById('current-date-display').textContent = dayjs(todayDateString).format('MMMM D, YYYY');
+        
+        // Ensure products are loaded (or reloaded if a product was added/deleted)
+        await loadProducts(); 
+        renderProductList(); 
+
+        // 2. Re-run dashboard setup
+        listenForDashboardData(); 
+
+        // 3. Update date inputs
+        document.getElementById('analytics-single-date').value = todayDateString;
+        document.getElementById('analytics-from-date').value = dayjs(todayDateString).subtract(7, 'day').format('YYYY-MM-DD');
+        document.getElementById('analytics-to-date').value = todayDateString;
+        document.getElementById('financial-month-select').value = dayjs(todayDateString).format('YYYY-MM');
+        
+        // 4. Update current view if it was Daily Report or Expenses
+        const activeView = document.querySelector('.main-view.active');
+        if (activeView && activeView.id === 'daily-report-view') {
+            // Reload the daily report for the new day
+            showInventory(todayDateString);
+        } else if (activeView && activeView.id === 'expenses-view') {
+            // Reload expenses for the new day
+            renderExpensesView(todayDateString);
+        } else if (activeView && activeView.id === 'settings-panel') {
+            // Re-load settings metrics if in settings
+            const activeSettingsView = document.querySelector('#settings-panel .settings-view-pane.active');
+            if (activeSettingsView && activeSettingsView.id === 'settings-profit-view') {
+                renderSettingsProfitDetails();
+            }
+        }
+    }
+    
+    // New function to check for day change and refresh listeners
+    function checkMidnightAndRefresh() {
+        const currentDay = dayjs().format('YYYY-MM-DD');
+        if (currentDay !== todayDateString) {
+            Swal.fire({
+                title: 'New Day Detected!',
+                text: `It is now ${dayjs(currentDay).format('MMMM D, YYYY')}. Reloading dashboard and current view...`,
+                icon: 'info',
+                timer: 2000,
+                showConfirmButton: false,
+                allowOutsideClick: false
+            }).then(() => {
+                initializeListeners(currentDay);
+            });
+        }
+    }
 
     async function initializeApp() {
         try {
             await runMigrations();
             
+            // Set initial date string
             todayDateString = dayjs().format('YYYY-MM-DD');
-            document.getElementById('current-date-display').textContent = dayjs(todayDateString).format('MMMM D, YYYY');
-            document.getElementById('header-subtitle').textContent = `Today is`;
 
-            await loadProducts(); 
-            renderProductList(); 
+            // Set up initial listeners and state
+            await initializeListeners(todayDateString);
 
-            document.getElementById('analytics-single-date').value = todayDateString;
-            document.getElementById('analytics-from-date').value = dayjs(todayDateString).subtract(7, 'day').format('YYYY-MM-DD');
-            document.getElementById('analytics-to-date').value = todayDateString;
-            document.getElementById('financial-month-select').value = dayjs(todayDateString).format('YYYY-MM');
+            // Start midnight check
+            setInterval(checkMidnightAndRefresh, 60000); // Check every minute
             
             showView('dashboard-view');
 
@@ -1562,8 +1759,12 @@
             const begin = parseFloat(beginInput.value) || 0;
             const newStock = parseFloat(newStockInput.value) || 0;
             const end = parseFloat(endInput.value) || 0;
+            
+            // Re-including openedSacks and returns for sold calculation
+            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
+            const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
 
-            const availableStockIncludingNew = begin + newStock;
+            const availableStockIncludingNew = begin + newStock - openedSacks - returns; // UPDATED
 
             if (end > availableStockIncludingNew) {
                 hasLogicErrors = true;
@@ -1636,6 +1837,8 @@
             listenForDashboardData();
         } else if (viewId === 'expenses-view') {
             renderExpensesView(todayDateString);
+        } else if (viewId === 'history-view') {
+            showHistory();
         }
     }
     
@@ -1693,12 +1896,13 @@
         });
             
         let tableHtml = '';
+        const colspan = 10; // Total number of columns: 10
         RICE_CATEGORIES.forEach(cat => {
             const productsInCategory = groupedProducts[cat]?.sort((a, b) => a.name.localeCompare(b.name));
             if (productsInCategory && productsInCategory.length > 0) {
                 const cleanCatClass = cat.replace(/\s+/g, '-');
                 tableHtml += `<tr class="category-header category-header-${cleanCatClass}" data-category-id="${cat}">
-                                <td colspan="10" class="font-bold uppercase text-lg">
+                                <td colspan="${colspan}" class="font-bold uppercase text-lg">
                                     <div class="category-header-clickable" onclick="toggleCategoryRows('${cat}')">
                                         ${cat}
                                         <svg class="w-5 h-5 toggle-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -1718,7 +1922,7 @@
                         <th>OPEN SACKS</th>
                         <th>ENDING</th>
                         <th>SOLD</th>
-                        <th>SELLING PRICE (₱) <br><button class="small-edit-btn mt-1 no-print" onclick="openQuickProfitMarginModal('${cat}')" aria-label="Quick update prices in ${cat}">EDIT ALL</button></th>
+                        <th>SELLING PRICE (₱) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
                         <th>TOTAL SALES (₱)</th>
                         <th>PROFIT (₱)</th>
                     </tr>`;
@@ -1745,14 +1949,16 @@
                         <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
                     </tr>`;
                 });
+                // Colspan for total row is 6 columns (Product, Begin, New Stock, Returns, Open Sacks, Ending)
                 tableHtml += `<tr class="category-total-row" data-category-total="${cat}" data-category-child-of="${cat}"><td colspan="6" class="text-right p-3">Total for ${cat}</td><td class="category-total-sold p-3"></td><td></td><td class="category-total-sales p-3"></td><td class="category-total-profit p-3 text-green-600"></td></tr>`;
             }
         });
         
+        // Colspan for grand total row is 6 columns (Product, Begin, New Stock, Returns, Open Sacks, Ending)
         tableHtml += `<tr class="grand-total-row"><td colspan="6" class="text-right p-4">OVERALL GRAND TOTAL</td><td id="overall-total-sold" class="p-4"></td><td></td><td id="overall-total-sales" class="p-4"></td><td id="overall-total-profit" class="p-4 text-green-400"></td></tr>`;
         
         let reconciliationHtml = `
-        <tr><td colspan="10" class="p-4 bg-slate-50 no-print">
+        <tr><td colspan="${colspan}" class="p-4 bg-slate-50 no-print">
             <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg border border-slate-200">
                 <h3 class="text-lg font-semibold text-center mb-4 text-slate-700">Daily Financial Summary</h3>
                 
@@ -1814,6 +2020,17 @@
             updateInputValue(row, '.begin-val', data.begin);
             updateInputValue(row, '.new-stock-input', data.newStock);
             updateInputValue(row, '.returns-input', data.returns || 0);
+            
+            // Update Open Sacks input for display (if available)
+            const openSacksInput = row.querySelector('.open-sacks-add-input');
+            if (openSacksInput) {
+                // Note: The input field is only for adding, the display value is the total 'openedSacks'
+                if (openSacksInput.value != data.openedSacks && document.activeElement !== openSacksInput) {
+                    // For simplicity, let's keep this as the running total of opened sacks for visualization, even if it's an "Add" input.
+                    openSacksInput.value = data.openedSacks || 0;
+                }
+            }
+            
             updateInputValue(row, '.end-input', data.end);
             
             updateTextContent(row, '.selling-price-display', `₱${formatCurrency(calculatedSellingPrice)}`);
@@ -1902,6 +2119,8 @@
             const totals = categoryTotals[cat];
             const totalRow = document.querySelector(`tr[data-category-total="${cat}"]`);
             if (totalRow) {
+                // Colspan is 6 for the columns up to "ENDING"
+                totalRow.querySelector('td:first-child').setAttribute('colspan', 6);
                 updateTextContent(totalRow, '.category-total-sold', totals.sold);
                 updateTextContent(totalRow, '.category-total-sales', `₱${formatCurrency(totals.sales)}`);
                 updateTextContent(totalRow, '.category-total-profit', `₱${formatCurrency(totals.profit)}`);
@@ -1910,6 +2129,13 @@
             overallTotalSales += totals.sales;
             overallTotalProfit += totals.profit;
         }
+
+        const grandTotalRow = document.querySelector('.grand-total-row');
+        if (grandTotalRow) {
+            // Colspan is 6 for the columns up to "ENDING"
+            grandTotalRow.querySelector('td:first-child').setAttribute('colspan', 6);
+        }
+
 
         updateTextContent(document, '#overall-total-sold', overallTotalSold);
         updateTextContent(document, '#overall-total-sales', `₱${formatCurrency(overallTotalSales)}`);
@@ -1979,14 +2205,19 @@
         const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
         const end = parseFloat(row.querySelector('.end-input').value) || 0;
 
-        const availableStockIncludingNew = begin + newStock;
+        // Re-added logic to retrieve openedSacks from the report
+        const currentReportDoc = await db.collection('reports').doc(dateString).get();
+        const currentOpenedSacks = currentReportDoc.data().data[productId]?.openedSacks || 0;
+
+
+        const availableStockIncludingNew = begin + newStock - currentOpenedSacks - returns;
 
         if (end > availableStockIncludingNew) {
             Swal.fire({
                 icon: 'error',
                 title: 'Inventory Logic Error',
                 html: `For product: <strong>${row.querySelector('.product-name').textContent}</strong><br>
-                       Ending stock (${end}) cannot be greater than the sum of Beginning stock (${begin}) and New Stock (${newStock}).<br>
+                       Ending stock (${end}) cannot be greater than the sum of Beginning stock (${begin}) and New Stock (${newStock}) minus Opened Sacks (${currentOpenedSacks}) and Returns (${returns}).<br>
                        Please correct the "Ending" value.`,
                 confirmButtonText: 'Understood'
             });
@@ -2034,8 +2265,9 @@
                 if (!reportDoc.exists) throw "Report not found!";
                 
                 const report = reportDoc.data();
-                const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, end: 0 };
-                const availableStock = sourceData.end;
+                const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
+                // Calculate available stock excluding what's already accounted for in openedSacks
+                const availableStock = sourceData.begin + sourceData.newStock - sourceData.returns - sourceData.openedSacks - sourceData.end;
 
                 if (availableStock < sacksToAdd) {
                     throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} sack(s) are physically available to open.`;
@@ -2043,8 +2275,11 @@
 
                 const kilosToAdd = sacksToAdd * 25;
                 const updatePayload = {};
+                // Increment openedSacks in source product and update end stock
                 updatePayload[`data.${sourceProduct.id}.openedSacks`] = firebase.firestore.FieldValue.increment(sacksToAdd);
                 updatePayload[`data.${sourceProduct.id}.end`] = firebase.firestore.FieldValue.increment(-sacksToAdd);
+                
+                // Increment begin/end stock in target product
                 updatePayload[`data.${targetProduct.id}.begin`] = firebase.firestore.FieldValue.increment(kilosToAdd);
                 updatePayload[`data.${targetProduct.id}.end`] = firebase.firestore.FieldValue.increment(kilosToAdd);
                 
@@ -2187,7 +2422,10 @@
             const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
             const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
             const end = parseFloat(row.querySelector('.end-input').value) || 0;
-            const availableStockIncludingNew = begin + newStock;
+            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
+            const returns = parseFloat(row.querySelector('.returns-input').value) || 0; 
+            
+            const availableStockIncludingNew = begin + newStock - openedSacks - returns; // UPDATED
 
             if (end > availableStockIncludingNew) {
                 hasLogicErrors = true;
@@ -2348,28 +2586,50 @@
     function listenForDashboardData() {
         renderDashboardPlaceholders();
 
+        // Listener for Today's data (Live/Pending)
         const todayReportRef = db.collection('reports').doc(todayDateString);
         const todayReportListener = todayReportRef.onSnapshot(doc => {
             const reportData = doc.exists ? doc.data() : null;
+            const todaySummary = calculateDailySummaryFromData(reportData);
+            
+            // Update Today's Sales card on dashboard
+            document.getElementById('dashboard-today-sales').outerHTML = `<p id="dashboard-today-sales" class="text-3xl font-bold text-green-700">₱${formatCurrency(todaySummary.totalSales)}</p>`;
+            
             updateDashboardLowStock(reportData);
-            updateDashboardMonthlyProfit();
+            // Monthly Net Profit is no longer here
         }, (error) => console.error("Dashboard listener error (today's report):", error));
 
-        const todayExpensesQuery = db.collection('expenses').where('date', '==', todayDateString);
-        const todayExpensesListener = todayExpensesQuery.onSnapshot(() => {
-            updateDashboardMonthlyProfit();
-        }, (error) => console.error("Dashboard listener error (today's expenses):", error));
+        // Find the last finalized report for Yesterday's Data
+        const yesterdayReportQuery = db.collection('reports').where('isFinalized', '==', true).orderBy('date', 'desc').limit(1);
+        const yesterdayReportListener = yesterdayReportQuery.onSnapshot(async (snapshot) => {
+            const yesterdayReportDoc = snapshot.docs[0];
+            let yesterdayDate = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
+            let reportData = null;
+            let yesterdayExpenses = 0;
+            
+            if (yesterdayReportDoc) {
+                reportData = yesterdayReportDoc.data();
+                yesterdayDate = reportData.date;
+                yesterdayExpenses = await getExpensesForDate(yesterdayDate);
+            } else {
+                // Fallback to check non-finalized yesterday report if no finalized one is found
+                const nonFinalizedYesterdayDoc = await db.collection('reports').doc(yesterdayDate).get();
+                if (nonFinalizedYesterdayDoc.exists) {
+                    reportData = nonFinalizedYesterdayDoc.data();
+                    yesterdayExpenses = await getExpensesForDate(yesterdayDate);
+                }
+            }
 
-        const yesterday = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
-        const yesterdayReportRef = db.collection('reports').doc(yesterday);
-        const yesterdayReportListener = yesterdayReportRef.onSnapshot(async (doc) => {
-            const reportData = doc.exists ? doc.data() : null;
-            const summary = calculateDailySummaryFromData(reportData); 
-            const expenses = await getExpensesForDate(yesterday);
-            updateDashboardCards(summary.totalSales, expenses, summary.totalProfit);
+            const yesterdaySummary = calculateDailySummaryFromData(reportData);
+            const yesterdayProfit = yesterdaySummary.totalProfit - yesterdayExpenses;
+            
+            document.getElementById('yesterday-sales-label').textContent = `${dayjs(yesterdayDate).format('MMM D')} Total Sales`;
+            document.getElementById('dashboard-yesterday-sales').outerHTML = `<p id="dashboard-yesterday-sales" class="text-3xl font-bold text-slate-800">₱${formatCurrency(yesterdaySummary.totalSales)}</p>`;
+            document.getElementById('dashboard-yesterday-expenses').outerHTML = `<p id="dashboard-yesterday-expenses" class="text-3xl font-bold text-slate-800">₱${formatCurrency(yesterdayExpenses)}</p>`;
+
         }, (error) => console.error("Dashboard listener error (yesterday's report):", error));
 
-        dashboardListeners.push(todayReportListener, todayExpensesListener, yesterdayReportListener);
+        dashboardListeners.push(todayReportListener, yesterdayReportListener);
     }
     
     function calculateDailySummaryFromData(report) {
@@ -2397,24 +2657,71 @@
         return { totalSales: totalSales - discount, totalProfit: totalProfit - discount };
     }
 
+    /**
+     * Calculates the total worth of remaining stocks (end stock) for all products
+     * or just rice products based on their Cost Price / Capital.
+     * @param {object} report - The current day's report data.
+     * @returns {{totalRiceWorth: number, totalAllStockWorth: number, breakdown: Array<object>}}
+     */
+    function calculateStockWorth(report) {
+        let totalRiceWorth = 0;
+        let totalAllStockWorth = 0;
+        const breakdown = [];
+
+        if (report && report.data) {
+            shopProducts.forEach(product => {
+                const item = report.data[product.id];
+                
+                // Skip if no end stock is recorded
+                if (!item || item.end === undefined) return;
+
+                // Get the cost price / capital
+                const effectiveCost = item.cost !== undefined ? item.cost : (product.cost || 0);
+                
+                // Calculate worth: End Stock * Cost Price
+                const endStock = item.end || 0;
+                const stockWorth = endStock * effectiveCost;
+
+                const detail = {
+                    name: product.name,
+                    category: product.category,
+                    endStock: endStock,
+                    costPrice: effectiveCost, // Cost Price / Capital (instead of sellingPrice)
+                    worth: stockWorth
+                };
+                
+                breakdown.push(detail);
+
+                totalAllStockWorth += stockWorth;
+
+                if (RICE_CATEGORIES.includes(product.category)) {
+                    totalRiceWorth += stockWorth;
+                }
+            });
+        }
+        
+        return { totalRiceWorth, totalAllStockWorth, breakdown };
+    }
+
     function renderDashboardPlaceholders() {
-        const yesterday = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
-        document.getElementById('dashboard-date').textContent = `Showing final numbers for yesterday, ${dayjs(yesterday).format('MMMM D, YYYY')}`;
-        document.getElementById('dashboard-total-sales').outerHTML = `<div id="dashboard-total-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>`;
-        document.getElementById('dashboard-total-expenses').outerHTML = `<div id="dashboard-total-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>`;
-        document.getElementById('dashboard-total-profit').outerHTML = `<div id="dashboard-total-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>`;
-        document.getElementById('dashboard-monthly-net-profit').outerHTML = `<div id="dashboard-monthly-net-profit" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-36 mt-1"></div></div>`;
+        document.getElementById('dashboard-date').textContent = `Loading data...`;
+        document.getElementById('dashboard-yesterday-sales').outerHTML = `<div id="dashboard-yesterday-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>`;
+        document.getElementById('dashboard-yesterday-expenses').outerHTML = `<div id="dashboard-yesterday-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>`;
+        document.getElementById('dashboard-today-sales').outerHTML = `<div id="dashboard-today-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>`;
+        // Monthly Net Profit is no longer here
     }
 
-    function updateDashboardCards(totalSales, totalExpenses, totalProfit) {
-        document.getElementById('dashboard-total-sales').outerHTML = `<p id="dashboard-total-sales" class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalSales)}</p>`;
-        document.getElementById('dashboard-total-expenses').outerHTML = `<p id="dashboard-total-expenses" class="text-3xl font-bold text-slate-800">₱${formatCurrency(totalExpenses)}</p>`;
-        document.getElementById('dashboard-total-profit').outerHTML = `<p id="dashboard-total-profit" class="text-3xl font-bold text-green-700">₱${formatCurrency(totalProfit)}</p>`;
-    }
+    // Removed updateDashboardStockCards function
 
+    // Function now only used in Settings
     async function updateDashboardMonthlyProfit() {
+        // This function is kept for consistency with the original code structure, but it no longer updates a dashboard element.
+        // It updates the element in the settings panel.
         const { monthlyNetProfit } = await getMonthlySummary(todayDateString);
-        document.getElementById('dashboard-monthly-net-profit').outerHTML = `<p id="dashboard-monthly-net-profit" class="text-3xl font-bold text-teal-700">₱${formatCurrency(monthlyNetProfit)}</p>`;
+        const monthlyProfitEl = document.getElementById('settings-monthly-net-profit');
+        if(monthlyProfitEl) {
+             monthlyProfitEl.textContent = `₱${formatCurrency(monthlyNetProfit)}`;
+        }
     }
     
     function updateDashboardLowStock(report) {
@@ -2640,9 +2947,15 @@
         navElement.classList.add('active');
 
         // Load data for specific tabs when they are shown
-        if (targetId === 'settings-analytics-view') {
+        if (targetId === 'settings-products-view') {
+            renderProductList();
+        } else if (targetId === 'settings-analytics-view') {
             showAnalyticsSubTab('analytics-overview-content');
             renderPerformanceBreakdown();
+        } else if (targetId === 'settings-inventory-view') {
+            renderInventoryStockDetails();
+        } else if (targetId === 'settings-profit-view') { // NEW LOGIC
+            renderSettingsProfitDetails();
         }
     }
 
@@ -2659,6 +2972,82 @@
             openSettingsPanel();
         }
     }
+
+    // NEW QUICK ADD PRODUCT FUNCTIONS
+    
+    function openQuickAddProductModal() {
+        // Reset form before opening
+        document.getElementById('quick-prod-name').value = '';
+        document.getElementById('quick-prod-cost').value = '';
+        document.getElementById('quick-prod-profit-margin').value = '';
+        document.getElementById('quick-prod-category').value = '25 KG';
+        
+        // Remove invalid classes
+        document.querySelectorAll('#quick-add-product-modal-overlay input').forEach(input => input.classList.remove('invalid'));
+
+        document.getElementById('quick-add-product-modal-overlay').classList.add('open');
+    }
+
+    function closeQuickAddProductModal() {
+        document.getElementById('quick-add-product-modal-overlay').classList.remove('open');
+    }
+
+    async function saveQuickProductFromModal() {
+        const saveBtn = document.getElementById('save-quick-product-btn'); 
+        const nameInput = document.getElementById('quick-prod-name'); 
+        const costInput = document.getElementById('quick-prod-cost'); 
+        const profitMarginInput = document.getElementById('quick-prod-profit-margin'); 
+        const categoryInput = document.getElementById('quick-prod-category');
+        
+        let hasError = false;
+
+        if (!nameInput.value.trim()) { hasError = true; nameInput.classList.add('invalid'); } else { nameInput.classList.remove('invalid'); }
+        if (!costInput.value || costInput.classList.contains('invalid')) { hasError = true; costInput.classList.add('invalid'); } else { costInput.classList.remove('invalid'); }
+        if (!profitMarginInput.value || profitMarginInput.classList.contains('invalid')) { hasError = true; profitMarginInput.classList.add('invalid'); } else { profitMarginInput.classList.remove('invalid'); }
+        
+        if (hasError) {
+            Toast.fire({ icon: 'error', title: 'Please correct all invalid fields.'}); 
+            return; 
+        }
+
+        toggleButtonLoading(saveBtn, true); 
+        try { 
+            const docId = 'prod_' + Date.now(); 
+            const productData = { 
+                id: docId, 
+                name: nameInput.value.trim().toUpperCase(), 
+                cost: parseFloat(costInput.value), 
+                profitMargin: parseFloat(profitMarginInput.value), 
+                category: categoryInput.value, 
+                minStock: 0 // Default to 0 for quick add
+            }; 
+            
+            await db.collection('products').doc(docId).set(productData); 
+            
+            // Re-initialize the current day's report data with the new product's initial stock (0)
+            const reportRef = db.collection('reports').doc(todayDateString);
+            const initialReportUpdate = {};
+            initialReportUpdate[`data.${docId}`] = { 
+                begin: 0, 
+                newStock: 0, 
+                openedSacks: 0,
+                returns: 0,
+                end: 0, 
+                profitMargin: productData.profitMargin, 
+                cost: productData.cost 
+            };
+            await reportRef.update(initialReportUpdate); // Update today's report
+            
+            Toast.fire({ icon: 'success', title: `${productData.name} added! Please refresh the Daily Report to see it.` }); 
+            await loadProducts(); // Reload products globally
+            closeQuickAddProductModal();
+        } catch(error) { 
+            Swal.fire('Error', handleFirestoreError(error), 'error'); 
+        } finally { 
+            toggleButtonLoading(saveBtn, false); 
+        } 
+    }
+
 
     function openQuickProfitMarginModal(preselectCategory = null) {
         document.getElementById('quick-profit-modal-overlay').classList.add('open');
@@ -2751,6 +3140,7 @@
             let errorMessages = [];
 
             document.querySelectorAll('#quick-profit-products-container input[data-product-id]').forEach(input => {
+                const productId = input.dataset.productId;
                 if (input.classList.contains('invalid')) {
                     hasErrors = true;
                     const productName = shopProducts.find(p => p.id === productId)?.name || 'Unknown Product';
@@ -2865,7 +3255,49 @@
         } 
     }
 
-    async function deleteProduct(id) { const { isConfirmed } = await Swal.fire({ title: 'Are you sure?', text: 'This product will be permanently deleted.', icon: 'warning', showCancelButton: true }); if (isConfirmed) { try { await db.collection('products').doc(id).delete(); Toast.fire({ icon: 'success', title: 'Product deleted!' }); await loadProducts(); renderProductList(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
+    async function deleteProduct(id) { 
+        const product = shopProducts.find(p => p.id === id);
+        const name = product ? product.name : 'this product';
+
+        const password = await getPassword();
+        if(!password.success) return;
+        
+        const { isConfirmed } = await Swal.fire({ 
+            title: 'Delete Product?', 
+            text: `This will permanently delete the product: ${name} (${product.category}) and remove its data from all past reports. This cannot be undone.`, 
+            icon: 'warning', 
+            showCancelButton: true,
+            confirmButtonColor: '#d33' 
+        }); 
+        
+        if (isConfirmed) { 
+            try { 
+                await db.collection('products').doc(id).delete(); 
+
+                // Delete product data from all reports
+                const reportsSnapshot = await db.collection('reports').get();
+                const batch = db.batch();
+                reportsSnapshot.docs.forEach(doc => {
+                    const reportData = doc.data();
+                    if (reportData.data && reportData.data[id]) {
+                        batch.update(doc.ref, { 
+                            [`data.${id}`]: firebase.firestore.FieldValue.delete() 
+                        });
+                    }
+                });
+                await batch.commit();
+
+                Toast.fire({ icon: 'success', title: 'Product deleted!' }); 
+                await loadProducts(); 
+                renderProductList(); 
+                // Re-initialize listeners to update all views (especially Daily Report if open)
+                initializeListeners(todayDateString);
+            } catch (error) { 
+                Swal.fire('Error', handleFirestoreError(error), 'error'); 
+            } 
+        } 
+    }
+    
     async function savePassword() { const saveBtn = document.getElementById('save-password-btn'); const current = document.getElementById('currentPassword').value; const newPass = document.getElementById('newPassword').value; const confirm = document.getElementById('confirmPassword').value; toggleButtonLoading(saveBtn, true); try { const securityDoc = await db.collection('settings').doc('security').get(); const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null; if (storedPasswordHash && hashPassword(current) !== storedPasswordHash) { Swal.fire('Error', 'Current password incorrect.', 'error'); return; } if (newPass.length < 4) { Swal.fire('Error', 'New password must be at least 4 characters.', 'error'); return; } if (newPass !== confirm) { Swal.fire('Error', 'New passwords do not match.', 'error'); return; } await db.collection('settings').doc('security').set({ passwordHash: hashPassword(newPass) }); Swal.fire('Success', 'Password changed!', 'success'); ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = ''); } catch (error) { Swal.fire('Error', handleFirestoreError(error), 'error'); } finally { toggleButtonLoading(saveBtn, false); } }
     
     async function promptForCategoryThenEdit(editType, targetCategory = null) { 
@@ -2961,6 +3393,7 @@
         tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>'; 
         
         try {
+            await loadProducts(); // Ensure data is current
             const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get();
             let tableHtml = '';
             for (const doc of reportsSnapshot.docs) { 
@@ -2994,6 +3427,135 @@
         } catch (error) {
             console.error("Error rendering performance breakdown:", error);
             tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">${handleFirestoreError(error)}</td></tr>`; 
+        }
+    }
+
+    // UPDATED FUNCTION
+    async function renderInventoryStockDetails() {
+        const stockTbody = document.getElementById('inventory-stock-tbody');
+        stockTbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>';
+
+        try {
+            // Ensure products are loaded before proceeding
+            await loadProducts();
+            
+            const reportDoc = await db.collection('reports').doc(todayDateString).get();
+            const report = reportDoc.exists ? reportDoc.data() : null;
+
+            if (!report) {
+                stockTbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-slate-500">No report data found for today.</td></tr>';
+                document.getElementById('inv-rice-worth').textContent = '₱0.00';
+                document.getElementById('inv-all-stock-worth').textContent = '₱0.00';
+                return;
+            }
+
+            const { totalRiceWorth, totalAllStockWorth, breakdown } = calculateStockWorth(report);
+            
+            document.getElementById('inv-rice-worth').textContent = `₱${formatCurrency(totalRiceWorth)}`;
+            document.getElementById('inv-all-stock-worth').textContent = `₱${formatCurrency(totalAllStockWorth)}`;
+
+            let tableHtml = '';
+            if (breakdown.length === 0) {
+                tableHtml = '<tr><td colspan="5" class="text-center p-4 text-slate-500">No stock recorded for any product.</td></tr>';
+            } else {
+                // Group breakdown by category
+                const groupedBreakdown = breakdown.reduce((acc, item) => {
+                    if (!acc[item.category]) acc[item.category] = [];
+                    acc[item.category].push(item);
+                    return acc;
+                }, {});
+
+                RICE_CATEGORIES.forEach(cat => {
+                    const products = groupedBreakdown[cat] || [];
+                    if (products.length > 0) {
+                        const categoryWorth = products.reduce((sum, p) => sum + p.worth, 0);
+                        const categoryQty = products.reduce((sum, p) => sum + p.endStock, 0);
+
+                        // Category Header Row
+                        tableHtml += `
+                            <tr class="bg-slate-100 font-bold">
+                                <td class="py-2 px-3">${cat}</td>
+                                <td class="py-2 px-3 text-right">Total:</td>
+                                <td class="py-2 px-3 text-right">${categoryQty}</td>
+                                <td class="py-2 px-3 text-right">-</td>
+                                <td class="py-2 px-3 text-right">₱${formatCurrency(categoryWorth)}</td>
+                            </tr>
+                        `;
+
+                        // Product Detail Rows
+                        products.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
+                            tableHtml += `
+                                <tr class="bg-white border-b hover:bg-slate-50">
+                                    <td class="py-2 px-3">${p.name}</td>
+                                    <td class="py-2 px-3 text-right text-xs text-slate-400">${p.category}</td>
+                                    <td class="py-2 px-3 text-right font-medium">${p.endStock}</td>
+                                    <td class="py-2 px-3 text-right">₱${formatCurrency(p.costPrice)}</td>
+                                    <td class="py-2 px-3 text-right text-red-600 font-semibold">₱${formatCurrency(p.worth)}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                });
+            }
+
+            stockTbody.innerHTML = tableHtml;
+
+        } catch (error) {
+            console.error("Error rendering stock details:", error);
+            stockTbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">${handleFirestoreError(error)}</td></tr>`;
+            document.getElementById('inv-rice-worth').textContent = 'Error';
+            document.getElementById('inv-all-stock-worth').textContent = 'Error';
+        }
+    }
+
+    // FIXED FUNCTION
+    async function renderSettingsProfitDetails() {
+        // Reset placeholders to avoid showing old data during load
+        document.getElementById('settings-today-sales').textContent = 'Loading...';
+        document.getElementById('settings-today-profit').textContent = 'Loading...';
+        document.getElementById('settings-yesterday-profit').textContent = 'Loading...';
+        document.getElementById('settings-monthly-net-profit').textContent = 'Loading...';
+
+        try {
+            await loadProducts(); // Crucial to have fresh product data (costs/margins)
+            
+            // 1. Today's Data
+            const todayReportDoc = await db.collection('reports').doc(todayDateString).get();
+            const todayReport = todayReportDoc.exists ? todayReportDoc.data() : null;
+            const todaySummary = calculateDailySummaryFromData(todayReport);
+            const todayExpenses = await getExpensesForDate(todayDateString);
+            const todayNetProfit = todaySummary.totalProfit - todayExpenses;
+            
+            // 2. Yesterday's Data
+            let yesterdaySummary = { totalProfit: 0 };
+            let yesterdayExpenses = 0;
+            const yesterdayReportQuery = db.collection('reports').where('isFinalized', '==', true).orderBy('date', 'desc').limit(1);
+            const yesterdaySnapshot = await yesterdayReportQuery.get();
+            const yesterdayReport = yesterdaySnapshot.docs[0]?.data();
+
+            if (yesterdayReport) {
+                yesterdaySummary = calculateDailySummaryFromData(yesterdayReport);
+                yesterdayExpenses = await getExpensesForDate(yesterdayReport.date);
+            }
+            const yesterdayNetProfit = yesterdaySummary.totalProfit - yesterdayExpenses;
+
+            // 3. Monthly Net Profit
+            const monthlyData = await getMonthlySummary(todayDateString);
+            const monthlyNetProfit = monthlyData.monthlyNetProfit;
+
+            // 4. Update UI
+            document.getElementById('settings-today-sales').textContent = `₱${formatCurrency(todaySummary.totalSales)}`;
+            document.getElementById('settings-today-profit').textContent = `₱${formatCurrency(todayNetProfit)}`;
+            document.getElementById('settings-yesterday-profit').textContent = `₱${formatCurrency(yesterdayNetProfit)}`;
+            document.getElementById('settings-monthly-net-profit').textContent = `₱${formatCurrency(monthlyNetProfit)}`;
+
+        } catch (error) {
+            console.error("Error loading profit details:", error);
+            // Fallback to safe defaults if there's an issue
+            document.getElementById('settings-today-sales').textContent = `₱${formatCurrency(0)}`;
+            document.getElementById('settings-today-profit').textContent = `₱${formatCurrency(0)}`;
+            document.getElementById('settings-yesterday-profit').textContent = `₱${formatCurrency(0)}`;
+            document.getElementById('settings-monthly-net-profit').textContent = `₱${formatCurrency(0)}`;
         }
     }
     
@@ -3168,4 +3730,4 @@
   </script>
 </body>
 </html>
-```````````
+```
