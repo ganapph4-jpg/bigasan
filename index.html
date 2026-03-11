@@ -1249,110 +1249,172 @@
 
 
     @media (min-width: 900px) and (max-width: 1366px) and (orientation: landscape) {
+      nav[aria-label="Main Navigation"],
+      #dashboard-view {
+        max-width: calc(100vw - 18px) !important;
+      }
+
+      #dashboard-view {
+        padding-bottom: 0.5rem;
+      }
+
       .pos-layout {
-        grid-template-columns: minmax(0, 1.9fr) 280px;
-        gap: 1rem;
+        grid-template-columns: minmax(0, 1fr) 248px;
+        gap: 0.8rem;
       }
 
       .pos-stage {
-        padding: 0.9rem;
+        padding: 0.8rem;
       }
 
       .pos-cart {
-        padding: 0.85rem;
+        padding: 0.72rem;
+        border-radius: 16px;
+      }
+
+      .pos-cart-header-title {
+        font-size: 0.92rem;
+      }
+
+      .pos-cart-header-note,
+      .pos-cart-clear-btn {
+        font-size: 0.72rem;
       }
 
       .pos-category-tabs {
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
+        gap: 0.45rem;
+        margin-bottom: 0.65rem;
       }
 
       .pos-category-btn {
-        padding: 0.82rem 0.7rem;
-        font-size: 0.92rem;
-        min-height: 50px;
+        padding: 0.78rem 0.58rem;
+        font-size: 0.9rem;
+        min-height: 48px;
       }
 
       .pos-toolbar {
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
+        gap: 0.6rem;
+        margin-bottom: 0.65rem;
       }
 
       .pos-search-shell {
-        padding: 0.7rem 0.85rem;
+        padding: 0.62rem 0.78rem;
+      }
+
+      .pos-search-shell input,
+      .pos-search-hint {
+        font-size: 0.8rem;
       }
 
       .pos-product-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.55rem;
+        grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+        gap: 0.45rem;
       }
 
       .pos-product-card {
-        min-height: 138px;
-        padding: 0.55rem;
+        min-height: 124px;
+        padding: 0.42rem;
+        border-radius: 14px;
       }
 
       .pos-tap-shell {
-        padding: 0.55rem;
+        padding: 0.46rem;
       }
 
       .rice-name-badge {
-        font-size: 0.96rem;
+        font-size: 0.9rem;
       }
 
       .pos-selling-price-value {
-        font-size: 1.28rem;
+        font-size: 1.15rem;
       }
 
       .pos-stock-pill,
       .pos-card-category,
       .pos-quick-add-note,
       .pos-cart-count {
-        font-size: 0.62rem;
+        font-size: 0.58rem;
+      }
+
+      .pos-live-note {
+        margin-top: 0.65rem;
+        padding: 0.58rem 0.7rem;
+        font-size: 0.74rem;
+        border-radius: 12px;
       }
 
       .pos-cart-items {
-        max-height: 220px;
+        max-height: 185px;
+        gap: 0.45rem;
       }
 
-      .pos-empty-state {
-        padding: 1.4rem 0.8rem;
-        font-size: 0.82rem;
+      .pos-cart-item {
+        padding: 0.55rem;
       }
 
-      .pos-summary-row {
-        font-size: 0.76rem;
-      }
-
-      .pos-summary-row.total-row {
-        font-size: 0.92rem;
-      }
-
-      .pos-summary-row.change-row {
-        font-size: 0.82rem;
-      }
-
-      .pos-payment-shell {
-        padding: 0.6rem;
-      }
-
-      .pos-payment-label {
-        font-size: 0.76rem;
-      }
-
-      .pos-payment-shell input {
-        min-height: 36px;
-        font-size: 0.84rem;
-      }
-
-      .pos-primary-action {
-        min-height: 40px;
+      .pos-cart-item-name {
         font-size: 0.86rem;
       }
 
-      .pos-secondary-action {
-        min-height: 34px;
+      .pos-cart-item-meta {
+        font-size: 0.7rem;
+      }
+
+      .pos-cart-item-total {
+        font-size: 0.9rem;
+      }
+
+      .pos-cart-qty-input {
+        width: 62px;
+        min-height: 30px;
+        font-size: 0.82rem;
+      }
+
+      .pos-empty-state {
+        padding: 1rem 0.65rem;
         font-size: 0.76rem;
+      }
+
+      .pos-cart-summary {
+        margin-top: 0.65rem;
+        padding-top: 0.65rem;
+        gap: 0.35rem;
+      }
+
+      .pos-summary-row {
+        font-size: 0.72rem;
+      }
+
+      .pos-summary-row.total-row {
+        font-size: 0.88rem;
+      }
+
+      .pos-summary-row.change-row {
+        font-size: 0.78rem;
+      }
+
+      .pos-payment-shell {
+        padding: 0.55rem;
+      }
+
+      .pos-payment-label,
+      .pos-payment-note {
+        font-size: 0.72rem;
+      }
+
+      .pos-payment-shell input {
+        min-height: 34px;
+        font-size: 0.82rem;
+      }
+
+      .pos-primary-action {
+        min-height: 38px;
+        font-size: 0.82rem;
+      }
+
+      .pos-secondary-action {
+        min-height: 32px;
+        font-size: 0.72rem;
       }
     }
 
@@ -2918,11 +2980,146 @@
         renderPrinterSettings();
     }
 
+    function getAndroidPrinterBridge() {
+        return window.AndroidPrinter || null;
+    }
+
+    function hasAndroidPrinterBridge() {
+        return !!getAndroidPrinterBridge();
+    }
+
+    function parsePrinterBridgeResponse(rawResponse) {
+        if (!rawResponse) return { success: false, message: 'No response from printer bridge.' };
+        if (typeof rawResponse === 'object') return rawResponse;
+        try {
+            return JSON.parse(rawResponse);
+        } catch (error) {
+            return { success: false, message: 'Invalid printer bridge response.' };
+        }
+    }
+
+    function getAndroidPrinterDisplayName() {
+        const bridge = getAndroidPrinterBridge();
+        if (!bridge) return '';
+        return (bridge.getConnectedPrinterName?.() || bridge.getSavedPrinterName?.() || '').trim();
+    }
+
+    async function ensureAndroidPrinterPermissions({ silent = false } = {}) {
+        const bridge = getAndroidPrinterBridge();
+        if (!bridge) return false;
+        if (bridge.hasPermissions?.()) return true;
+        bridge.requestPermissionsFromApp?.();
+        if (!silent) {
+            await Swal.fire('Bluetooth Permission', 'Allow Bluetooth permission on the tablet, then tap connect again.', 'info');
+        }
+        return !!bridge.hasPermissions?.();
+    }
+
+    async function connectAndroidPrinterByAddress(address, { silent = false } = {}) {
+        const bridge = getAndroidPrinterBridge();
+        if (!bridge) return false;
+
+        const result = parsePrinterBridgeResponse(bridge.connectPrinter(address));
+        if (!result.success) {
+            printerSettings = {
+                ...printerSettings,
+                printerConnected: false
+            };
+            printerConnectionStatus = result.message || 'Android could not connect to the printer.';
+            renderPrinterSettings();
+            if (!silent) {
+                await Swal.fire('Connect Failed', printerConnectionStatus, 'error');
+            }
+            return false;
+        }
+
+        const deviceName = result.name || 'Bluetooth Printer';
+        printerSettings = {
+            ...getPrinterSettingsFromForm(),
+            printerConnected: true,
+            connectionType: 'android-bridge',
+            connectedDeviceName: deviceName,
+            connectedDeviceId: result.address || '',
+            printerName: deviceName,
+            lastConnectedAt: new Date().toISOString()
+        };
+        printerConnectionStatus = `Bluetooth thermal printer connected: ${deviceName}.`;
+        renderPrinterSettings();
+
+        try {
+            await db.collection('settings').doc('posPrinter').set(printerSettings);
+        } catch (error) {
+            console.warn('Unable to save Android printer connection state:', error);
+        }
+
+        if (!silent) {
+            Toast.fire({ icon: 'success', title: `Connected to ${deviceName}` });
+        }
+        return true;
+    }
+
+    async function searchAndConnectAndroidPrinter({ silentCancel = false } = {}) {
+        const bridge = getAndroidPrinterBridge();
+        if (!bridge?.isAvailable?.()) {
+            await Swal.fire('Not Supported', 'This APK could not access Android Bluetooth on this device.', 'info');
+            return false;
+        }
+        if (!bridge.isBluetoothEnabled?.()) {
+            await Swal.fire('Bluetooth Off', 'Turn on tablet Bluetooth first, then connect the printer.', 'warning');
+            return false;
+        }
+        if (!(await ensureAndroidPrinterPermissions({ silent: silentCancel }))) {
+            return false;
+        }
+
+        const printerList = parsePrinterBridgeResponse(bridge.getBondedPrintersJson());
+        if (!printerList.success) {
+            await Swal.fire('Printer Error', printerList.message || 'Could not read paired printers.', 'error');
+            return false;
+        }
+
+        const devices = Array.isArray(printerList.devices) ? printerList.devices : [];
+        if (!devices.length) {
+            await Swal.fire('No Paired Printers', 'Pair the thermal printer in Android Bluetooth settings first, then come back here.', 'info');
+            return false;
+        }
+
+        const inputOptions = devices.reduce((options, device) => {
+            options[device.address] = `${device.name || 'Bluetooth Printer'} (${device.address})`;
+            return options;
+        }, {});
+
+        const { value: selectedAddress } = await Swal.fire({
+            title: 'Select Printer',
+            input: 'select',
+            inputOptions,
+            inputPlaceholder: 'Choose paired printer',
+            showCancelButton: true,
+            confirmButtonText: 'Connect'
+        });
+
+        if (!selectedAddress) {
+            if (!silentCancel) {
+                Toast.fire({ icon: 'info', title: 'Printer selection was cancelled.' });
+            }
+            return false;
+        }
+
+        return connectAndroidPrinterByAddress(selectedAddress, { silent: false });
+    }
+
     function isBluetoothPrinterReady() {
+        if (hasAndroidPrinterBridge()) {
+            return !!getAndroidPrinterBridge()?.isConnected?.();
+        }
         return !!printerSettings.printerConnected && !!bluetoothPrinterCharacteristic && !!bluetoothPrinterDevice?.gatt?.connected;
     }
 
     function hasRememberedPrinter() {
+        if (hasAndroidPrinterBridge()) {
+            const bridge = getAndroidPrinterBridge();
+            return !!((bridge.getSavedPrinterAddress?.() || '').trim() || (bridge.getSavedPrinterName?.() || '').trim());
+        }
         return !!((printerSettings.connectedDeviceId || '').trim() || (printerSettings.connectedDeviceName || printerSettings.printerName || '').trim());
     }
 
@@ -2941,8 +3138,10 @@
 
     function showPrinterConnectionInfo() {
         const isConnected = isBluetoothPrinterReady();
-        const deviceName = printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID';
-        const modeLabel = 'Bluetooth Thermal';
+        const deviceName = hasAndroidPrinterBridge()
+            ? (getAndroidPrinterDisplayName() || printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID')
+            : (printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID');
+        const modeLabel = hasAndroidPrinterBridge() ? 'Android APK Bluetooth' : 'Bluetooth Thermal';
         const lastConnected = printerSettings.lastConnectedAt
             ? dayjs(printerSettings.lastConnectedAt).format('MMMM D, YYYY h:mm A')
             : 'No saved connection yet';
@@ -3065,6 +3264,50 @@
     }
 
     async function attemptAutoReconnectPrinter() {
+        if (hasAndroidPrinterBridge()) {
+            const bridge = getAndroidPrinterBridge();
+            if (!bridge?.isAvailable?.() || !hasRememberedPrinter()) {
+                return false;
+            }
+            if (!bridge.isBluetoothEnabled?.()) {
+                printerSettings = {
+                    ...printerSettings,
+                    printerConnected: false
+                };
+                printerConnectionStatus = 'Turn on tablet Bluetooth to reconnect the printer.';
+                renderPrinterSettings();
+                return false;
+            }
+            if (!(await ensureAndroidPrinterPermissions({ silent: true }))) {
+                return false;
+            }
+
+            const result = parsePrinterBridgeResponse(bridge.connectSavedPrinter?.());
+            if (!result.success) {
+                printerSettings = {
+                    ...printerSettings,
+                    printerConnected: false
+                };
+                printerConnectionStatus = result.message || 'Android could not reconnect the saved printer.';
+                renderPrinterSettings();
+                return false;
+            }
+
+            const deviceName = result.name || bridge.getConnectedPrinterName?.() || bridge.getSavedPrinterName?.() || 'Bluetooth Printer';
+            printerSettings = {
+                ...getPrinterSettingsFromForm(),
+                printerConnected: true,
+                connectionType: 'android-bridge',
+                connectedDeviceName: deviceName,
+                connectedDeviceId: result.address || bridge.getSavedPrinterAddress?.() || '',
+                printerName: deviceName,
+                lastConnectedAt: new Date().toISOString()
+            };
+            printerConnectionStatus = `Bluetooth thermal printer connected: ${deviceName}.`;
+            renderPrinterSettings();
+            return true;
+        }
+
         if (!navigator.bluetooth || typeof navigator.bluetooth.getDevices !== 'function') {
             return false;
         }
@@ -3110,6 +3353,9 @@
     }
 
     async function searchAndConnectPrinter({ silentCancel = false } = {}) {
+        if (hasAndroidPrinterBridge()) {
+            return searchAndConnectAndroidPrinter({ silentCancel });
+        }
         if (!navigator.bluetooth) {
             await Swal.fire('Not Supported', 'This Chrome tablet does not expose Web Bluetooth here.', 'info');
             return false;
@@ -3142,12 +3388,17 @@
     }
 
     async function disconnectPrinterConnection() {
-        try {
-            if (bluetoothPrinterDevice?.gatt?.connected) {
-                bluetoothPrinterDevice.gatt.disconnect();
+        if (hasAndroidPrinterBridge()) {
+            const bridge = getAndroidPrinterBridge();
+            bridge?.disconnectPrinter?.();
+        } else {
+            try {
+                if (bluetoothPrinterDevice?.gatt?.connected) {
+                    bluetoothPrinterDevice.gatt.disconnect();
+                }
+            } catch (error) {
+                console.warn('Printer disconnect warning:', error);
             }
-        } catch (error) {
-            console.warn('Printer disconnect warning:', error);
         }
         bluetoothPrinterDevice = null;
         bluetoothPrinterCharacteristic = null;
@@ -3184,7 +3435,7 @@
             return true;
         }
 
-        if (printerSettings.connectionType === 'web-bluetooth' && hasRememberedPrinter()) {
+        if (hasRememberedPrinter()) {
             printerConnectionStatus = 'Trying to reconnect the saved Bluetooth printer...';
             renderPrinterSettings();
             const reconnected = await attemptAutoReconnectPrinter();
@@ -3194,7 +3445,9 @@
             }
         }
 
-        printerConnectionStatus = 'Printer is not connected. Chrome will ask you to reconnect before submitting.';
+        printerConnectionStatus = hasAndroidPrinterBridge()
+            ? 'Printer is not connected. Choose the paired thermal printer before submitting.'
+            : 'Printer is not connected. Chrome will ask you to reconnect before submitting.';
         renderPrinterSettings();
 
         const connectedFromSubmit = await searchAndConnectPrinter({ silentCancel: true });
@@ -3222,7 +3475,7 @@
         printerConnectionStatus = '';
         renderPrinterSettings();
 
-        if (printerSettings.connectionType === 'web-bluetooth') {
+        if (hasAndroidPrinterBridge() || printerSettings.connectionType === 'web-bluetooth') {
             await attemptAutoReconnectPrinter();
         }
     }
@@ -3304,12 +3557,25 @@
     }
 
     async function printReceiptViaBluetooth(order) {
+        const text = buildBluetoothReceiptText(order);
+
+        if (hasAndroidPrinterBridge()) {
+            const bridge = getAndroidPrinterBridge();
+            if (!bridge?.isConnected?.()) {
+                return false;
+            }
+            const result = parsePrinterBridgeResponse(bridge.printReceipt(text));
+            if (!result.success) {
+                throw new Error(result.message || 'Android printer failed.');
+            }
+            return true;
+        }
+
         if (!bluetoothPrinterCharacteristic || !bluetoothPrinterDevice?.gatt?.connected) {
             return false;
         }
 
         const encoder = new TextEncoder();
-        const text = buildBluetoothReceiptText(order);
         const payload = new Uint8Array([
             27, 64,
             ...encoder.encode(text),
