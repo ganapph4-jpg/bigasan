@@ -809,8 +809,11 @@
       background: #fff;
       color: #334155;
       border-radius: 14px;
-      padding: 0.9rem 1rem;
-      font-weight: 700;
+      padding: 1rem 1.05rem;
+      font-size: 0.98rem;
+      font-weight: 800;
+      line-height: 1.15;
+      min-height: 54px;
       transition: all 0.2s ease;
     }
 
@@ -855,10 +858,11 @@
 
     .rice-name-badge {
       display: inline-block;
-      font-size: 1.1rem;
+      font-size: 1.12rem;
       font-weight: 900;
-      letter-spacing: 0.01em;
-      line-height: 1.15;
+      letter-spacing: 0.015em;
+      line-height: 1.12;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.65);
     }
 
     .rice-name-badge.category-25kg {
@@ -933,6 +937,36 @@
       border-radius: 12px;
       padding: 0.7rem;
       background: #f8fafc;
+    }
+
+    .pos-cart-item-name {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: 0.01em;
+    }
+
+    .pos-cart-item-meta {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .pos-cart-item-total {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #dc2626;
+    }
+
+    .pos-cart-qty-input {
+      width: 72px;
+      min-height: 34px;
+      text-align: center;
+      border: 1px solid #93c5fd;
+      border-radius: 10px;
+      font-weight: 800;
+      color: #1e3a8a;
+      background: #eff6ff;
     }
 
     .pos-cart-summary {
@@ -1095,21 +1129,6 @@
       font-weight: 800;
     }
 
-    .pos-price-edit-btn {
-      border: 1px solid #bfdbfe;
-      background: #eff6ff;
-      color: #1d4ed8;
-      border-radius: 999px;
-      padding: 0.22rem 0.5rem;
-      font-size: 0.66rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .pos-price-edit-btn:hover {
-      background: #dbeafe;
-    }
-
     .pos-qty-input {
       min-height: 44px;
       max-width: 68px;
@@ -1161,6 +1180,13 @@
     .pos-tap-shell:active {
       transform: scale(0.98);
       box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
+    }
+
+    .pos-tap-shell.tap-feedback {
+      border-color: #2563eb;
+      background: linear-gradient(180deg, #bfdbfe 0%, #93c5fd 100%);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.22), 0 10px 18px rgba(37, 99, 235, 0.18);
+      transform: scale(0.98);
     }
 
     .pos-quick-add-note {
@@ -1242,8 +1268,9 @@
       }
 
       .pos-category-btn {
-        padding: 0.72rem 0.55rem;
-        font-size: 0.84rem;
+        padding: 0.82rem 0.7rem;
+        font-size: 0.92rem;
+        min-height: 50px;
       }
 
       .pos-toolbar {
@@ -2269,17 +2296,21 @@
     const COLLECTIONS_TO_BACKUP = ['products', 'reports', 'expenses', 'settings'];
     const DEFAULT_PRINTER_SETTINGS = {
         storeName: 'Rice Inventory Management',
-        printerName: '',
-        paperWidth: '80mm',
+        printerName: 'XP-58IID',
+        paperWidth: '58mm',
         footerNote: 'Thank you for your purchase!',
         autoPrint: true,
         kioskMode: false,
         printerConnected: false,
-        connectionType: 'chrome-print',
+        connectionType: 'web-bluetooth',
         connectedDeviceName: '',
         connectedDeviceId: '',
         lastConnectedAt: ''
     };
+    const THERMAL_OPTIONAL_SERVICES = [
+        '000018f0-0000-1000-8000-00805f9b34fb',
+        'e7810a71-73ae-499d-8c15-faa9aef0c3f2'
+    ];
 
     
     dayjs.extend(dayjs_plugin_isBetween);
@@ -2306,8 +2337,10 @@
     let posCart = [];
     let printerSettings = { ...DEFAULT_PRINTER_SETTINGS };
     let bluetoothPrinterDevice = null;
+    let bluetoothPrinterCharacteristic = null;
     let printerConnectionStatus = '';
     let currentExpenseDate = '';
+    let isSubmittingPosOrder = false;
 
     
     
@@ -2496,7 +2529,11 @@
     }
 
     function getQuantityStep(category) {
-        return category === 'Per Kilo' ? '0.25' : '1';
+        return '1';
+    }
+
+    function getPerKiloInputStep() {
+        return '0.25';
     }
 
     function getProductSellingPrice(product, report = currentDashboardReport) {
@@ -2587,7 +2624,7 @@
             const categoryColorClass = getCategoryColorClass(product.category);
             return `
                 <div class="pos-product-card ${isOutOfStock ? 'out-of-stock' : ''}">
-                    <div class="pos-tap-shell" role="button" tabindex="0" onclick="quickAddPosProduct('${product.id}')" onkeydown="handlePosProductCardKey(event, '${product.id}')">
+                    <div class="pos-tap-shell" role="button" tabindex="0" onclick="quickAddPosProduct('${product.id}', this)" onkeydown="handlePosProductCardKey(event, '${product.id}', this)">
                         <div class="flex items-start justify-between gap-2 mb-2">
                             <div>
                                 <div class="rice-name-badge ${categoryColorClass}">${escapeHtml(product.name)}</div>
@@ -2598,7 +2635,6 @@
                         <p class="pos-selling-price-value">&#8369;${formatCurrency(price)}</p>
                         <div class="pos-tap-actions">
                             <div class="pos-quick-add-note">Tap rice to add</div>
-                            <button class="pos-price-edit-btn" onclick="event.stopPropagation(); quickEditPosSellingPrice('${product.id}')">Edit</button>
                         </div>
                     </div>
                     <div class="pos-card-footer">
@@ -2660,18 +2696,20 @@
                 <div class="pos-cart-item">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <div class="font-semibold text-slate-800">${escapeHtml(item.name)}</div>
-                            <div class="text-xs text-slate-500">${escapeHtml(item.category)} - &#8369;${formatCurrency(item.price)} each</div>
+                            <div class="pos-cart-item-name">${escapeHtml(item.name)}</div>
+                            <div class="pos-cart-item-meta">${escapeHtml(item.category)} - &#8369;${formatCurrency(item.price)} each</div>
                         </div>
                         <button class="text-sm text-red-600 hover:text-red-700" onclick="removeFromPosCart('${item.productId}')">Remove</button>
                     </div>
                     <div class="flex items-center justify-between mt-3">
                         <div class="flex items-center gap-2">
                             <button class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-8 h-8 rounded-md" onclick="adjustPosCartQuantity('${item.productId}', -1)">-</button>
-                            <span class="min-w-[60px] text-center font-semibold">${formatQuantity(item.quantity)}</span>
+                            ${item.category === 'Per Kilo'
+                                ? `<input type="number" min="0.25" step="${getPerKiloInputStep()}" value="${formatForInput(item.quantity)}" class="pos-cart-qty-input" onchange="updatePerKiloCartQuantity('${item.productId}', this.value)">`
+                                : `<span class="min-w-[60px] text-center font-semibold">${formatQuantity(item.quantity)}</span>`}
                             <button class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-8 h-8 rounded-md" onclick="adjustPosCartQuantity('${item.productId}', 1)">+</button>
                         </div>
-                        <div class="font-bold text-slate-800">&#8369;${formatCurrency(item.total)}</div>
+                        <div class="pos-cart-item-total">&#8369;${formatCurrency(item.total)}</div>
                     </div>
                 </div>
             `).join('');
@@ -2707,9 +2745,21 @@
         renderPosProductGrid();
     }
 
-    function quickAddPosProduct(productId) {
+    function showPosTapFeedback(element) {
+        if (!element) return;
+        element.classList.remove('tap-feedback');
+        void element.offsetWidth;
+        element.classList.add('tap-feedback');
+        window.setTimeout(() => {
+            element.classList.remove('tap-feedback');
+        }, 220);
+    }
+
+    function quickAddPosProduct(productId, element = null) {
         const product = shopProducts.find(item => item.id === productId);
         if (!product) return;
+
+        showPosTapFeedback(element);
 
         const quantityInput = document.getElementById(`pos-qty-${productId}`);
         if (quantityInput) {
@@ -2719,10 +2769,10 @@
         addProductToPosCart(productId);
     }
 
-    function handlePosProductCardKey(event, productId) {
+    function handlePosProductCardKey(event, productId, element = null) {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            quickAddPosProduct(productId);
+            quickAddPosProduct(productId, element);
         }
     }
 
@@ -2767,6 +2817,32 @@
 
     function removeFromPosCart(productId) {
         posCart = posCart.filter(item => item.productId !== productId);
+        renderPosProductGrid();
+        renderPosCart();
+    }
+
+    function updatePerKiloCartQuantity(productId, value) {
+        const cartItem = posCart.find(item => item.productId === productId);
+        const product = shopProducts.find(item => item.id === productId);
+        if (!cartItem || !product) return;
+
+        const parsed = parseFloat(value);
+        const nextQuantity = Number.isFinite(parsed) ? parseFloat(parsed.toFixed(2)) : cartItem.quantity;
+        const availableStock = getAvailableStock(product);
+
+        if (!Number.isFinite(nextQuantity) || nextQuantity <= 0) {
+            removeFromPosCart(productId);
+            return;
+        }
+
+        if (nextQuantity > availableStock) {
+            Toast.fire({ icon: 'error', title: `Cannot exceed ${formatQuantity(availableStock)} available stock.` });
+            renderPosCart();
+            return;
+        }
+
+        cartItem.quantity = nextQuantity;
+        cartItem.total = parseFloat((cartItem.quantity * cartItem.price).toFixed(2));
         renderPosProductGrid();
         renderPosCart();
     }
@@ -2830,34 +2906,43 @@
 
     function handlePrinterDisconnected() {
         bluetoothPrinterDevice = null;
-        printerConnectionStatus = 'Bluetooth printer disconnected. Reconnect or use Chrome Print Mode.';
+        bluetoothPrinterCharacteristic = null;
+        printerConnectionStatus = 'Bluetooth thermal printer disconnected.';
         printerSettings = {
             ...printerSettings,
             printerConnected: false,
-            connectionType: printerSettings.connectionType === 'web-bluetooth' ? 'chrome-print' : printerSettings.connectionType,
+            connectionType: 'web-bluetooth',
             connectedDeviceName: '',
             connectedDeviceId: ''
         };
         renderPrinterSettings();
     }
 
+    function isBluetoothPrinterReady() {
+        return !!printerSettings.printerConnected && !!bluetoothPrinterCharacteristic && !!bluetoothPrinterDevice?.gatt?.connected;
+    }
+
+    function hasRememberedPrinter() {
+        return !!((printerSettings.connectedDeviceId || '').trim() || (printerSettings.connectedDeviceName || printerSettings.printerName || '').trim());
+    }
+
     function renderHeaderPrinterStatus() {
         const badge = document.getElementById('header-printer-status');
-        const isConnected = !!printerSettings.printerConnected && printerSettings.connectionType === 'web-bluetooth';
+        const isConnected = isBluetoothPrinterReady();
         const deviceName = printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID';
 
         if (!badge) return;
 
         badge.classList.remove('connected', 'disconnected');
         badge.classList.add(isConnected ? 'connected' : 'disconnected');
-        badge.title = isConnected ? `${deviceName} connected` : 'Printer not connected';
-        badge.setAttribute('aria-label', isConnected ? `${deviceName} connected` : 'Printer not connected');
+        badge.title = isConnected ? `${deviceName} ready to print` : 'Printer not connected';
+        badge.setAttribute('aria-label', isConnected ? `${deviceName} ready to print` : 'Printer not connected');
     }
 
     function showPrinterConnectionInfo() {
-        const isConnected = !!printerSettings.printerConnected && printerSettings.connectionType === 'web-bluetooth';
+        const isConnected = isBluetoothPrinterReady();
         const deviceName = printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID';
-        const modeLabel = printerSettings.connectionType === 'web-bluetooth' ? 'Bluetooth' : 'Chrome Print';
+        const modeLabel = 'Bluetooth Thermal';
         const lastConnected = printerSettings.lastConnectedAt
             ? dayjs(printerSettings.lastConnectedAt).format('MMMM D, YYYY h:mm A')
             : 'No saved connection yet';
@@ -2888,23 +2973,14 @@
         const settings = { ...DEFAULT_PRINTER_SETTINGS, ...printerSettings };
         const statusEl = document.getElementById('printer-settings-status');
         const connectionEl = document.getElementById('printer-connection-display');
-        if (document.getElementById('printer-store-name')) {
-            document.getElementById('printer-store-name').value = settings.storeName;
-            document.getElementById('printer-name').value = settings.printerName;
-            document.getElementById('printer-paper-width').value = settings.paperWidth;
-            document.getElementById('printer-footer-note').value = settings.footerNote;
-            document.getElementById('printer-auto-print').checked = settings.autoPrint;
-            document.getElementById('printer-kiosk-mode').checked = settings.kioskMode;
-        }
 
         if (connectionEl) {
-            if (settings.printerConnected) {
-                const deviceName = settings.connectedDeviceName || settings.printerName || 'Printer';
-                const prefix = settings.connectionType === 'web-bluetooth' ? 'Successfully connected' : 'Print mode ready';
-                connectionEl.textContent = `${prefix}: ${deviceName}`;
+            if (isBluetoothPrinterReady()) {
+                const deviceName = settings.connectedDeviceName || settings.printerName || 'XP-58IID';
+                connectionEl.textContent = `Bluetooth printer ready: ${deviceName}`;
                 connectionEl.className = 'text-sm font-medium text-emerald-700 mt-3';
             } else {
-                connectionEl.textContent = `Printer not connected. Current mode: ${settings.connectionType === 'web-bluetooth' ? 'Bluetooth' : 'Chrome Print'}`;
+                connectionEl.textContent = 'Printer not connected. Tap the printer icon to connect.';
                 connectionEl.className = 'text-sm font-medium text-slate-700 mt-3';
             }
         }
@@ -2912,12 +2988,10 @@
         if (statusEl) {
             if (printerConnectionStatus) {
                 statusEl.textContent = printerConnectionStatus;
-            } else if (settings.printerConnected && settings.connectionType === 'web-bluetooth') {
-                statusEl.textContent = 'Bluetooth printer connected successfully. Submit Order & Print will use your Chrome tablet receipt flow.';
-            } else if (settings.kioskMode) {
-                statusEl.textContent = 'Kiosk printing is marked enabled. Chrome should print directly to the default thermal printer.';
+            } else if (isBluetoothPrinterReady()) {
+                statusEl.textContent = 'Bluetooth thermal printer is ready. Submit Order & Print will send the receipt directly.';
             } else {
-                statusEl.textContent = 'Receipt printing uses the browser print window unless kiosk printing is enabled in Chrome.';
+                statusEl.textContent = 'Tap the printer icon and connect your thermal printer before submitting orders.';
             }
         }
 
@@ -2935,19 +3009,36 @@
         bluetoothPrinterDevice.addEventListener('gattserverdisconnected', handlePrinterDisconnected);
     }
 
+    async function findWritablePrinterCharacteristic(server) {
+        const services = await server.getPrimaryServices();
+        for (const service of services) {
+            const characteristics = await service.getCharacteristics();
+            for (const characteristic of characteristics) {
+                if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
+                    return characteristic;
+                }
+            }
+        }
+        return null;
+    }
+
     async function connectToRememberedPrinter(device, { silent = false } = {}) {
         if (!device) return false;
 
         registerPrinterDevice(device);
+        const server = device.gatt?.connected ? device.gatt : await device.gatt.connect();
+        const characteristic = await findWritablePrinterCharacteristic(server);
 
-        if (bluetoothPrinterDevice.gatt && !bluetoothPrinterDevice.gatt.connected) {
-            try {
-                await bluetoothPrinterDevice.gatt.connect();
-            } catch (error) {
-                console.warn('Bluetooth GATT connect failed, continuing with browser-selected printer only.', error);
+        if (!characteristic) {
+            printerConnectionStatus = 'Connected device has no writable thermal printer characteristic.';
+            renderPrinterSettings();
+            if (!silent) {
+                await Swal.fire('Unsupported Printer', 'Chrome connected to the device, but it did not expose a writable printer characteristic.', 'error');
             }
+            return false;
         }
 
+        bluetoothPrinterCharacteristic = characteristic;
         const deviceName = device.name || printerSettings.connectedDeviceName || printerSettings.printerName || 'Bluetooth Printer';
         printerSettings = {
             ...getPrinterSettingsFromForm(),
@@ -2958,7 +3049,7 @@
             printerName: deviceName,
             lastConnectedAt: new Date().toISOString()
         };
-        printerConnectionStatus = `Bluetooth printer connected successfully: ${deviceName}.`;
+        printerConnectionStatus = `Bluetooth thermal printer connected: ${deviceName}.`;
         renderPrinterSettings();
 
         try {
@@ -2995,56 +3086,59 @@
             });
 
             if (!matchedDevice) {
-                printerConnectionStatus = 'Saved Bluetooth printer not found in Chrome. Tap Search & Connect Printer again if needed.';
                 printerSettings = {
                     ...printerSettings,
                     printerConnected: false
                 };
+                printerConnectionStatus = 'Saved Bluetooth printer not found in Chrome. Tap Search & Connect Printer again.';
                 renderPrinterSettings();
                 return false;
             }
 
-            const connected = await connectToRememberedPrinter(matchedDevice, { silent: true });
-            if (connected) {
-                printerConnectionStatus = `Successfully reconnected to ${printerSettings.connectedDeviceName || printerSettings.printerName || 'Bluetooth Printer'}.`;
-                renderPrinterSettings();
-            }
-            return connected;
+            return connectToRememberedPrinter(matchedDevice, { silent: true });
         } catch (error) {
             console.warn('Auto reconnect failed:', error);
-            printerConnectionStatus = 'Bluetooth auto reconnect failed. You can still tap Search & Connect Printer or use Chrome Print Mode.';
+            bluetoothPrinterCharacteristic = null;
             printerSettings = {
                 ...printerSettings,
                 printerConnected: false
             };
+            printerConnectionStatus = 'Bluetooth auto reconnect failed. Tap Search & Connect Printer again.';
             renderPrinterSettings();
             return false;
         }
     }
 
-    async function connectPrinterFromBrowser() {
+    async function searchAndConnectPrinter({ silentCancel = false } = {}) {
         if (!navigator.bluetooth) {
-            await Swal.fire('Not Supported', 'This Chrome tablet does not expose Web Bluetooth here. Use Chrome Print Mode instead.', 'info');
-            return;
+            await Swal.fire('Not Supported', 'This Chrome tablet does not expose Web Bluetooth here.', 'info');
+            return false;
         }
 
         try {
             const device = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: [0x1800]
+                optionalServices: THERMAL_OPTIONAL_SERVICES
             });
 
-            await connectToRememberedPrinter(device);
+            return await connectToRememberedPrinter(device);
         } catch (error) {
             if (error && error.name === 'NotFoundError') {
-                Toast.fire({ icon: 'info', title: 'Printer selection was cancelled.' });
-                return;
+                if (!silentCancel) {
+                    Toast.fire({ icon: 'info', title: 'Printer selection was cancelled.' });
+                }
+                return false;
             }
             console.error('Printer connect error:', error);
-            printerConnectionStatus = 'Chrome could not connect to the selected printer. You can still use Chrome Print Mode.';
+            printerConnectionStatus = 'Chrome could not connect to the selected printer.';
             renderPrinterSettings();
-            Swal.fire('Connect Failed', 'Chrome could not connect to the selected printer. You can still use Chrome Print Mode.', 'error');
+            await Swal.fire('Connect Failed', 'Chrome could not connect to the selected printer.', 'error');
+            return false;
         }
+    }
+
+    async function connectPrinterFromBrowser() {
+        return searchAndConnectPrinter();
     }
 
     async function disconnectPrinterConnection() {
@@ -3055,45 +3149,64 @@
         } catch (error) {
             console.warn('Printer disconnect warning:', error);
         }
-        handlePrinterDisconnected();
+        bluetoothPrinterDevice = null;
+        bluetoothPrinterCharacteristic = null;
+        printerSettings = {
+            ...printerSettings,
+            printerConnected: false,
+            connectedDeviceName: '',
+            connectedDeviceId: ''
+        };
+        printerConnectionStatus = 'Printer disconnected.';
+        renderPrinterSettings();
         await db.collection('settings').doc('posPrinter').set(printerSettings).catch(() => null);
         Toast.fire({ icon: 'success', title: 'Printer disconnected.' });
     }
 
     async function useChromePrintMode() {
-        printerSettings = {
-            ...getPrinterSettingsFromForm(),
-            printerConnected: true,
-            connectionType: 'chrome-print',
-            connectedDeviceName: '',
-            connectedDeviceId: '',
-            lastConnectedAt: new Date().toISOString()
-        };
-        printerConnectionStatus = 'Chrome Print Mode saved successfully. Submit Order & Print will open the receipt for your XP-58IID print flow.';
-        await db.collection('settings').doc('posPrinter').set(printerSettings);
-        renderPrinterSettings();
-        Toast.fire({ icon: 'success', title: 'Chrome Print Mode saved.' });
+        return openReceiptWindow({
+            id: `TEST-${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            amountPaid: 0,
+            paymentEntered: false,
+            changeDue: 0,
+            items: [{ name: 'Printer Preview', quantity: 1, price: 0, total: 0 }],
+            total: 0,
+            ...printerSettings
+        }, true);
     }
 
     async function ensurePrinterConnection() {
         printerSettings = getPrinterSettingsFromForm();
 
-        if (printerSettings.connectionType === 'web-bluetooth' && printerSettings.printerConnected) {
+        if (isBluetoothPrinterReady()) {
             renderHeaderPrinterStatus();
             return true;
         }
 
-        if (printerSettings.connectionType === 'web-bluetooth' && printerSettings.connectedDeviceId) {
+        if (printerSettings.connectionType === 'web-bluetooth' && hasRememberedPrinter()) {
+            printerConnectionStatus = 'Trying to reconnect the saved Bluetooth printer...';
+            renderPrinterSettings();
             const reconnected = await attemptAutoReconnectPrinter();
-            if (reconnected && printerSettings.printerConnected) {
+            if (reconnected && isBluetoothPrinterReady()) {
                 renderHeaderPrinterStatus();
                 return true;
             }
         }
 
-        printerConnectionStatus = 'Bluetooth printer is required before submitting orders.';
+        printerConnectionStatus = 'Printer is not connected. Chrome will ask you to reconnect before submitting.';
         renderPrinterSettings();
-        await Swal.fire('Printer Not Connected', 'Connect your XP-58IID Bluetooth printer first. Receipt printing is required before submit.', 'warning');
+
+        const connectedFromSubmit = await searchAndConnectPrinter({ silentCancel: true });
+        if (connectedFromSubmit && isBluetoothPrinterReady()) {
+            printerConnectionStatus = 'Bluetooth thermal printer reconnected and ready.';
+            renderPrinterSettings();
+            return true;
+        }
+
+        printerConnectionStatus = 'Connect your Bluetooth thermal printer before submitting orders.';
+        renderPrinterSettings();
+        await Swal.fire('Printer Not Ready', 'Submit is blocked until the Bluetooth thermal printer is connected.', 'warning');
         return false;
     }
 
@@ -3118,15 +3231,10 @@
         const saveBtn = document.getElementById('save-printer-settings-btn');
         toggleButtonLoading(saveBtn, true);
         try {
-            printerSettings = {
-                ...getPrinterSettingsFromForm(),
-                connectedDeviceId: printerSettings.connectedDeviceId || '',
-                connectedDeviceName: printerSettings.connectedDeviceName || ''
-            };
             await db.collection('settings').doc('posPrinter').set(printerSettings);
             printerConnectionStatus = printerSettings.printerConnected
                 ? `Printer settings saved. ${printerSettings.connectedDeviceName || printerSettings.printerName || 'Printer'} is ready.`
-                : 'Printer settings saved. Connect a printer when you are ready to print.';
+                : 'Printer settings saved. Connect the printer when you are ready.';
             renderPrinterSettings();
             Toast.fire({ icon: 'success', title: 'Printer settings saved.' });
         } catch (error) {
@@ -3134,6 +3242,83 @@
         } finally {
             toggleButtonLoading(saveBtn, false);
         }
+    }
+
+    function buildBluetoothReceiptText(order) {
+        const lines = [
+            order.storeName || printerSettings.storeName || 'Rice Inventory Management',
+            dayjs(order.createdAt).format('MMMM D, YYYY h:mm A'),
+            `Order #: ${order.id}`,
+            '',
+            '-------------------------'
+        ];
+
+        order.items.forEach(item => {
+            lines.push(item.name);
+            lines.push(`${item.category} x ${formatQuantity(item.quantity)}`);
+            lines.push(`TOTAL: PHP ${formatCurrency(item.total)}`);
+            lines.push('-------------------------');
+        });
+
+        lines.push(`GRAND TOTAL: PHP ${formatCurrency(order.total)}`);
+        if (order.paymentEntered) {
+            lines.push(`CASH: PHP ${formatCurrency(order.amountPaid)}`);
+            lines.push(`CHANGE: PHP ${formatCurrency(order.changeDue || 0)}`);
+        }
+        lines.push('');
+        lines.push(order.footerNote || printerSettings.footerNote || 'Thank you for your purchase!');
+        lines.push('');
+        return lines.join('\n');
+    }
+
+    function promiseTimeout(promise, timeoutMs, errorMessage) {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), timeoutMs))
+        ]);
+    }
+
+    async function writeBluetoothChunkWithTimeout(chunk, timeoutMs = 2500) {
+        if (!bluetoothPrinterCharacteristic) {
+            throw new Error('Printer characteristic is not available.');
+        }
+
+        const writePromise = (bluetoothPrinterCharacteristic.properties.writeWithoutResponse && bluetoothPrinterCharacteristic.writeValueWithoutResponse)
+            ? bluetoothPrinterCharacteristic.writeValueWithoutResponse(chunk)
+            : bluetoothPrinterCharacteristic.writeValue(chunk);
+
+        await promiseTimeout(writePromise, timeoutMs, 'Printer write timeout.');
+    }
+
+    async function writeBluetoothChunks(data) {
+        if (!bluetoothPrinterCharacteristic || !bluetoothPrinterDevice?.gatt?.connected) {
+            throw new Error('Bluetooth thermal printer is not connected.');
+        }
+
+        const chunkSize = 180;
+        for (let i = 0; i < data.length; i += chunkSize) {
+            const chunk = data.slice(i, i + chunkSize);
+            await writeBluetoothChunkWithTimeout(chunk);
+            await new Promise(resolve => setTimeout(resolve, 40));
+        }
+    }
+
+    async function printReceiptViaBluetooth(order) {
+        if (!bluetoothPrinterCharacteristic || !bluetoothPrinterDevice?.gatt?.connected) {
+            return false;
+        }
+
+        const encoder = new TextEncoder();
+        const text = buildBluetoothReceiptText(order);
+        const payload = new Uint8Array([
+            27, 64,
+            ...encoder.encode(text),
+            10, 10, 10,
+            29, 86, 1
+        ]);
+
+        await promiseTimeout(writeBluetoothChunks(payload), 12000, 'Printer did not finish responding.');
+        return true;
     }
 
     function buildReceiptHtml(order, shouldAutoPrint = true) {
@@ -3250,33 +3435,47 @@
             ...printerSettings
         };
 
-        openReceiptWindow(testOrder, true);
+        try {
+            await printReceiptViaBluetooth(testOrder);
+            Toast.fire({ icon: 'success', title: 'Test receipt sent to printer.' });
+        } catch (error) {
+            console.error('Test print failed:', error);
+            printerConnectionStatus = 'Test print failed. Check the printer connection and try reconnecting.';
+            renderPrinterSettings();
+            Swal.fire('Print Failed', 'Connected to printer, but sending the receipt failed.', 'error');
+        }
     }
 
     async function submitPosOrder() {
+        if (isSubmittingPosOrder) {
+            return;
+        }
         if (posCart.length === 0) {
             Toast.fire({ icon: 'error', title: 'Cart is empty.' });
             return;
         }
-        if (!(await ensurePrinterConnection())) return;
 
         const submitBtn = document.getElementById('submit-order-btn');
+        isSubmittingPosOrder = true;
         toggleButtonLoading(submitBtn, true);
         try {
+            if (!(await ensurePrinterConnection())) return;
+
             printerSettings = getPrinterSettingsFromForm();
             await startDay(todayDateString);
 
-            const orderId = `ORD-${dayjs().format('YYYYMMDD-HHmmss')}`;
-            const orderRef = db.collection('orders').doc(orderId);
+            const orderCounterRef = db.collection('settings').doc('orderCounter');
             const reportRef = db.collection('reports').doc(todayDateString);
             const orderTotals = getPosCartTotals();
             const paymentSummary = getPosPaymentSummary();
+            let orderId = '';
             if (paymentSummary.paymentEntered && paymentSummary.amountPaid < orderTotals.amount) {
                 throw new Error(`Customer payment is short by ${String.fromCharCode(8369)}${formatCurrency(paymentSummary.balanceDue)}.`);
             }
 
             await db.runTransaction(async transaction => {
                 const reportDoc = await transaction.get(reportRef);
+                const orderCounterDoc = await transaction.get(orderCounterRef);
                 if (!reportDoc.exists) {
                     throw new Error('Today report not found.');
                 }
@@ -3284,6 +3483,10 @@
                 const report = reportDoc.data();
                 const reportData = report.data || {};
                 const updatePayload = {};
+                const lastOrderNumber = orderCounterDoc.exists ? parseInt(orderCounterDoc.data()?.lastNumber, 10) || 0 : 0;
+                const nextOrderNumber = lastOrderNumber + 1;
+                orderId = String(nextOrderNumber).padStart(6, '0');
+                const orderRef = db.collection('orders').doc(orderId);
 
                 posCart.forEach(item => {
                     const currentItem = reportData[item.productId];
@@ -3295,6 +3498,10 @@
                 });
 
                 transaction.update(reportRef, updatePayload);
+                transaction.set(orderCounterRef, {
+                    lastNumber: nextOrderNumber,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
                 transaction.set(orderRef, {
                     id: orderId,
                     date: todayDateString,
@@ -3332,7 +3539,17 @@
             };
 
             if (printerSettings.autoPrint) {
-                openReceiptWindow(completedOrder, true);
+                try {
+                    const printed = await printReceiptViaBluetooth(completedOrder);
+                    if (!printed) {
+                        throw new Error('Bluetooth thermal printer is not ready.');
+                    }
+                } catch (error) {
+                    console.error('Bluetooth print failed:', error);
+                    printerConnectionStatus = 'Bluetooth print failed. Check the printer and reconnect, then use Test Print Receipt.';
+                    renderPrinterSettings();
+                    await Swal.fire('Bluetooth Print Failed', 'The order was saved, but the thermal printer did not finish printing. Please reconnect the printer and reprint if needed.', 'warning');
+                }
             }
 
             clearPosCart();
@@ -3344,6 +3561,7 @@
             const message = typeof error.message === 'string' ? error.message : handleFirestoreError(error);
             Swal.fire('Order Failed', message, 'error');
         } finally {
+            isSubmittingPosOrder = false;
             toggleButtonLoading(submitBtn, false);
         }
     }
