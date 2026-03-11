@@ -483,6 +483,43 @@
       backdrop-filter: blur(12px);
     }
 
+    .header-printer-icon-btn {
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #475569;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .header-printer-icon-btn.connected {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: #166534;
+    }
+
+    .header-printer-icon-btn.disconnected {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .header-printer-icon-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+    }
+
+    .header-printer-icon-btn svg {
+      width: 1.05rem;
+      height: 1.05rem;
+      display: block;
+    }
+
     .section-hero {
       display: flex;
       justify-content: space-between;
@@ -849,7 +886,7 @@
     }
 
     .pos-selling-price-value {
-      font-size: 2rem;
+      font-size: 1.45rem;
       font-weight: 900;
       line-height: 1;
       color: #dc2626;
@@ -861,31 +898,114 @@
       top: 1rem;
       background: #fff;
       border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 1.25rem;
-      box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
+      border-radius: 18px;
+      padding: 1rem;
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .pos-cart-header-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .pos-cart-header-note {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-top: 0.2rem;
+    }
+
+    .pos-cart-clear-btn {
+      font-size: 0.82rem;
+      font-weight: 700;
     }
 
     .pos-cart-items {
-      max-height: 300px;
+      max-height: 250px;
       overflow-y: auto;
       display: grid;
-      gap: 0.75rem;
+      gap: 0.6rem;
     }
 
     .pos-cart-item {
       border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 0.85rem;
+      border-radius: 12px;
+      padding: 0.7rem;
       background: #f8fafc;
     }
 
     .pos-cart-summary {
       border-top: 1px solid #e2e8f0;
-      margin-top: 1rem;
-      padding-top: 1rem;
+      margin-top: 0.85rem;
+      padding-top: 0.85rem;
       display: grid;
-      gap: 0.6rem;
+      gap: 0.45rem;
+    }
+
+    .pos-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .pos-summary-row.total-row {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .pos-summary-row.change-row {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #047857;
+    }
+
+    .pos-payment-shell {
+      margin-top: 0.5rem;
+      padding: 0.7rem;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
+    .pos-payment-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 0.35rem;
+    }
+
+    .pos-payment-shell input {
+      min-height: 40px;
+      font-size: 0.9rem;
+    }
+
+    .pos-payment-note {
+      font-size: 0.72rem;
+      margin-top: 0.35rem;
+    }
+
+    .pos-cart-actions {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.75rem;
+    }
+
+    .pos-primary-action {
+      min-height: 42px;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .pos-secondary-action {
+      min-height: 36px;
+      font-size: 0.8rem;
+      border-radius: 10px;
     }
 
     .pos-empty-state {
@@ -951,26 +1071,28 @@
     }
 
     .pos-product-grid {
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+      gap: 0.75rem;
     }
 
     .pos-product-card {
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       border: 1px solid #dbeafe;
-      border-radius: 20px;
-      padding: 1.1rem;
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-      min-height: 220px;
+      border-radius: 18px;
+      padding: 0.7rem;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.07);
+      min-height: 154px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      gap: 0.45rem;
     }
 
     .pos-add-btn {
-      min-height: 52px;
-      border-radius: 14px;
+      min-height: 56px;
+      border-radius: 16px;
       font-size: 1rem;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .pos-price-edit-btn {
@@ -978,8 +1100,8 @@
       background: #eff6ff;
       color: #1d4ed8;
       border-radius: 999px;
-      padding: 0.35rem 0.7rem;
-      font-size: 0.72rem;
+      padding: 0.22rem 0.5rem;
+      font-size: 0.66rem;
       font-weight: 700;
       line-height: 1;
     }
@@ -989,11 +1111,72 @@
     }
 
     .pos-qty-input {
-      min-height: 52px;
+      min-height: 44px;
+      max-width: 68px;
       text-align: center;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
       border-radius: 14px;
+    }
+
+    .pos-card-category {
+      font-size: 0.66rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      margin-top: 0.25rem;
+    }
+
+    .pos-cart-count {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #2563eb;
+    }
+
+    .pos-tap-actions {
+      margin-top: 0.45rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .pos-tap-shell {
+      border: 1px solid #bfdbfe;
+      background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+      border-radius: 16px;
+      padding: 0.7rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      outline: none;
+    }
+
+    .pos-tap-shell:hover,
+    .pos-tap-shell:focus-visible {
+      border-color: #60a5fa;
+      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .pos-tap-shell:active {
+      transform: scale(0.98);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
+    }
+
+    .pos-quick-add-note {
+      margin-top: 0.3rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #15803d;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pos-card-footer {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.4rem;
     }
 
     .pos-live-note {
@@ -1038,6 +1221,113 @@
       padding: 0.85rem;
     }
 
+
+    @media (min-width: 900px) and (max-width: 1366px) and (orientation: landscape) {
+      .pos-layout {
+        grid-template-columns: minmax(0, 1.9fr) 280px;
+        gap: 1rem;
+      }
+
+      .pos-stage {
+        padding: 0.9rem;
+      }
+
+      .pos-cart {
+        padding: 0.85rem;
+      }
+
+      .pos-category-tabs {
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .pos-category-btn {
+        padding: 0.72rem 0.55rem;
+        font-size: 0.84rem;
+      }
+
+      .pos-toolbar {
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .pos-search-shell {
+        padding: 0.7rem 0.85rem;
+      }
+
+      .pos-product-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.55rem;
+      }
+
+      .pos-product-card {
+        min-height: 138px;
+        padding: 0.55rem;
+      }
+
+      .pos-tap-shell {
+        padding: 0.55rem;
+      }
+
+      .rice-name-badge {
+        font-size: 0.96rem;
+      }
+
+      .pos-selling-price-value {
+        font-size: 1.28rem;
+      }
+
+      .pos-stock-pill,
+      .pos-card-category,
+      .pos-quick-add-note,
+      .pos-cart-count {
+        font-size: 0.62rem;
+      }
+
+      .pos-cart-items {
+        max-height: 220px;
+      }
+
+      .pos-empty-state {
+        padding: 1.4rem 0.8rem;
+        font-size: 0.82rem;
+      }
+
+      .pos-summary-row {
+        font-size: 0.76rem;
+      }
+
+      .pos-summary-row.total-row {
+        font-size: 0.92rem;
+      }
+
+      .pos-summary-row.change-row {
+        font-size: 0.82rem;
+      }
+
+      .pos-payment-shell {
+        padding: 0.6rem;
+      }
+
+      .pos-payment-label {
+        font-size: 0.76rem;
+      }
+
+      .pos-payment-shell input {
+        min-height: 36px;
+        font-size: 0.84rem;
+      }
+
+      .pos-primary-action {
+        min-height: 40px;
+        font-size: 0.86rem;
+      }
+
+      .pos-secondary-action {
+        min-height: 34px;
+        font-size: 0.76rem;
+      }
+    }
 
     @media (max-width: 768px) {
       .pos-layout {
@@ -1156,6 +1446,9 @@
       <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
         <span id="current-date-display" aria-live="polite"></span>
       </div>
+      <button id="header-printer-status" onclick="showPrinterConnectionInfo()" class="header-printer-icon-btn disconnected" title="Printer not connected" aria-label="Show printer status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5a8 8 0 0 1 11 0"></path><path d="M9.5 9.5a4 4 0 0 1 5 0"></path><path d="M12 17h.01"></path></svg>
+      </button>
       <button onclick="showHistory()" title="Report History" aria-label="View Report History" class="text-slate-600 hover:text-blue-600 p-2 transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -1215,12 +1508,12 @@
         </section>
 
         <aside class="pos-cart">
-          <div class="flex items-center justify-between gap-3 mb-4">
+          <div class="flex items-center justify-between gap-3 mb-3">
             <div>
-              <h3 class="text-lg font-bold text-slate-800">Current Order</h3>
-              <p class="text-sm text-slate-500">Receipt prints after submit.</p>
+              <h3 class="pos-cart-header-title">Current Order</h3>
+              <p class="pos-cart-header-note">Receipt prints after submit.</p>
             </div>
-            <button onclick="clearPosCart()" class="text-sm text-slate-500 hover:text-red-600">Clear</button>
+            <button onclick="clearPosCart()" class="pos-cart-clear-btn text-slate-500 hover:text-red-600">Clear</button>
           </div>
 
           <div id="pos-cart-items" class="pos-cart-items">
@@ -1228,30 +1521,32 @@
           </div>
 
           <div class="pos-cart-summary">
-            <div class="flex items-center justify-between text-sm text-slate-500">
+            <div class="pos-summary-row">
               <span>Total Items</span>
               <span id="pos-cart-count">0</span>
             </div>
-            <div class="flex items-center justify-between text-xl font-bold text-slate-800">
+            <div class="pos-summary-row total-row">
               <span>Total</span>
               <span id="pos-cart-total">&#8369;0.00</span>
             </div>
-            <div class="flex items-center justify-between text-sm text-slate-600">
+            <div class="pos-summary-row">
               <span>Cash Received</span>
               <span id="pos-cash-display">&#8369;0.00</span>
             </div>
-            <div class="flex items-center justify-between text-base font-semibold text-emerald-700">
+            <div class="pos-summary-row change-row">
               <span>Change</span>
               <span id="pos-change-display">&#8369;0.00</span>
             </div>
-            <div class="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <label for="pos-cash-received" class="block text-sm font-medium text-slate-700">Customer Payment</label>
+            <div class="pos-payment-shell">
+              <label for="pos-cash-received" class="pos-payment-label">Customer Payment</label>
               <input id="pos-cash-received" type="number" min="0" step="0.01" placeholder="Optional amount received" oninput="renderPosCart()">
-              <p id="pos-payment-note" class="text-xs text-slate-500">Add payment amount if the customer already handed over cash.</p>
+              <p id="pos-payment-note" class="pos-payment-note text-slate-500">Add payment amount if the customer already handed over cash.</p>
             </div>
-            <button id="submit-order-btn" onclick="submitPosOrder()" class="btn-success w-full py-3 text-base font-semibold">Submit Order & Print</button>
-            <button onclick="printDraftReceipt()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-full py-2 rounded-md text-sm">Preview Receipt</button>
-            <button onclick="showView('night-inventory-view')" class="bg-slate-900 hover:bg-slate-700 text-white w-full py-2 rounded-md text-sm">Open Night Inventory</button>
+            <div class="pos-cart-actions">
+              <button id="submit-order-btn" onclick="submitPosOrder()" class="btn-success w-full pos-primary-action">Submit Order & Print</button>
+              <button id="preview-receipt-btn" onclick="printDraftReceipt()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-full pos-secondary-action">Preview Receipt</button>
+              <button onclick="showView('night-inventory-view')" class="bg-slate-900 hover:bg-slate-700 text-white w-full pos-secondary-action">Open Night Inventory</button>
+            </div>
           </div>
         </aside>
       </div>
@@ -1760,50 +2055,8 @@
                     </div>
                 </div>
                 <div class="settings-card">
-                    <h3>Receipt Printer</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label for="printer-store-name" class="block text-sm font-medium text-slate-700 mb-1">Store Name</label>
-                            <input id="printer-store-name" type="text" placeholder="Rice Inventory Management">
-                        </div>
-                        <div>
-                            <label for="printer-name" class="block text-sm font-medium text-slate-700 mb-1">Printer Label</label>
-                            <input id="printer-name" type="text" placeholder="e.g., Xprinter XP-58IID">
-                        </div>
-                        <div>
-                            <label for="printer-paper-width" class="block text-sm font-medium text-slate-700 mb-1">Paper Width</label>
-                            <select id="printer-paper-width">
-                                <option value="80mm">80mm Thermal</option>
-                                <option value="58mm">58mm Thermal</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="printer-footer-note" class="block text-sm font-medium text-slate-700 mb-1">Receipt Footer</label>
-                            <input id="printer-footer-note" type="text" placeholder="Thank you for your purchase!">
-                        </div>
-                        <label class="flex items-center gap-2 text-sm text-slate-700">
-                            <input id="printer-auto-print" type="checkbox" class="w-auto">
-                            Auto print receipt after submit
-                        </label>
-                        <label class="flex items-center gap-2 text-sm text-slate-700">
-                            <input id="printer-kiosk-mode" type="checkbox" class="w-auto">
-                            Chrome kiosk printing enabled on this PC
-                        </label>
-                    </div>
-                    <div class="printer-note mt-4">
-                        For tablet use, tap <strong>Search & Connect Printer</strong> and choose <strong>XP-58IID</strong> if Chrome can see it. After the first successful connection, the app will try to reconnect automatically when Chrome still remembers the printer. If Chrome only prints through the print window, keep using that flow and save the printer name here.
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-                        <button id="connect-printer-btn" onclick="connectPrinterFromBrowser()" class="bg-emerald-600 text-white hover:bg-emerald-700 py-2 px-4 rounded transition">Search & Connect Printer</button>
-                        <button id="disconnect-printer-btn" onclick="disconnectPrinterConnection()" class="bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">Disconnect</button>
-                        <button onclick="testPrintReceipt()" class="bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">Test Print Receipt</button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                        <button id="save-printer-settings-btn" onclick="savePrinterSettings()" class="btn-primary w-full">Save Printer Settings</button>
-                        <button onclick="useChromePrintMode()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 py-2 px-4 rounded transition">Use Chrome Print Mode</button>
-                    </div>
-                    <p id="printer-connection-display" class="text-sm font-medium text-slate-700 mt-3">Printer not connected.</p>
-                    <p id="printer-settings-status" class="text-xs text-slate-500 mt-2">Receipt printing uses the browser print window unless kiosk printing is enabled in Chrome.</p>
+                    <h3>Printer</h3>
+                    <p>Printer connection is now managed from the small printer status icon near the top-right header.</p>
                 </div>
                 <div class="settings-card border-red-200 bg-red-50">
 
@@ -2334,33 +2587,23 @@
             const categoryColorClass = getCategoryColorClass(product.category);
             return `
                 <div class="pos-product-card ${isOutOfStock ? 'out-of-stock' : ''}">
-                    <div>
-                        <div class="flex items-start justify-between gap-3 mb-3">
+                    <div class="pos-tap-shell" role="button" tabindex="0" onclick="quickAddPosProduct('${product.id}')" onkeydown="handlePosProductCardKey(event, '${product.id}')">
+                        <div class="flex items-start justify-between gap-2 mb-2">
                             <div>
                                 <div class="rice-name-badge ${categoryColorClass}">${escapeHtml(product.name)}</div>
-                                <p class="text-xs text-slate-500 uppercase tracking-wide mt-2">${escapeHtml(product.category)}</p>
+                                <p class="pos-card-category">${escapeHtml(product.category)}</p>
                             </div>
-                            <span class="pos-stock-pill">Available: ${formatQuantity(freeStock)}</span>
+                            <span class="pos-stock-pill">${formatQuantity(freeStock)}</span>
                         </div>
-                        <div class="flex items-end justify-between gap-3 mb-4">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <p class="pos-selling-price-label">Selling Price</p>
-                                    <button class="pos-price-edit-btn" onclick="quickEditPosSellingPrice('${product.id}')">Edit</button>
-                                </div>
-                                <p class="pos-selling-price-value">&#8369;${formatCurrency(price)}</p>
-                            </div>
-                            <div class="text-right text-xs text-slate-500">
-                                <div>Capital: &#8369;${formatCurrency(product.cost || 0)}</div>
-                                <div>Profit: &#8369;${formatCurrency(product.profitMargin || 0)}</div>
-                            </div>
+                        <p class="pos-selling-price-value">&#8369;${formatCurrency(price)}</p>
+                        <div class="pos-tap-actions">
+                            <div class="pos-quick-add-note">Tap rice to add</div>
+                            <button class="pos-price-edit-btn" onclick="event.stopPropagation(); quickEditPosSellingPrice('${product.id}')">Edit</button>
                         </div>
                     </div>
-                    <div class="space-y-2">
-                        <div class="text-xs text-slate-500">Already in cart: ${formatQuantity(reservedQuantity)}</div>
-                        <div class="flex gap-2">
-                            <input id="pos-qty-${product.id}" type="number" min="${getQuantityStep(product.category)}" step="${getQuantityStep(product.category)}" value="${getQuantityStep(product.category)}" class="pos-qty-input" ${isOutOfStock ? 'disabled' : ''}>
-                            <button class="btn-primary flex-1 pos-add-btn" onclick="addProductToPosCart('${product.id}')" ${isOutOfStock ? 'disabled' : ''}>Add To Cart</button>
+                    <div class="pos-card-footer">
+                        <div class="w-full text-right">
+                            <div class="pos-cart-count">In cart: ${formatQuantity(reservedQuantity)}</div>
                         </div>
                     </div>
                 </div>`;
@@ -2464,6 +2707,25 @@
         renderPosProductGrid();
     }
 
+    function quickAddPosProduct(productId) {
+        const product = shopProducts.find(item => item.id === productId);
+        if (!product) return;
+
+        const quantityInput = document.getElementById(`pos-qty-${productId}`);
+        if (quantityInput) {
+            quantityInput.value = getQuantityStep(product.category);
+        }
+
+        addProductToPosCart(productId);
+    }
+
+    function handlePosProductCardKey(event, productId) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            quickAddPosProduct(productId);
+        }
+    }
+
     function addProductToPosCart(productId) {
         const product = shopProducts.find(item => item.id === productId);
         if (!product) return;
@@ -2561,7 +2823,7 @@
             printerName: document.getElementById('printer-name').value.trim() || '',
             paperWidth: document.getElementById('printer-paper-width').value || DEFAULT_PRINTER_SETTINGS.paperWidth,
             footerNote: document.getElementById('printer-footer-note').value.trim() || DEFAULT_PRINTER_SETTINGS.footerNote,
-            autoPrint: !!document.getElementById('printer-auto-print').checked,
+            autoPrint: true,
             kioskMode: !!document.getElementById('printer-kiosk-mode').checked
         };
     }
@@ -2577,6 +2839,49 @@
             connectedDeviceId: ''
         };
         renderPrinterSettings();
+    }
+
+    function renderHeaderPrinterStatus() {
+        const badge = document.getElementById('header-printer-status');
+        const isConnected = !!printerSettings.printerConnected && printerSettings.connectionType === 'web-bluetooth';
+        const deviceName = printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID';
+
+        if (!badge) return;
+
+        badge.classList.remove('connected', 'disconnected');
+        badge.classList.add(isConnected ? 'connected' : 'disconnected');
+        badge.title = isConnected ? `${deviceName} connected` : 'Printer not connected';
+        badge.setAttribute('aria-label', isConnected ? `${deviceName} connected` : 'Printer not connected');
+    }
+
+    function showPrinterConnectionInfo() {
+        const isConnected = !!printerSettings.printerConnected && printerSettings.connectionType === 'web-bluetooth';
+        const deviceName = printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID';
+        const modeLabel = printerSettings.connectionType === 'web-bluetooth' ? 'Bluetooth' : 'Chrome Print';
+        const lastConnected = printerSettings.lastConnectedAt
+            ? dayjs(printerSettings.lastConnectedAt).format('MMMM D, YYYY h:mm A')
+            : 'No saved connection yet';
+
+        Swal.fire({
+            title: 'Printer Status',
+            html: `
+                <div style="text-align:left; font-size:14px; line-height:1.6;">
+                    <div><strong>Status:</strong> ${isConnected ? 'Connected' : 'Not Connected'}</div>
+                    <div><strong>Printer:</strong> ${escapeHtml(deviceName)}</div>
+                    <div><strong>Mode:</strong> ${escapeHtml(modeLabel)}</div>
+                    <div><strong>Auto Print:</strong> Enabled</div>
+                    <div><strong>Last Connected:</strong> ${escapeHtml(lastConnected)}</div>
+                    <div style="display:grid; gap:8px; margin-top:14px;">
+                        <button type="button" onclick="Swal.close(); searchAndConnectPrinter();" style="padding:10px 12px; border-radius:10px; border:none; background:#dbeafe; color:#1d4ed8; font-weight:700;">Search & Connect Printer</button>
+                        <button type="button" onclick="Swal.close(); disconnectPrinterConnection();" style="padding:10px 12px; border-radius:10px; border:none; background:#e2e8f0; color:#334155; font-weight:700;">Disconnect Printer</button>
+                        <button type="button" onclick="Swal.close(); testPrintReceipt();" style="padding:10px 12px; border-radius:10px; border:none; background:#0f172a; color:#fff; font-weight:700;">Test Print Receipt</button>
+                    </div>
+                </div>
+            `,
+            icon: isConnected ? 'success' : 'info',
+            showConfirmButton: false,
+            showCloseButton: true
+        });
     }
 
     function renderPrinterSettings() {
@@ -2615,6 +2920,8 @@
                 statusEl.textContent = 'Receipt printing uses the browser print window unless kiosk printing is enabled in Chrome.';
             }
         }
+
+        renderHeaderPrinterStatus();
     }
 
     function registerPrinterDevice(device) {
@@ -2768,12 +3075,25 @@
         Toast.fire({ icon: 'success', title: 'Chrome Print Mode saved.' });
     }
 
-    function ensurePrinterConnection() {
+    async function ensurePrinterConnection() {
         printerSettings = getPrinterSettingsFromForm();
-        if (printerSettings.printerConnected) {
+
+        if (printerSettings.connectionType === 'web-bluetooth' && printerSettings.printerConnected) {
+            renderHeaderPrinterStatus();
             return true;
         }
-        Swal.fire('Printer Not Ready', 'Open Settings and connect XP-58IID first, or save Chrome Print Mode before printing.', 'warning');
+
+        if (printerSettings.connectionType === 'web-bluetooth' && printerSettings.connectedDeviceId) {
+            const reconnected = await attemptAutoReconnectPrinter();
+            if (reconnected && printerSettings.printerConnected) {
+                renderHeaderPrinterStatus();
+                return true;
+            }
+        }
+
+        printerConnectionStatus = 'Bluetooth printer is required before submitting orders.';
+        renderPrinterSettings();
+        await Swal.fire('Printer Not Connected', 'Connect your XP-58IID Bluetooth printer first. Receipt printing is required before submit.', 'warning');
         return false;
     }
 
@@ -2885,12 +3205,12 @@
         return true;
     }
 
-    function printDraftReceipt() {
+    async function printDraftReceipt() {
         if (posCart.length === 0) {
             Toast.fire({ icon: 'info', title: 'Add items to the cart first.' });
             return;
         }
-        if (!ensurePrinterConnection()) return;
+        if (!(await ensurePrinterConnection())) return;
 
         printerSettings = getPrinterSettingsFromForm();
         const totals = getPosCartTotals();
@@ -2910,7 +3230,7 @@
     }
 
     async function testPrintReceipt() {
-        if (!ensurePrinterConnection()) return;
+        if (!(await ensurePrinterConnection())) return;
         printerSettings = getPrinterSettingsFromForm();
         const testOrder = {
             id: `TEST-${Date.now()}`,
@@ -2938,7 +3258,7 @@
             Toast.fire({ icon: 'error', title: 'Cart is empty.' });
             return;
         }
-        if (!ensurePrinterConnection()) return;
+        if (!(await ensurePrinterConnection())) return;
 
         const submitBtn = document.getElementById('submit-order-btn');
         toggleButtonLoading(submitBtn, true);
@@ -3940,16 +4260,25 @@
      * and waits for the user's input.
      * @returns {Promise<{success: boolean, password?: string}>}
      */
-    async function getPassword() {
+    async function getPassword(options = {}) {
+        const { allowBypassIfUnset = true } = options;
         const securityDoc = await db.collection('settings').doc('security').get();
         const storedPasswordHash = securityDoc.exists ? securityDoc.data().passwordHash : null;
         
-        // If no password is set, grant access immediately.
         if (!storedPasswordHash) {
-            return { success: true };
+            if (allowBypassIfUnset) {
+                return { success: true, noPasswordSet: true };
+            }
+
+            await Swal.fire({
+                title: 'No Password Set',
+                text: 'No settings password is saved yet. Open Settings and create one in Security.',
+                icon: 'info',
+                confirmButtonText: 'Continue'
+            });
+            return { success: true, noPasswordSet: true };
         }
 
-        // Show the modal and wait for it to be resolved (by submitPassword or cancelPasswordEntry)
         openPasswordModal();
         return new Promise(resolve => {
             passwordModalResolver = resolve;
@@ -4490,9 +4819,15 @@
     }
     function closeSettingsPanel() { document.getElementById('settings-panel').classList.remove('open'); }
     async function openSettingsWithPassword() { 
-        const password = await getPassword(); 
+        const password = await getPassword({ allowBypassIfUnset: false }); 
         if (password.success) {
             openSettingsPanel();
+            if (password.noPasswordSet) {
+                const systemNav = document.querySelector('.settings-nav-link[data-target="settings-system-view"]');
+                if (systemNav) {
+                    showSettingsView('settings-system-view', systemNav);
+                }
+            }
         }
     }
 
