@@ -23,18 +23,29 @@
   <style>
     /* Custom CSS Variables for easy theming */
     :root {
-      --primary: #3b82f6; /* Blue-500 */
-      --secondary: #10b981; /* Green-500 */
-      --accent: #f59e0b; /* Amber-500 */
-      --light: #f8fafc; /* Slate-50 */
-      --dark: #1e293b; /* Slate-800 */
+      --primary: #1d4ed8;
+      --primary-deep: #0f172a;
+      --secondary: #0f766e;
+      --accent: #d97706;
+      --light: #f4f7fb;
+      --surface: rgba(255, 255, 255, 0.92);
+      --surface-strong: #ffffff;
+      --border-soft: rgba(148, 163, 184, 0.22);
+      --dark: #0f172a;
+      --muted: #64748b;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
+      --shadow-card: 0 12px 30px rgba(15, 23, 42, 0.09);
     }
     
     body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background-color: var(--light); 
-      color: #334155; /* Slate-700 */
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(13, 148, 136, 0.1), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+      color: #334155;
       margin: 0;
+      min-height: 100vh;
     }
     
     /* View Transition Styling */
@@ -191,12 +202,13 @@
     /* Input Styling */
     input[type="number"], input[type="text"], input[type="password"], input[type="date"], input[type="month"], select { 
       width: 100%; 
-      padding: 6px; 
+      padding: 10px 12px; 
       font-size: 13px; 
       box-sizing: border-box; 
-      border-radius: 4px; 
-      border: 1px solid #cbd5e1; /* Slate-300 */
-      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+      border-radius: 12px; 
+      border: 1px solid rgba(148, 163, 184, 0.38);
+      background: rgba(255,255,255,0.92);
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, transform 0.2s;
     }
     
     input[type="number"]:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, input[type="month"]:focus, select:focus {
@@ -349,7 +361,9 @@
     #settings-panel { 
       transition: transform 0.3s ease-in-out; 
       transform: translateX(100%);
-      box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+      box-shadow: -24px 0 50px rgba(15, 23, 42, 0.18);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(246,250,255,0.98) 100%);
+      backdrop-filter: blur(18px);
     }
     
     #settings-panel.open { 
@@ -357,29 +371,41 @@
     }
     
     .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
+      background: var(--surface);
+      border-radius: 22px;
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      backdrop-filter: blur(12px);
     }
     
     .card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
+      border-color: rgba(59, 130, 246, 0.22);
     }
     
     .nav-tab {
-      padding: 10px 16px;
-      border-radius: 6px;
-      font-weight: 500;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #475569;
       transition: all 0.2s;
       cursor: pointer;
       user-select: none;
+      border: 1px solid transparent;
+    }
+
+    .nav-tab:hover {
+      background: rgba(255,255,255,0.72);
+      color: var(--primary-deep);
     }
     
     .nav-tab.active {
-      background-color: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
       color: white;
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.24);
     }
     
     /* --- NEW: Modern Settings Panel --- */
@@ -390,28 +416,32 @@
       height: 100%;
     }
     .settings-nav {
-      background-color: #f8fafc;
+      background: linear-gradient(180deg, rgba(248,250,252,0.95) 0%, rgba(241,245,249,0.9) 100%);
       border-right: 1px solid #e2e8f0;
       padding: 1rem;
+      border-radius: 20px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
     }
     .settings-nav-link {
       display: block;
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      font-weight: 500;
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      font-weight: 700;
       color: #475569;
       cursor: pointer;
-      transition: background-color 0.2s, color 0.2s;
+      transition: background-color 0.2s, color 0.2s, transform 0.2s;
       border: 1px solid transparent;
     }
     .settings-nav-link:hover {
       background-color: #e2e8f0;
       color: #1e293b;
+      transform: translateX(2px);
     }
     .settings-nav-link.active {
-      background-color: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
       color: white;
-      font-weight: 600;
+      font-weight: 700;
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.18);
     }
     .settings-content {
       padding: 1rem;
@@ -425,11 +455,12 @@
       animation: fadeIn 0.3s ease-in-out;
     }
     .settings-card {
-      background-color: white;
+      background: rgba(255,255,255,0.94);
       padding: 1.5rem;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
       margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-card);
     }
     .settings-card h3 {
       font-size: 1.25rem;
@@ -442,6 +473,48 @@
       margin-bottom: 1rem;
     }
 
+
+    .page-shell {
+      background: rgba(255,255,255,0.58);
+      border: 1px solid rgba(255,255,255,0.5);
+      border-radius: 26px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+    }
+
+    .section-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.15rem 1.25rem;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(239,246,255,0.92) 100%);
+      border: 1px solid rgba(191, 219, 254, 0.7);
+      box-shadow: var(--shadow-card);
+    }
+
+    .section-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 0.35rem;
+    }
+
+    .section-hero h2 {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.15;
+      color: var(--dark);
+    }
+
+    .section-hero p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+    }
 
     .analytics-tab {
         padding: 8px 14px;
@@ -467,21 +540,23 @@
     }
     
     .btn-primary {
-      background-color: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
       color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-weight: 500;
-      transition: background-color 0.2s;
+      padding: 11px 20px;
+      border-radius: 14px;
+      font-weight: 700;
+      transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
       border: none;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.22);
     }
     
     .btn-primary:hover {
-      background-color: #2563eb;
+      transform: translateY(-1px);
+      filter: brightness(1.03);
     }
 
     .btn-secondary {
@@ -499,21 +574,23 @@
     }
     
     .btn-success {
-      background-color: var(--secondary);
+      background: linear-gradient(135deg, var(--secondary) 0%, #0d9488 100%);
       color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-weight: 500;
-      transition: background-color 0.2s;
+      padding: 11px 20px;
+      border-radius: 14px;
+      font-weight: 700;
+      transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
       border: none;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 14px 24px rgba(13, 148, 136, 0.2);
     }
     
     .btn-success:hover {
-      background-color: #059669;
+      transform: translateY(-1px);
+      filter: brightness(1.03);
     }
 
     button:disabled {
@@ -667,7 +744,326 @@
     }
 
 
+
+    .pos-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .pos-stage {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #dbeafe;
+      border-radius: 20px;
+      padding: 1.25rem;
+      box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .pos-category-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .pos-category-btn {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .pos-category-btn.active {
+      background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+      color: #fff;
+      border-color: #15803d;
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px rgba(21, 128, 61, 0.22);
+    }
+
+    .pos-product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .pos-product-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .pos-product-card.out-of-stock {
+      opacity: 0.6;
+      border-style: dashed;
+    }
+
+    .pos-stock-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      padding: 0.3rem 0.75rem;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .rice-name-badge {
+      display: inline-block;
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      line-height: 1.15;
+    }
+
+    .rice-name-badge.category-25kg {
+      color: #1d4ed8;
+    }
+
+    .rice-name-badge.category-10kg {
+      color: #b45309;
+    }
+
+    .rice-name-badge.category-5kg {
+      color: #15803d;
+    }
+
+    .rice-name-badge.category-perkilo {
+      color: #475569;
+    }
+
+    .pos-selling-price-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #b91c1c;
+    }
+
+    .pos-selling-price-value {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      color: #dc2626;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.65);
+    }
+
+    .pos-cart {
+      position: sticky;
+      top: 1rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 1.25rem;
+      box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .pos-cart-items {
+      max-height: 300px;
+      overflow-y: auto;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .pos-cart-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 0.85rem;
+      background: #f8fafc;
+    }
+
+    .pos-cart-summary {
+      border-top: 1px solid #e2e8f0;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .pos-empty-state {
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 2rem 1rem;
+      text-align: center;
+      color: #64748b;
+      background: #f8fafc;
+    }
+
+    .printer-note {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: 0.9rem;
+    }
+
+
+    .pos-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) auto;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .pos-search-shell {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      background: #fff;
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      padding: 0.9rem 1rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .pos-search-shell input {
+      border: none;
+      padding: 0;
+      background: transparent;
+      font-size: 1rem;
+    }
+
+    .pos-search-shell input:focus {
+      box-shadow: none;
+    }
+
+    .pos-search-hint {
+      color: #64748b;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .pos-quick-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pos-product-grid {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .pos-product-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #dbeafe;
+      border-radius: 20px;
+      padding: 1.1rem;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .pos-add-btn {
+      min-height: 52px;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .pos-price-edit-btn {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .pos-price-edit-btn:hover {
+      background: #dbeafe;
+    }
+
+    .pos-qty-input {
+      min-height: 52px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 14px;
+    }
+
+    .pos-live-note {
+      margin-top: 1rem;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      color: #155e75;
+      border-radius: 14px;
+      padding: 0.8rem 0.9rem;
+      font-size: 0.92rem;
+    }
+
+    .night-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .night-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 1.1rem;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .night-table th,
+    .night-table td {
+      padding: 0.8rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .price-manager-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(110px, 1fr));
+      gap: 0.75rem;
+      align-items: center;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 0.85rem;
+    }
+
+
     @media (max-width: 768px) {
+      .pos-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .pos-cart {
+        position: static;
+      }
+
+      .pos-category-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .pos-toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .pos-quick-actions {
+        justify-content: stretch;
+      }
+
+      .price-manager-row {
+        grid-template-columns: 1fr;
+      }
+
       .professional-table {
         font-size: 12px;
       }
@@ -775,94 +1171,108 @@
   </div>
 
   <!-- Navigation Tabs -->
-  <nav class="max-w-7xl mx-auto mb-6 bg-white rounded-lg p-1 shadow-sm flex no-print" aria-label="Main Navigation">
+  <nav class="max-w-7xl mx-auto mb-6 p-2 flex no-print page-shell" aria-label="Main Navigation">
     <button class="nav-tab active" role="tab" aria-selected="true" aria-controls="dashboard-view" onclick="showView('dashboard-view')">Dashboard</button>
     <button class="nav-tab" role="tab" aria-selected="false" aria-controls="daily-report-view" onclick="showCurrentDayReport()">Daily Report</button>
-    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="expenses-view" onclick="showView('expenses-view')">Expenses</button>
+    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="open-sacks-view" onclick="showView('open-sacks-view')">Open Sacks</button>
+    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="add-product-view" onclick="showView('add-product-view')">Add Product</button>
+    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="night-inventory-view" onclick="showView('night-inventory-view')">Night Inventory</button>
   </nav>
 
   <!-- VIEW 1: Dashboard -->
   <main id="dashboard-view" class="main-view active max-w-7xl mx-auto" role="main">
-      <div id="dashboard-header" class="mb-6">
-        <h2 id="dashboard-title" class="text-xl font-bold text-slate-800">Dashboard Overview</h2>
-        <p class="text-sm text-slate-500" id="dashboard-date"></p>
+      <div id="dashboard-header" class="mb-6 section-hero hidden">
+        <div>
+          <h2 id="dashboard-title" class="text-xl font-bold text-slate-800"></h2>
+          <p class="text-sm text-slate-500" id="dashboard-date"></p>
+        </div>
       </div>
-      <!-- UPDATED Dashboard Grid: Now 3 cards only, Monthly Net Profit removed. -->
-      <div id="dashboard-content" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Card 1: Yesterday's Total Sales -->
-        <div class="card p-6 flex items-center gap-6 bg-blue-50 border-l-4 border-blue-500">
-            <div class="bg-blue-100 p-4 rounded-full"><svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 6V5m0 14v-1m-7-7H4m16 0h-1m-1.61-5.61l.707-.707M6.343 17.657l-.707.707m12.02-12.02l.707.707M6.343 6.343l-.707-.707"></path></svg></div>
+      <div class="pos-layout">
+        <section class="pos-stage">
+          <div class="pos-toolbar">
+            <div class="pos-search-shell">
+              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <input id="pos-search-input" type="text" placeholder="Search rice name" oninput="setPosSearchQuery(this.value)">
+              <button onclick="clearPosSearch()" class="text-sm text-slate-500 hover:text-red-600">Clear</button>
+              <span class="pos-search-hint">Touch a product to add it fast</span>
+            </div>
+          </div>
+
+          <div class="pos-category-tabs" role="tablist" aria-label="POS categories">
+            <button id="pos-category-25 KG" class="pos-category-btn active" onclick="setPosCategory('25 KG')">25 KG</button>
+            <button id="pos-category-10 KG" class="pos-category-btn" onclick="setPosCategory('10 KG')">10 KG</button>
+            <button id="pos-category-5 KG" class="pos-category-btn" onclick="setPosCategory('5 KG')">5 KG</button>
+            <button id="pos-category-Per Kilo" class="pos-category-btn" onclick="setPosCategory('Per Kilo')">Per Kilo</button>
+          </div>
+
+          <div id="pos-products-grid" class="pos-product-grid">
+            <div class="pos-empty-state">Loading products...</div>
+          </div>
+
+          <div class="pos-live-note">
+            Inventory is deducted automatically every time an order is submitted. At night, open <strong>Night Inventory</strong> to review remaining stock and finalize the day.
+          </div>
+        </section>
+
+        <aside class="pos-cart">
+          <div class="flex items-center justify-between gap-3 mb-4">
             <div>
-                <p class="text-sm text-slate-500" id="yesterday-sales-label">Yesterday's Total Sales</p>
-                <div id="dashboard-yesterday-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>
+              <h3 class="text-lg font-bold text-slate-800">Current Order</h3>
+              <p class="text-sm text-slate-500">Receipt prints after submit.</p>
             </div>
-        </div>
-        <!-- Card 2: Today's Total Sales (Live/Pending) -->
-        <div class="card p-6 flex items-center gap-6 bg-green-50 border-l-4 border-green-500">
-            <div class="bg-green-100 p-4 rounded-full"><svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
-            <div>
-                <p class="text-sm text-slate-500">Today's Sales (Live)</p>
-                <div id="dashboard-today-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>
+            <button onclick="clearPosCart()" class="text-sm text-slate-500 hover:text-red-600">Clear</button>
+          </div>
+
+          <div id="pos-cart-items" class="pos-cart-items">
+            <div class="pos-empty-state">No items in cart yet.</div>
+          </div>
+
+          <div class="pos-cart-summary">
+            <div class="flex items-center justify-between text-sm text-slate-500">
+              <span>Total Items</span>
+              <span id="pos-cart-count">0</span>
             </div>
-        </div>
-        <!-- Card 3: Yesterday's Expenses -->
-        <div class="card p-6 flex items-center gap-6 bg-yellow-50 border-l-4 border-yellow-500">
-            <div class="bg-yellow-100 p-4 rounded-full"><svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg></div>
-            <div>
-                <p class="text-sm text-slate-500">Yesterday's Expenses</p>
-                <div id="dashboard-yesterday-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>
+            <div class="flex items-center justify-between text-xl font-bold text-slate-800">
+              <span>Total</span>
+              <span id="pos-cart-total">&#8369;0.00</span>
             </div>
-        </div>
-        
-        <!-- Action Buttons Row (Combined) -->
-        <div class="md:col-span-3 grid grid-cols-3 gap-4">
-            <button onclick="openQuickProfitMarginModal()" class="btn-primary w-full py-3 text-sm font-semibold flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                Update Prices
-            </button>
-            <!-- QUICK ADD PRODUCT BUTTON -->
-            <button onclick="openQuickAddProductModal()" class="btn-success w-full py-3 text-sm font-semibold flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add Product
-            </button>
-             <!-- QUICK DELETE PRODUCT BUTTON -->
-            <button onclick="openQuickDeleteProductModal()" class="bg-red-500 hover:bg-red-600 text-white w-full py-3 text-sm font-semibold flex items-center justify-center rounded-md">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete Product
-            </button>
-        </div>
-        
-        <!-- Skeleton Low Stock Card -->
-        <div class="card p-6 bg-red-50 border-l-4 border-red-500 md:col-span-3">
-            <h3 class="font-bold text-lg text-slate-800 mb-3">Items Needing Restock (Live)</h3>
-            <div id="low-stock-list" class="space-y-1 max-h-48 overflow-y-auto">
-              <div class="animate-pulse flex justify-between items-center text-sm p-2 bg-white rounded">
-                  <div class="h-4 bg-slate-200 rounded w-2/5"></div>
-                  <div class="h-4 bg-slate-200 rounded w-1/5"></div>
-              </div>
-              <div class="animate-pulse flex justify-between items-center text-sm p-2 bg-white rounded">
-                  <div class="h-4 bg-slate-200 rounded w-1/2"></div>
-                  <div class="h-4 bg-slate-200 rounded w-1/6"></div>
-              </div>
+            <div class="flex items-center justify-between text-sm text-slate-600">
+              <span>Cash Received</span>
+              <span id="pos-cash-display">&#8369;0.00</span>
             </div>
-        </div>
+            <div class="flex items-center justify-between text-base font-semibold text-emerald-700">
+              <span>Change</span>
+              <span id="pos-change-display">&#8369;0.00</span>
+            </div>
+            <div class="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <label for="pos-cash-received" class="block text-sm font-medium text-slate-700">Customer Payment</label>
+              <input id="pos-cash-received" type="number" min="0" step="0.01" placeholder="Optional amount received" oninput="renderPosCart()">
+              <p id="pos-payment-note" class="text-xs text-slate-500">Add payment amount if the customer already handed over cash.</p>
+            </div>
+            <button id="submit-order-btn" onclick="submitPosOrder()" class="btn-success w-full py-3 text-base font-semibold">Submit Order & Print</button>
+            <button onclick="printDraftReceipt()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-full py-2 rounded-md text-sm">Preview Receipt</button>
+            <button onclick="showView('night-inventory-view')" class="bg-slate-900 hover:bg-slate-700 text-white w-full py-2 rounded-md text-sm">Open Night Inventory</button>
+          </div>
+        </aside>
       </div>
   </main>
 
 
+
+
   <!-- VIEW 2: Daily Report / Inventory -->
   <div id="daily-report-view" class="main-view max-w-7xl mx-auto" role="main" aria-labelledby="report-title">
-    <div class="mb-6 p-5 bg-white rounded-lg shadow-sm flex flex-wrap justify-between items-center gap-4">
+    <div class="mb-6 p-5 section-hero">
       <div class="flex items-center gap-4">
-        <h2 id="report-title" class="text-xl font-bold text-slate-800">Daily Inventory Report</h2>
+        <div>
+          <div class="section-eyebrow">Inventory Control</div>
+          <h2 id="report-title" class="text-xl font-bold text-slate-800">Daily Inventory Report</h2>
+        </div>
       </div>
       <div id="report-actions" class="flex flex-wrap gap-2">
+        <button id="toggle-inventory-lock-btn" onclick="toggleInventoryManualLock()" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-md font-medium no-print">
+            Unlock Manual Edit
+        </button>
         <button onclick="window.print()" class="btn-primary no-print" aria-label="Print this report">
             Print Report
         </button>
@@ -870,6 +1280,9 @@
             Reset Today's Report
         </button>
       </div>
+    </div>
+    <div id="inventory-lock-status" class="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 no-print">
+      Locked: inventory follows POS sales automatically. Unlock only when you need manual stock correction.
     </div>
     
     <div id="editing-past-banner" class="hidden max-w-7xl mx-auto mb-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md no-print">
@@ -902,45 +1315,126 @@
     </div>
   </div>
 
-  <!-- VIEW 3: Expenses -->
-    <div id="expenses-view" class="main-view max-w-7xl mx-auto" role="main" aria-labelledby="expenses-title">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Left Side: Add Expense Form -->
-            <div class="md:col-span-1">
-                <div class="card p-6">
-                    <h3 id="expense-form-title" class="text-lg font-bold text-slate-800 mb-4">Add Expense for Today</h3>
-                    <div class="space-y-4">
-                        <input type="hidden" id="expense-id">
-                        <div>
-                            <label for="expense-description" class="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                            <input id="expense-description" type="text" placeholder="e.g., Transportation" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
-                        </div>
-                        <div>
-                            <label for="expense-amount" class="block text-sm font-medium text-slate-700 mb-1">Amount (₱)</label>
-                            <input id="expense-amount" type="number" step="0.01" placeholder="e.g., 150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
-                        </div>
-                        <div class="flex gap-2">
-                            <button id="save-expense-btn" onclick="saveExpense()" class="btn-success flex-1">Save Expense</button>
-                            <button id="cancel-expense-btn" onclick="clearExpenseForm()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-md flex-1 hover:bg-slate-300 transition-colors">Cancel</button>
-                        </div>
-                    </div>
+  <!-- VIEW 3: Open Sacks -->
+  <div id="open-sacks-view" class="main-view max-w-7xl mx-auto" role="main" aria-labelledby="open-sacks-title">
+    <div class="mb-6 p-5 section-hero">
+      <div>
+        <div class="section-eyebrow">Kilo Preparation</div>
+        <h2 id="open-sacks-title" class="text-xl font-bold text-slate-800">Open Sacks Transfer</h2>
+        <p id="open-sacks-date" class="text-sm text-slate-500">Open 25 KG sacks here and move them into the matching Per Kilo stock.</p>
+      </div>
+      <div class="text-sm text-slate-500">
+        <div>1 sack opened = 25 kg added to the matching Per Kilo product.</div>
+      </div>
+    </div>
+    <div class="card p-4 mb-5">
+      <div class="pos-search-shell">
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input id="open-sacks-search-input" type="text" placeholder="Search 25 KG rice name" oninput="setOpenSacksSearchQuery(this.value)">
+        <button onclick="clearOpenSacksSearch()" class="text-sm text-slate-500 hover:text-red-600">Clear</button>
+        <span class="pos-search-hint">Find rice faster before opening sacks</span>
+      </div>
+    </div>
+    <div id="open-sacks-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="card p-6 text-slate-500">Loading open sacks tools...</div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: Add Product -->
+    <div id="add-product-view" class="main-view max-w-7xl mx-auto" role="main" aria-labelledby="add-product-title">
+        <div class="mb-6 section-hero">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <div class="section-eyebrow">Product Tools</div>
+                    <h2 id="add-product-title" class="text-xl font-bold text-slate-800">Add Product And Price Tools</h2>
+                    <p class="text-sm text-slate-500">Open the product tools here instead of using an expenses page.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openQuickAddProductModal()" class="btn-success text-sm">Add Product</button>
+                    <button onclick="openQuickProfitMarginModal()" class="btn-primary text-sm">Update Prices</button>
+                    <button onclick="openQuickDeleteProductModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm">Delete Product</button>
                 </div>
             </div>
-            <!-- Right Side: Expense List -->
-            <div class="md:col-span-2">
-                <div class="card p-6">
-                    <h2 id="expenses-title" class="text-xl font-bold text-slate-800 mb-4">Today's Expenses</h2>
-                    <div id="expense-list-container" class="space-y-2 max-h-96 overflow-y-auto" aria-live="polite" aria-atomic="true">
-                        <p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>
-                    </div>
-                    <div class="mt-4 pt-4 border-t font-bold text-lg flex justify-between">
-                        <span>Total Expenses:</span>
-                        <span id="total-expenses-display">₱0.00</span>
-                    </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card p-6 md:col-span-1">
+                <h3 class="text-lg font-bold text-slate-800 mb-3">Quick Actions</h3>
+                <div class="space-y-3">
+                    <button onclick="openQuickAddProductModal()" class="btn-success w-full justify-center">Add New Rice</button>
+                    <button onclick="openQuickProfitMarginModal()" class="btn-primary w-full justify-center">Edit Selling Prices</button>
+                    <button onclick="openQuickDeleteProductModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl font-semibold w-full">Delete Product</button>
+                    <button onclick="openSettingsWithPassword()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl font-semibold w-full">Open Full Settings</button>
+                </div>
+            </div>
+            <div class="card p-6 md:col-span-2">
+                <h3 class="text-lg font-bold text-slate-800 mb-3">How To Use</h3>
+                <div class="grid gap-3 text-sm text-slate-600">
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">1. Tap <strong>Add Product</strong> to create a new rice item with category, capital, and profit.</div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">2. Tap <strong>Update Prices</strong> when you want to change the selling price quickly.</div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">3. Tap <strong>Delete Product</strong> only if you want to permanently remove a rice item.</div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-blue-50 text-blue-800 border-blue-200">This tab is now for product management only. Expense entry has been removed from the main navigation.</div>
                 </div>
             </div>
         </div>
     </div>
+
+  <!-- VIEW 4: Night Inventory -->
+  <div id="night-inventory-view" class="main-view max-w-7xl mx-auto" role="main" aria-labelledby="night-title">
+    <div class="mb-6 p-5 section-hero">
+      <div>
+        <div class="section-eyebrow">Closing Summary</div>
+        <h2 id="night-title" class="text-xl font-bold text-slate-800">Night Inventory / End of Day</h2>
+        <p class="text-sm text-slate-500">Review automatic deductions, remaining rice, and finalize today when ready.</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="showCurrentDayReport()" class="btn-primary">Open Daily Inventory</button>
+        <button onclick="showFinalizeModal()" class="btn-success">Finalize Today</button>
+      </div>
+    </div>
+    <div id="night-summary-cards" class="night-grid">
+      <div class="night-card"><div class="text-sm text-slate-500">Orders Today</div><div id="night-orders-count" class="text-3xl font-bold text-slate-800">Loading...</div></div>
+      <div class="night-card"><div class="text-sm text-slate-500">Expected Sales</div><div id="night-sales-total" class="text-3xl font-bold text-emerald-700">Loading...</div></div>
+      <div class="night-card"><div class="text-sm text-slate-500">Total Rice Remaining</div><div id="night-remaining-units" class="text-3xl font-bold text-blue-700">Loading...</div></div>
+      <div class="night-card"><div class="text-sm text-slate-500">Opened Sacks Today</div><div id="night-opened-sacks" class="text-3xl font-bold text-indigo-700">Loading...</div></div>
+      <div class="night-card"><div class="text-sm text-slate-500">Remaining Capital Value</div><div id="night-remaining-value" class="text-3xl font-bold text-amber-700">Loading...</div></div>
+    </div>
+    <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_340px] gap-6">
+      <div class="card p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">Remaining Rice by Product</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm night-table">
+            <thead class="text-left text-slate-500 uppercase text-xs">
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th class="text-right">Begin</th>
+                <th class="text-right">Sold</th>
+                <th class="text-right">Remaining</th>
+              </tr>
+            </thead>
+            <tbody id="night-inventory-tbody">
+              <tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">Tonight Checklist</h3>
+        <div class="space-y-3 text-sm text-slate-600">
+          <div class="p-3 rounded-lg bg-slate-50 border">1. Review remaining sacks and kilo stock.</div>
+          <div class="p-3 rounded-lg bg-slate-50 border">2. Compare physical stock with the table on the left.</div>
+          <div class="p-3 rounded-lg bg-slate-50 border">3. If needed, open Daily Inventory to correct counts.</div>
+          <div class="p-3 rounded-lg bg-slate-50 border">4. Finalize the report when all sales and expenses are complete.</div>
+        </div>
+        <div class="mt-5 pt-5 border-t">
+          <h4 class="font-semibold text-slate-800 mb-2">Recent Orders</h4>
+          <div id="night-recent-orders" class="space-y-2 text-sm text-slate-600">
+            <div class="text-slate-400">Loading orders...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- VIEW 5: Report History -->
   <div id="history-view" class="main-view max-w-7xl mx-auto" role="region" aria-labelledby="history-title">
@@ -1074,12 +1568,32 @@
                             <p class="text-sm text-slate-500">Yesterday's Final Profit</p>
                             <p id="settings-yesterday-profit" class="text-2xl font-bold text-slate-800">Loading...</p>
                         </div>
-                        <!-- Monthly Net Profit (Moved from Dashboard) -->
                         <div class="card p-4 bg-teal-50 border-l-4 border-teal-500">
                             <p class="text-sm text-slate-500">Monthly Net Profit (To Date)</p>
                             <p id="settings-monthly-net-profit" class="text-2xl font-bold text-teal-700">Loading...</p>
                         </div>
                     </div>
+                </div>
+                <div class="settings-card">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <div>
+                            <h3>Price Manager</h3>
+                            <p class="text-sm text-slate-500">Update cost, profit, and selling price in one place.</p>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <label for="settings-price-category-select" class="text-sm text-slate-600">Category</label>
+                            <select id="settings-price-category-select" class="w-44" onchange="renderSettingsPriceManager(this.value)">
+                                <option value="25 KG">25 KG</option>
+                                <option value="10 KG">10 KG</option>
+                                <option value="5 KG">5 KG</option>
+                                <option value="Per Kilo">Per Kilo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="settings-price-products-container" class="space-y-3">
+                        <p class="text-slate-500">Loading price manager...</p>
+                    </div>
+                    <button id="save-settings-price-btn" onclick="saveSettingsPriceManager()" class="btn-primary mt-4">Save Price Updates</button>
                 </div>
             </div>
 
@@ -1245,7 +1759,55 @@
                         </button>
                     </div>
                 </div>
+                <div class="settings-card">
+                    <h3>Receipt Printer</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="printer-store-name" class="block text-sm font-medium text-slate-700 mb-1">Store Name</label>
+                            <input id="printer-store-name" type="text" placeholder="Rice Inventory Management">
+                        </div>
+                        <div>
+                            <label for="printer-name" class="block text-sm font-medium text-slate-700 mb-1">Printer Label</label>
+                            <input id="printer-name" type="text" placeholder="e.g., Xprinter XP-58IID">
+                        </div>
+                        <div>
+                            <label for="printer-paper-width" class="block text-sm font-medium text-slate-700 mb-1">Paper Width</label>
+                            <select id="printer-paper-width">
+                                <option value="80mm">80mm Thermal</option>
+                                <option value="58mm">58mm Thermal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="printer-footer-note" class="block text-sm font-medium text-slate-700 mb-1">Receipt Footer</label>
+                            <input id="printer-footer-note" type="text" placeholder="Thank you for your purchase!">
+                        </div>
+                        <label class="flex items-center gap-2 text-sm text-slate-700">
+                            <input id="printer-auto-print" type="checkbox" class="w-auto">
+                            Auto print receipt after submit
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-slate-700">
+                            <input id="printer-kiosk-mode" type="checkbox" class="w-auto">
+                            Chrome kiosk printing enabled on this PC
+                        </label>
+                    </div>
+                    <div class="printer-note mt-4">
+                        For tablet use, tap <strong>Search & Connect Printer</strong> and choose <strong>XP-58IID</strong> if Chrome can see it. After the first successful connection, the app will try to reconnect automatically when Chrome still remembers the printer. If Chrome only prints through the print window, keep using that flow and save the printer name here.
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                        <button id="connect-printer-btn" onclick="connectPrinterFromBrowser()" class="bg-emerald-600 text-white hover:bg-emerald-700 py-2 px-4 rounded transition">Search & Connect Printer</button>
+                        <button id="disconnect-printer-btn" onclick="disconnectPrinterConnection()" class="bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">Disconnect</button>
+                        <button onclick="testPrintReceipt()" class="bg-slate-100 text-slate-700 hover:bg-slate-200 py-2 px-4 rounded transition">Test Print Receipt</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                        <button id="save-printer-settings-btn" onclick="savePrinterSettings()" class="btn-primary w-full">Save Printer Settings</button>
+                        <button onclick="useChromePrintMode()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 py-2 px-4 rounded transition">Use Chrome Print Mode</button>
+                    </div>
+                    <p id="printer-connection-display" class="text-sm font-medium text-slate-700 mt-3">Printer not connected.</p>
+                    <p id="printer-settings-status" class="text-xs text-slate-500 mt-2">Receipt printing uses the browser print window unless kiosk printing is enabled in Chrome.</p>
+                </div>
                 <div class="settings-card border-red-200 bg-red-50">
+
+
                     <h3 class="text-red-800">Danger Zone</h3>
                     <div class="space-y-3">
                         <div>
@@ -1452,6 +2014,20 @@
     const RICE_CATEGORIES = ['25 KG', '10 KG', '5 KG', 'Per Kilo'];
     const HASH_SALT = 'rice-inventory-management-salt'; 
     const COLLECTIONS_TO_BACKUP = ['products', 'reports', 'expenses', 'settings'];
+    const DEFAULT_PRINTER_SETTINGS = {
+        storeName: 'Rice Inventory Management',
+        printerName: '',
+        paperWidth: '80mm',
+        footerNote: 'Thank you for your purchase!',
+        autoPrint: true,
+        kioskMode: false,
+        printerConnected: false,
+        connectionType: 'chrome-print',
+        connectedDeviceName: '',
+        connectedDeviceId: '',
+        lastConnectedAt: ''
+    };
+
     
     dayjs.extend(dayjs_plugin_isBetween);
 
@@ -1470,6 +2046,16 @@
     let reportListener = null;
     let expensesListener = null;
     let dashboardListeners = [];
+    let currentDashboardReport = null;
+    let posSelectedCategory = '25 KG';
+    let posSearchQuery = '';
+    let openSacksSearchQuery = '';
+    let posCart = [];
+    let printerSettings = { ...DEFAULT_PRINTER_SETTINGS };
+    let bluetoothPrinterDevice = null;
+    let printerConnectionStatus = '';
+    let currentExpenseDate = '';
+
     
     
     // --- UTILITY & HELPER FUNCTIONS ---
@@ -1524,6 +2110,8 @@
         // Ensure products are loaded (or reloaded if a product was added/deleted)
         await loadProducts(); 
         renderProductList(); 
+        renderDashboardPos(currentDashboardReport);
+        await loadPrinterSettings();
 
         // 2. Re-run dashboard setup
         listenForDashboardData(); 
@@ -1539,9 +2127,10 @@
         if (activeView && activeView.id === 'daily-report-view') {
             // Reload the daily report for the new day
             showInventory(todayDateString);
-        } else if (activeView && activeView.id === 'expenses-view') {
-            // Reload expenses for the new day
-            renderExpensesView(todayDateString);
+        } else if (activeView && activeView.id === 'open-sacks-view') {
+            renderOpenSacksView(todayDateString);
+        } else if (activeView && activeView.id === 'night-inventory-view') {
+            renderNightInventoryView();
         } else if (activeView && activeView.id === 'settings-panel') {
             // Re-load settings metrics if in settings
             const activeSettingsView = document.querySelector('#settings-panel .settings-view-pane.active');
@@ -1639,6 +2228,807 @@
         return isNaN(num) ? '0.00' : num.toFixed(2);
     }
     
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatQuantity(value) {
+        const num = parseFloat(value) || 0;
+        return Number.isInteger(num) ? String(num) : num.toFixed(2);
+    }
+
+    function getQuantityStep(category) {
+        return category === 'Per Kilo' ? '0.25' : '1';
+    }
+
+    function getProductSellingPrice(product, report = currentDashboardReport) {
+        const reportItem = report?.data?.[product.id] || {};
+        const cost = reportItem.cost !== undefined ? reportItem.cost : (product.cost || 0);
+        const profitMargin = reportItem.profitMargin !== undefined ? reportItem.profitMargin : (product.profitMargin || 0);
+        return cost + profitMargin;
+    }
+
+    function getAvailableStock(product, report = currentDashboardReport) {
+        const stock = report?.data?.[product.id]?.end;
+        return Number.isFinite(stock) ? stock : 0;
+    }
+
+    function getPosProductsByCategory() {
+        return shopProducts
+            .filter(product => product.category === posSelectedCategory)
+            .filter(product => !posSearchQuery || product.name.toLowerCase().includes(posSearchQuery))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    function setPosSearchQuery(value) {
+        posSearchQuery = (value || '').trim().toLowerCase();
+        renderPosProductGrid();
+    }
+
+    function clearPosSearch() {
+        const input = document.getElementById('pos-search-input');
+        if (input) input.value = '';
+        posSearchQuery = '';
+        renderPosProductGrid();
+    }
+
+    function getReservedQuantity(productId) {
+        return posCart.find(item => item.productId === productId)?.quantity || 0;
+    }
+
+    function calculateSoldQuantity(item) {
+        if (!item) return 0;
+        return (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end;
+    }
+
+    function getPosCartTotals() {
+        return posCart.reduce((acc, item) => {
+            acc.quantity += item.quantity;
+            acc.amount += item.total;
+            return acc;
+        }, { quantity: 0, amount: 0 });
+    }
+
+    function getCategoryColorClass(category) {
+        switch (category) {
+            case '25 KG':
+                return 'category-25kg';
+            case '10 KG':
+                return 'category-10kg';
+            case '5 KG':
+                return 'category-5kg';
+            case 'Per Kilo':
+                return 'category-perkilo';
+            default:
+                return 'category-perkilo';
+        }
+    }
+
+    function renderPosCategoryTabs() {
+        document.querySelectorAll('.pos-category-btn').forEach(button => {
+            button.classList.toggle('active', button.id === `pos-category-${posSelectedCategory}`);
+        });
+    }
+
+    function renderPosProductGrid() {
+        const grid = document.getElementById('pos-products-grid');
+        if (!grid) return;
+
+        const products = getPosProductsByCategory();
+        if (products.length === 0) {
+            grid.innerHTML = `<div class="pos-empty-state">No products found${posSearchQuery ? ` for "${escapeHtml(posSearchQuery)}"` : ''}.</div>`;
+            return;
+        }
+
+        grid.innerHTML = products.map(product => {
+            const availableStock = getAvailableStock(product);
+            const reservedQuantity = getReservedQuantity(product.id);
+            const freeStock = Math.max(availableStock - reservedQuantity, 0);
+            const price = getProductSellingPrice(product);
+            const isOutOfStock = freeStock <= 0;
+            const categoryColorClass = getCategoryColorClass(product.category);
+            return `
+                <div class="pos-product-card ${isOutOfStock ? 'out-of-stock' : ''}">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div>
+                                <div class="rice-name-badge ${categoryColorClass}">${escapeHtml(product.name)}</div>
+                                <p class="text-xs text-slate-500 uppercase tracking-wide mt-2">${escapeHtml(product.category)}</p>
+                            </div>
+                            <span class="pos-stock-pill">Available: ${formatQuantity(freeStock)}</span>
+                        </div>
+                        <div class="flex items-end justify-between gap-3 mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="pos-selling-price-label">Selling Price</p>
+                                    <button class="pos-price-edit-btn" onclick="quickEditPosSellingPrice('${product.id}')">Edit</button>
+                                </div>
+                                <p class="pos-selling-price-value">&#8369;${formatCurrency(price)}</p>
+                            </div>
+                            <div class="text-right text-xs text-slate-500">
+                                <div>Capital: &#8369;${formatCurrency(product.cost || 0)}</div>
+                                <div>Profit: &#8369;${formatCurrency(product.profitMargin || 0)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xs text-slate-500">Already in cart: ${formatQuantity(reservedQuantity)}</div>
+                        <div class="flex gap-2">
+                            <input id="pos-qty-${product.id}" type="number" min="${getQuantityStep(product.category)}" step="${getQuantityStep(product.category)}" value="${getQuantityStep(product.category)}" class="pos-qty-input" ${isOutOfStock ? 'disabled' : ''}>
+                            <button class="btn-primary flex-1 pos-add-btn" onclick="addProductToPosCart('${product.id}')" ${isOutOfStock ? 'disabled' : ''}>Add To Cart</button>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function parsePosCashReceived() {
+        const cashInput = document.getElementById('pos-cash-received');
+        if (!cashInput) {
+            return { amount: 0, entered: false };
+        }
+
+        const rawValue = String(cashInput.value || '').trim();
+        if (!rawValue) {
+            return { amount: 0, entered: false };
+        }
+
+        const parsed = parseFloat(rawValue.replace(/,/g, ''));
+        return {
+            amount: Number.isFinite(parsed) && parsed >= 0 ? parsed : 0,
+            entered: rawValue.length > 0
+        };
+    }
+
+    function getPosPaymentSummary() {
+        const totals = getPosCartTotals();
+        const payment = parsePosCashReceived();
+        const change = payment.entered ? Math.max(payment.amount - totals.amount, 0) : 0;
+        const balance = payment.entered ? Math.max(totals.amount - payment.amount, 0) : totals.amount;
+
+        return {
+            total: totals.amount,
+            quantity: totals.quantity,
+            amountPaid: payment.amount,
+            paymentEntered: payment.entered,
+            changeDue: change,
+            balanceDue: balance
+        };
+    }
+
+    function renderPosCart() {
+        const cartItemsEl = document.getElementById('pos-cart-items');
+        const totalCountEl = document.getElementById('pos-cart-count');
+        const totalAmountEl = document.getElementById('pos-cart-total');
+        const cashDisplayEl = document.getElementById('pos-cash-display');
+        const changeDisplayEl = document.getElementById('pos-change-display');
+        const paymentNoteEl = document.getElementById('pos-payment-note');
+        if (!cartItemsEl || !totalCountEl || !totalAmountEl) return;
+
+        if (posCart.length === 0) {
+            cartItemsEl.innerHTML = '<div class="pos-empty-state">No items in cart yet.</div>';
+        } else {
+            cartItemsEl.innerHTML = posCart.map(item => `
+                <div class="pos-cart-item">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="font-semibold text-slate-800">${escapeHtml(item.name)}</div>
+                            <div class="text-xs text-slate-500">${escapeHtml(item.category)} - &#8369;${formatCurrency(item.price)} each</div>
+                        </div>
+                        <button class="text-sm text-red-600 hover:text-red-700" onclick="removeFromPosCart('${item.productId}')">Remove</button>
+                    </div>
+                    <div class="flex items-center justify-between mt-3">
+                        <div class="flex items-center gap-2">
+                            <button class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-8 h-8 rounded-md" onclick="adjustPosCartQuantity('${item.productId}', -1)">-</button>
+                            <span class="min-w-[60px] text-center font-semibold">${formatQuantity(item.quantity)}</span>
+                            <button class="bg-slate-200 hover:bg-slate-300 text-slate-700 w-8 h-8 rounded-md" onclick="adjustPosCartQuantity('${item.productId}', 1)">+</button>
+                        </div>
+                        <div class="font-bold text-slate-800">&#8369;${formatCurrency(item.total)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        const summary = getPosPaymentSummary();
+        totalCountEl.textContent = formatQuantity(summary.quantity);
+        totalAmountEl.textContent = `${String.fromCharCode(8369)}${formatCurrency(summary.total)}`;
+
+        if (cashDisplayEl) {
+            cashDisplayEl.textContent = summary.paymentEntered ? `${String.fromCharCode(8369)}${formatCurrency(summary.amountPaid)}` : 'Optional';
+        }
+        if (changeDisplayEl) {
+            changeDisplayEl.textContent = `${String.fromCharCode(8369)}${formatCurrency(summary.changeDue)}`;
+        }
+        if (paymentNoteEl) {
+            if (!summary.paymentEntered) {
+                paymentNoteEl.textContent = 'Add payment amount if the customer already handed over cash.';
+                paymentNoteEl.className = 'text-xs text-slate-500';
+            } else if (summary.balanceDue > 0) {
+                paymentNoteEl.textContent = `Need ${String.fromCharCode(8369)}${formatCurrency(summary.balanceDue)} more to complete the payment.`;
+                paymentNoteEl.className = 'text-xs font-semibold text-red-600';
+            } else {
+                paymentNoteEl.textContent = 'Payment is enough. Change is ready for the customer.';
+                paymentNoteEl.className = 'text-xs text-emerald-600';
+            }
+        }
+    }
+
+    function setPosCategory(category) {
+        posSelectedCategory = category;
+        renderPosCategoryTabs();
+        renderPosProductGrid();
+    }
+
+    function addProductToPosCart(productId) {
+        const product = shopProducts.find(item => item.id === productId);
+        if (!product) return;
+
+        const quantityInput = document.getElementById(`pos-qty-${productId}`);
+        const requestedQuantity = parseFloat(quantityInput?.value);
+        const quantity = Number.isFinite(requestedQuantity) && requestedQuantity > 0 ? requestedQuantity : parseFloat(getQuantityStep(product.category));
+        const reservedQuantity = posCart.find(item => item.productId === productId)?.quantity || 0;
+        const availableStock = getAvailableStock(product) - reservedQuantity;
+
+        if (quantity > availableStock) {
+            Toast.fire({ icon: 'error', title: `Only ${formatQuantity(Math.max(availableStock, 0))} stock left for ${product.name}.` });
+            return;
+        }
+
+        const price = getProductSellingPrice(product);
+        const existingItem = posCart.find(item => item.productId === productId);
+        if (existingItem) {
+            existingItem.quantity = parseFloat((existingItem.quantity + quantity).toFixed(2));
+            existingItem.total = existingItem.quantity * existingItem.price;
+        } else {
+            posCart.push({
+                productId: product.id,
+                name: product.name,
+                category: product.category,
+                quantity,
+                price,
+                total: quantity * price
+            });
+        }
+
+        if (quantityInput) {
+            quantityInput.value = getQuantityStep(product.category);
+        }
+
+        renderPosProductGrid();
+        renderPosCart();
+    }
+
+    function removeFromPosCart(productId) {
+        posCart = posCart.filter(item => item.productId !== productId);
+        renderPosProductGrid();
+        renderPosCart();
+    }
+
+    function adjustPosCartQuantity(productId, direction) {
+        const cartItem = posCart.find(item => item.productId === productId);
+        const product = shopProducts.find(item => item.id === productId);
+        if (!cartItem || !product) return;
+
+        const step = parseFloat(getQuantityStep(product.category));
+        const nextQuantity = parseFloat((cartItem.quantity + (direction * step)).toFixed(2));
+        const availableStock = getAvailableStock(product);
+
+        if (nextQuantity <= 0) {
+            removeFromPosCart(productId);
+            return;
+        }
+
+        if (nextQuantity > availableStock) {
+            Toast.fire({ icon: 'error', title: `Cannot exceed ${formatQuantity(availableStock)} available stock.` });
+            return;
+        }
+
+        cartItem.quantity = nextQuantity;
+        cartItem.total = cartItem.quantity * cartItem.price;
+        renderPosProductGrid();
+        renderPosCart();
+    }
+
+    function clearPosCart() {
+        posCart = [];
+        renderPosProductGrid();
+        renderPosCart();
+    }
+
+    function renderDashboardPos(reportData) {
+        currentDashboardReport = reportData;
+        renderPosCategoryTabs();
+        renderPosProductGrid();
+        renderPosCart();
+        if (document.getElementById('night-inventory-view')?.classList.contains('active')) {
+            renderNightInventoryView();
+        }
+    }
+
+    function getPrinterSettingsFromForm() {
+        const storeNameInput = document.getElementById('printer-store-name');
+        if (!storeNameInput) {
+            return { ...printerSettings };
+        }
+        return {
+            ...printerSettings,
+            storeName: storeNameInput.value.trim() || DEFAULT_PRINTER_SETTINGS.storeName,
+            printerName: document.getElementById('printer-name').value.trim() || '',
+            paperWidth: document.getElementById('printer-paper-width').value || DEFAULT_PRINTER_SETTINGS.paperWidth,
+            footerNote: document.getElementById('printer-footer-note').value.trim() || DEFAULT_PRINTER_SETTINGS.footerNote,
+            autoPrint: !!document.getElementById('printer-auto-print').checked,
+            kioskMode: !!document.getElementById('printer-kiosk-mode').checked
+        };
+    }
+
+    function handlePrinterDisconnected() {
+        bluetoothPrinterDevice = null;
+        printerConnectionStatus = 'Bluetooth printer disconnected. Reconnect or use Chrome Print Mode.';
+        printerSettings = {
+            ...printerSettings,
+            printerConnected: false,
+            connectionType: printerSettings.connectionType === 'web-bluetooth' ? 'chrome-print' : printerSettings.connectionType,
+            connectedDeviceName: '',
+            connectedDeviceId: ''
+        };
+        renderPrinterSettings();
+    }
+
+    function renderPrinterSettings() {
+        const settings = { ...DEFAULT_PRINTER_SETTINGS, ...printerSettings };
+        const statusEl = document.getElementById('printer-settings-status');
+        const connectionEl = document.getElementById('printer-connection-display');
+        if (document.getElementById('printer-store-name')) {
+            document.getElementById('printer-store-name').value = settings.storeName;
+            document.getElementById('printer-name').value = settings.printerName;
+            document.getElementById('printer-paper-width').value = settings.paperWidth;
+            document.getElementById('printer-footer-note').value = settings.footerNote;
+            document.getElementById('printer-auto-print').checked = settings.autoPrint;
+            document.getElementById('printer-kiosk-mode').checked = settings.kioskMode;
+        }
+
+        if (connectionEl) {
+            if (settings.printerConnected) {
+                const deviceName = settings.connectedDeviceName || settings.printerName || 'Printer';
+                const prefix = settings.connectionType === 'web-bluetooth' ? 'Successfully connected' : 'Print mode ready';
+                connectionEl.textContent = `${prefix}: ${deviceName}`;
+                connectionEl.className = 'text-sm font-medium text-emerald-700 mt-3';
+            } else {
+                connectionEl.textContent = `Printer not connected. Current mode: ${settings.connectionType === 'web-bluetooth' ? 'Bluetooth' : 'Chrome Print'}`;
+                connectionEl.className = 'text-sm font-medium text-slate-700 mt-3';
+            }
+        }
+
+        if (statusEl) {
+            if (printerConnectionStatus) {
+                statusEl.textContent = printerConnectionStatus;
+            } else if (settings.printerConnected && settings.connectionType === 'web-bluetooth') {
+                statusEl.textContent = 'Bluetooth printer connected successfully. Submit Order & Print will use your Chrome tablet receipt flow.';
+            } else if (settings.kioskMode) {
+                statusEl.textContent = 'Kiosk printing is marked enabled. Chrome should print directly to the default thermal printer.';
+            } else {
+                statusEl.textContent = 'Receipt printing uses the browser print window unless kiosk printing is enabled in Chrome.';
+            }
+        }
+    }
+
+    function registerPrinterDevice(device) {
+        if (!device) return;
+        bluetoothPrinterDevice = device;
+        try {
+            bluetoothPrinterDevice.removeEventListener('gattserverdisconnected', handlePrinterDisconnected);
+        } catch (error) {
+            console.warn('Printer listener cleanup warning:', error);
+        }
+        bluetoothPrinterDevice.addEventListener('gattserverdisconnected', handlePrinterDisconnected);
+    }
+
+    async function connectToRememberedPrinter(device, { silent = false } = {}) {
+        if (!device) return false;
+
+        registerPrinterDevice(device);
+
+        if (bluetoothPrinterDevice.gatt && !bluetoothPrinterDevice.gatt.connected) {
+            try {
+                await bluetoothPrinterDevice.gatt.connect();
+            } catch (error) {
+                console.warn('Bluetooth GATT connect failed, continuing with browser-selected printer only.', error);
+            }
+        }
+
+        const deviceName = device.name || printerSettings.connectedDeviceName || printerSettings.printerName || 'Bluetooth Printer';
+        printerSettings = {
+            ...getPrinterSettingsFromForm(),
+            printerConnected: true,
+            connectionType: 'web-bluetooth',
+            connectedDeviceName: deviceName,
+            connectedDeviceId: device.id || printerSettings.connectedDeviceId || '',
+            printerName: deviceName,
+            lastConnectedAt: new Date().toISOString()
+        };
+        printerConnectionStatus = `Bluetooth printer connected successfully: ${deviceName}.`;
+        renderPrinterSettings();
+
+        try {
+            await db.collection('settings').doc('posPrinter').set(printerSettings);
+        } catch (error) {
+            console.warn('Unable to save printer connection state:', error);
+        }
+
+        if (!silent) {
+            Toast.fire({ icon: 'success', title: `Connected to ${deviceName}` });
+        }
+        return true;
+    }
+
+    async function attemptAutoReconnectPrinter() {
+        if (!navigator.bluetooth || typeof navigator.bluetooth.getDevices !== 'function') {
+            return false;
+        }
+        if (printerSettings.connectionType !== 'web-bluetooth') {
+            return false;
+        }
+
+        const targetId = printerSettings.connectedDeviceId || '';
+        const targetName = (printerSettings.connectedDeviceName || printerSettings.printerName || '').trim().toLowerCase();
+        if (!targetId && !targetName) {
+            return false;
+        }
+
+        try {
+            const devices = await navigator.bluetooth.getDevices();
+            const matchedDevice = devices.find(device => {
+                const deviceName = (device.name || '').trim().toLowerCase();
+                return (targetId && device.id === targetId) || (targetName && deviceName === targetName);
+            });
+
+            if (!matchedDevice) {
+                printerConnectionStatus = 'Saved Bluetooth printer not found in Chrome. Tap Search & Connect Printer again if needed.';
+                printerSettings = {
+                    ...printerSettings,
+                    printerConnected: false
+                };
+                renderPrinterSettings();
+                return false;
+            }
+
+            const connected = await connectToRememberedPrinter(matchedDevice, { silent: true });
+            if (connected) {
+                printerConnectionStatus = `Successfully reconnected to ${printerSettings.connectedDeviceName || printerSettings.printerName || 'Bluetooth Printer'}.`;
+                renderPrinterSettings();
+            }
+            return connected;
+        } catch (error) {
+            console.warn('Auto reconnect failed:', error);
+            printerConnectionStatus = 'Bluetooth auto reconnect failed. You can still tap Search & Connect Printer or use Chrome Print Mode.';
+            printerSettings = {
+                ...printerSettings,
+                printerConnected: false
+            };
+            renderPrinterSettings();
+            return false;
+        }
+    }
+
+    async function connectPrinterFromBrowser() {
+        if (!navigator.bluetooth) {
+            await Swal.fire('Not Supported', 'This Chrome tablet does not expose Web Bluetooth here. Use Chrome Print Mode instead.', 'info');
+            return;
+        }
+
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [0x1800]
+            });
+
+            await connectToRememberedPrinter(device);
+        } catch (error) {
+            if (error && error.name === 'NotFoundError') {
+                Toast.fire({ icon: 'info', title: 'Printer selection was cancelled.' });
+                return;
+            }
+            console.error('Printer connect error:', error);
+            printerConnectionStatus = 'Chrome could not connect to the selected printer. You can still use Chrome Print Mode.';
+            renderPrinterSettings();
+            Swal.fire('Connect Failed', 'Chrome could not connect to the selected printer. You can still use Chrome Print Mode.', 'error');
+        }
+    }
+
+    async function disconnectPrinterConnection() {
+        try {
+            if (bluetoothPrinterDevice?.gatt?.connected) {
+                bluetoothPrinterDevice.gatt.disconnect();
+            }
+        } catch (error) {
+            console.warn('Printer disconnect warning:', error);
+        }
+        handlePrinterDisconnected();
+        await db.collection('settings').doc('posPrinter').set(printerSettings).catch(() => null);
+        Toast.fire({ icon: 'success', title: 'Printer disconnected.' });
+    }
+
+    async function useChromePrintMode() {
+        printerSettings = {
+            ...getPrinterSettingsFromForm(),
+            printerConnected: true,
+            connectionType: 'chrome-print',
+            connectedDeviceName: '',
+            connectedDeviceId: '',
+            lastConnectedAt: new Date().toISOString()
+        };
+        printerConnectionStatus = 'Chrome Print Mode saved successfully. Submit Order & Print will open the receipt for your XP-58IID print flow.';
+        await db.collection('settings').doc('posPrinter').set(printerSettings);
+        renderPrinterSettings();
+        Toast.fire({ icon: 'success', title: 'Chrome Print Mode saved.' });
+    }
+
+    function ensurePrinterConnection() {
+        printerSettings = getPrinterSettingsFromForm();
+        if (printerSettings.printerConnected) {
+            return true;
+        }
+        Swal.fire('Printer Not Ready', 'Open Settings and connect XP-58IID first, or save Chrome Print Mode before printing.', 'warning');
+        return false;
+    }
+
+    async function loadPrinterSettings() {
+        try {
+            const doc = await db.collection('settings').doc('posPrinter').get();
+            printerSettings = doc.exists ? { ...DEFAULT_PRINTER_SETTINGS, ...doc.data() } : { ...DEFAULT_PRINTER_SETTINGS };
+        } catch (error) {
+            console.error('Error loading printer settings:', error);
+            printerSettings = { ...DEFAULT_PRINTER_SETTINGS };
+        }
+
+        printerConnectionStatus = '';
+        renderPrinterSettings();
+
+        if (printerSettings.connectionType === 'web-bluetooth') {
+            await attemptAutoReconnectPrinter();
+        }
+    }
+
+    async function savePrinterSettings() {
+        const saveBtn = document.getElementById('save-printer-settings-btn');
+        toggleButtonLoading(saveBtn, true);
+        try {
+            printerSettings = {
+                ...getPrinterSettingsFromForm(),
+                connectedDeviceId: printerSettings.connectedDeviceId || '',
+                connectedDeviceName: printerSettings.connectedDeviceName || ''
+            };
+            await db.collection('settings').doc('posPrinter').set(printerSettings);
+            printerConnectionStatus = printerSettings.printerConnected
+                ? `Printer settings saved. ${printerSettings.connectedDeviceName || printerSettings.printerName || 'Printer'} is ready.`
+                : 'Printer settings saved. Connect a printer when you are ready to print.';
+            renderPrinterSettings();
+            Toast.fire({ icon: 'success', title: 'Printer settings saved.' });
+        } catch (error) {
+            Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
+        } finally {
+            toggleButtonLoading(saveBtn, false);
+        }
+    }
+
+    function buildReceiptHtml(order, shouldAutoPrint = true) {
+        const width = (order.paperWidth || printerSettings.paperWidth) === '58mm' ? '58mm' : '80mm';
+        const itemsHtml = order.items.map(item => `
+            <tr>
+                <td>${escapeHtml(item.name)}</td>
+                <td style="text-align:center;">${formatQuantity(item.quantity)}</td>
+                <td style="text-align:right;">${formatCurrency(item.price)}</td>
+                <td style="text-align:right;">${formatCurrency(item.total)}</td>
+            </tr>
+        `).join('');
+
+        return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Receipt ${escapeHtml(order.id)}</title>
+  <style>
+    body { font-family: 'Courier New', monospace; margin: 0; padding: 8px; color: #000; }
+    .receipt { width: ${width}; margin: 0 auto; }
+    .center { text-align: center; }
+    .row { display: flex; justify-content: space-between; gap: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { font-size: 12px; padding: 4px 0; border-bottom: 1px dashed #999; vertical-align: top; }
+    th { text-align: left; }
+    .total { font-size: 16px; font-weight: bold; margin-top: 10px; }
+    .muted { font-size: 11px; color: #444; }
+    @page { size: auto; margin: 4mm; }
+  </style>
+</head>
+<body onload="${shouldAutoPrint ? 'window.print();' : ''}">
+  <div class="receipt">
+    <div class="center">
+      <div style="font-size:18px;font-weight:bold;">${escapeHtml(order.storeName)}</div>
+      <div class="muted">${escapeHtml(order.printerName || 'Thermal Receipt')}</div>
+      <div class="muted">${escapeHtml(dayjs(order.createdAt).format('MMMM D, YYYY h:mm A'))}</div>
+      <div class="muted">Order #: ${escapeHtml(order.id)}</div>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="row"><span>Cash Received</span><span>${order.paymentEntered ? `&#8369;${formatCurrency(order.amountPaid)}` : 'Not entered'}</span></div>
+      <div class="row"><span>Change</span><span>&#8369;${formatCurrency(order.changeDue || 0)}</span></div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr>
+      </thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+    <div class="row total"><span>Grand Total</span><span>₱${formatCurrency(order.total)}</span></div>
+    <div class="center" style="margin-top:12px;">
+      <div class="muted">${escapeHtml(order.footerNote)}</div>
+    </div>
+  </div>
+</body>
+</html>`;
+    }
+
+    function openReceiptWindow(order, shouldAutoPrint = true) {
+        const receiptWindow = window.open('', '_blank', 'width=420,height=700');
+        if (!receiptWindow) {
+            Swal.fire('Popup Blocked', 'Please allow popups in Chrome so receipts can print.', 'warning');
+            return false;
+        }
+
+        receiptWindow.document.open();
+        receiptWindow.document.write(buildReceiptHtml(order, shouldAutoPrint));
+        receiptWindow.document.close();
+        return true;
+    }
+
+    function printDraftReceipt() {
+        if (posCart.length === 0) {
+            Toast.fire({ icon: 'info', title: 'Add items to the cart first.' });
+            return;
+        }
+        if (!ensurePrinterConnection()) return;
+
+        printerSettings = getPrinterSettingsFromForm();
+        const totals = getPosCartTotals();
+        const paymentSummary = getPosPaymentSummary();
+        const order = {
+            id: `DRAFT-${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            items: posCart,
+            total: totals.amount,
+            amountPaid: paymentSummary.paymentEntered ? paymentSummary.amountPaid : 0,
+            paymentEntered: paymentSummary.paymentEntered,
+            changeDue: paymentSummary.changeDue,
+            ...printerSettings
+        };
+
+        openReceiptWindow(order, false);
+    }
+
+    async function testPrintReceipt() {
+        if (!ensurePrinterConnection()) return;
+        printerSettings = getPrinterSettingsFromForm();
+        const testOrder = {
+            id: `TEST-${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            amountPaid: 1500,
+            paymentEntered: true,
+            changeDue: 250,
+            items: [{
+                productId: 'sample',
+                name: 'Sample Rice',
+                category: '25 KG',
+                quantity: 1,
+                price: 1250,
+                total: 1250
+            }],
+            total: 1250,
+            ...printerSettings
+        };
+
+        openReceiptWindow(testOrder, true);
+    }
+
+    async function submitPosOrder() {
+        if (posCart.length === 0) {
+            Toast.fire({ icon: 'error', title: 'Cart is empty.' });
+            return;
+        }
+        if (!ensurePrinterConnection()) return;
+
+        const submitBtn = document.getElementById('submit-order-btn');
+        toggleButtonLoading(submitBtn, true);
+        try {
+            printerSettings = getPrinterSettingsFromForm();
+            await startDay(todayDateString);
+
+            const orderId = `ORD-${dayjs().format('YYYYMMDD-HHmmss')}`;
+            const orderRef = db.collection('orders').doc(orderId);
+            const reportRef = db.collection('reports').doc(todayDateString);
+            const orderTotals = getPosCartTotals();
+            const paymentSummary = getPosPaymentSummary();
+            if (paymentSummary.paymentEntered && paymentSummary.amountPaid < orderTotals.amount) {
+                throw new Error(`Customer payment is short by ${String.fromCharCode(8369)}${formatCurrency(paymentSummary.balanceDue)}.`);
+            }
+
+            await db.runTransaction(async transaction => {
+                const reportDoc = await transaction.get(reportRef);
+                if (!reportDoc.exists) {
+                    throw new Error('Today report not found.');
+                }
+
+                const report = reportDoc.data();
+                const reportData = report.data || {};
+                const updatePayload = {};
+
+                posCart.forEach(item => {
+                    const currentItem = reportData[item.productId];
+                    const currentStock = currentItem?.end || 0;
+                    if (item.quantity > currentStock) {
+                        throw new Error(`Not enough stock for ${item.name}. Available: ${formatQuantity(currentStock)}.`);
+                    }
+                    updatePayload[`data.${item.productId}.end`] = parseFloat((currentStock - item.quantity).toFixed(2));
+                });
+
+                transaction.update(reportRef, updatePayload);
+                transaction.set(orderRef, {
+                    id: orderId,
+                    date: todayDateString,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    amountPaid: paymentSummary.paymentEntered ? paymentSummary.amountPaid : 0,
+                    paymentEntered: paymentSummary.paymentEntered,
+                    changeDue: paymentSummary.changeDue,
+                    items: posCart.map(item => ({
+                        productId: item.productId,
+                        name: item.name,
+                        category: item.category,
+                        quantity: item.quantity,
+                        price: item.price,
+                        total: item.total
+                    })),
+                    total: orderTotals.amount,
+                    printerName: printerSettings.printerName || '',
+                    paperWidth: printerSettings.paperWidth,
+                    status: 'pending-payment'
+                });
+            });
+
+            const completedOrder = {
+                id: orderId,
+                createdAt: new Date().toISOString(),
+                items: posCart.map(item => ({ ...item })),
+                total: orderTotals.amount,
+                amountPaid: paymentSummary.paymentEntered ? paymentSummary.amountPaid : 0,
+                paymentEntered: paymentSummary.paymentEntered,
+                changeDue: paymentSummary.changeDue,
+                storeName: printerSettings.storeName,
+                printerName: printerSettings.printerName,
+                paperWidth: printerSettings.paperWidth,
+                footerNote: printerSettings.footerNote
+            };
+
+            if (printerSettings.autoPrint) {
+                openReceiptWindow(completedOrder, true);
+            }
+
+            clearPosCart();
+            const cashReceivedInput = document.getElementById('pos-cash-received');
+            if (cashReceivedInput) cashReceivedInput.value = '';
+            renderPosCart();
+            Toast.fire({ icon: 'success', title: `Order ${orderId} saved.` });
+        } catch (error) {
+            const message = typeof error.message === 'string' ? error.message : handleFirestoreError(error);
+            Swal.fire('Order Failed', message, 'error');
+        } finally {
+            toggleButtonLoading(submitBtn, false);
+        }
+    }
+
+    
     function hashPassword(password) {
         return CryptoJS.SHA256(password + HASH_SALT).toString();
     }
@@ -1725,7 +3115,7 @@
             };
         });
 
-        const report = { date: dateString, data: newReportData, cashOnHand: 0, discountAmount: 0, gcashPayment: 0, isFinalized: false };
+        const report = { date: dateString, data: newReportData, cashOnHand: 0, discountAmount: 0, gcashPayment: 0, isFinalized: false, inventoryLocked: true };
         await reportRef.set(report);
         Toast.fire({ icon: 'info', title: `Started new report for ${dayjs(dateString).format('MMM D')}` });
         return report;
@@ -1740,6 +3130,58 @@
             }
             await reportRef.update(updatePayload);
             recalculateAndRenderAllTotals();
+        } catch (error) {
+            Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
+        }
+    }
+
+    async function toggleInventoryManualLock() {
+        const reportRef = db.collection('reports').doc(todayDateString);
+        try {
+            const reportDoc = await reportRef.get();
+            if (!reportDoc.exists) {
+                Toast.fire({ icon: 'error', title: 'Today report not found.' });
+                return;
+            }
+
+            const report = reportDoc.data();
+            if (report.isFinalized) {
+                Toast.fire({ icon: 'info', title: 'Finalized reports can no longer be unlocked.' });
+                return;
+            }
+
+            const currentlyLocked = report.inventoryLocked !== false;
+            const nextLocked = !currentlyLocked;
+            const prompt = currentlyLocked
+                ? {
+                    title: 'Unlock Manual Inventory?',
+                    text: 'Manual editing will be enabled. Use this only when you need to correct stock or add deliveries manually.',
+                    confirmButtonText: 'Unlock Now'
+                }
+                : {
+                    title: 'Lock Auto Inventory?',
+                    text: 'Manual inventory fields will be disabled again, and the report will follow automatic POS deductions only.',
+                    confirmButtonText: 'Lock Now'
+                };
+
+            const { isConfirmed } = await Swal.fire({
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: currentlyLocked ? '#d97706' : '#0f766e',
+                title: prompt.title,
+                text: prompt.text,
+                confirmButtonText: prompt.confirmButtonText
+            });
+
+            if (!isConfirmed) {
+                return;
+            }
+
+            await reportRef.update({ inventoryLocked: nextLocked });
+            Toast.fire({
+                icon: 'success',
+                title: nextLocked ? 'Inventory locked to automatic mode.' : 'Manual inventory editing unlocked.'
+            });
         } catch (error) {
             Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
         }
@@ -1835,8 +3277,10 @@
         
         if (viewId === 'dashboard-view') {
             listenForDashboardData();
-        } else if (viewId === 'expenses-view') {
-            renderExpensesView(todayDateString);
+        } else if (viewId === 'open-sacks-view') {
+            renderOpenSacksView(todayDateString);
+        } else if (viewId === 'night-inventory-view') {
+            renderNightInventoryView();
         } else if (viewId === 'history-view') {
             showHistory();
         }
@@ -1863,8 +3307,9 @@
                     const isFinalized = reportData.isFinalized || false;
                     const isToday = dateString === todayDateString;
                     const isEditable = (isToday && !isFinalized) || isEditingPast;
+                    const inventoryLocked = reportData.inventoryLocked !== false;
 
-                    renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday });
+                    renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked });
                     updateInventoryTable(reportData);
                 } else {
                     document.getElementById('inventory-tbody').innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-600">Report not found!</td></tr>`;
@@ -1879,13 +3324,39 @@
     }
 
     function renderInventoryTable(dateString, report, options) {
-        const { isEditable, isFinalized, isEditingPast, isToday } = options;
+        const { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked } = options;
         const inventoryTbody = document.getElementById('inventory-tbody');
         document.getElementById('report-title').textContent = `Daily Report - ${dayjs(dateString).format('MMMM D, YYYY')}`;
 
         const resetButton = document.getElementById('reset-today-btn');
         if (resetButton) {
             resetButton.style.display = isToday ? 'inline-flex' : 'none';
+        }
+
+        const lockBtn = document.getElementById('toggle-inventory-lock-btn');
+        const lockStatus = document.getElementById('inventory-lock-status');
+        const manualModeAvailable = isToday && !isFinalized && !isEditingPast;
+        const manualInputsEditable = isEditable && (!inventoryLocked || isEditingPast);
+
+        if (lockBtn) {
+            lockBtn.style.display = manualModeAvailable ? 'inline-flex' : 'none';
+            lockBtn.textContent = inventoryLocked ? 'Unlock Manual Edit' : 'Lock Auto Inventory';
+            lockBtn.className = inventoryLocked
+                ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-md font-medium no-print'
+                : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-4 py-2 rounded-md font-medium no-print';
+        }
+
+        if (lockStatus) {
+            if (isEditingPast) {
+                lockStatus.textContent = 'Past report editing is manual. Changes here do not automatically flow into future days.';
+                lockStatus.className = 'mb-4 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 no-print';
+            } else if (inventoryLocked) {
+                lockStatus.textContent = 'Locked: inventory follows POS sales automatically. Unlock only when you need manual stock correction.';
+                lockStatus.className = 'mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 no-print';
+            } else {
+                lockStatus.textContent = 'Unlocked: manual inventory editing is enabled. Use this only for stock correction or delivery updates.';
+                lockStatus.className = 'mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 no-print';
+            }
         }
             
         const groupedProducts = {};
@@ -1937,12 +3408,12 @@
                     tableHtml += `<tr data-id="${product.id}" data-category="${product.category}" data-category-child-of="${cat}">
                         <td class="font-bold product-name">${product.name}</td>
                         <td><input type="number" class="begin-val" disabled /></td>
-                        <td><input type="number" class="new-stock-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
-                        <td><input type="number" class="returns-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
+                        <td><input type="number" class="new-stock-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
+                        <td><input type="number" class="returns-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
                         <td class="!p-1">
-                            ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!isEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
+                            ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!manualInputsEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
                         </td>
-                        <td><input type="number" class="end-input" ${!isEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
+                        <td><input type="number" class="end-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="sold-val" disabled /></td>
                         <td class="selling-price-display font-medium">₱${formatCurrency(calculatedSellingPrice)}</td> 
                         <td class="total-sales-val font-semibold" aria-live="polite"></td>
@@ -2066,6 +3537,99 @@
         calculateCashDifference();
     }
     
+    function setOpenSacksSearchQuery(value) {
+        openSacksSearchQuery = (value || '').trim().toLowerCase();
+        renderOpenSacksView(todayDateString);
+    }
+
+    function clearOpenSacksSearch() {
+        openSacksSearchQuery = '';
+        const input = document.getElementById('open-sacks-search-input');
+        if (input) input.value = '';
+        renderOpenSacksView(todayDateString);
+    }
+
+    async function renderOpenSacksView(dateString = todayDateString) {
+        const container = document.getElementById('open-sacks-container');
+        const dateLabel = document.getElementById('open-sacks-date');
+        const searchInput = document.getElementById('open-sacks-search-input');
+        if (!container) return;
+
+        if (dateLabel) {
+            dateLabel.textContent = `Open 25 KG sacks for ${dayjs(dateString).format('MMMM D, YYYY')} and move them into the matching Per Kilo stock.`;
+        }
+        if (searchInput && searchInput.value !== openSacksSearchQuery) {
+            searchInput.value = openSacksSearchQuery;
+        }
+
+        container.innerHTML = '<div class="card p-6 text-slate-500">Loading open sacks tools...</div>';
+
+        try {
+            await startDay(dateString);
+            await loadProducts();
+            const reportDoc = await db.collection('reports').doc(dateString).get();
+            const report = reportDoc.exists ? reportDoc.data() : null;
+
+            if (!report) {
+                container.innerHTML = '<div class="card p-6 text-slate-500">No report found for this day yet.</div>';
+                return;
+            }
+
+            const twentyFiveProducts = shopProducts
+                .filter(product => product.category === '25 KG')
+                .filter(product => !openSacksSearchQuery || product.name.toLowerCase().includes(openSacksSearchQuery))
+                .sort((a, b) => a.name.localeCompare(b.name));
+
+            if (twentyFiveProducts.length === 0) {
+                container.innerHTML = `<div class="card p-6 text-slate-500">No 25 KG products found${openSacksSearchQuery ? ` for "${escapeHtml(openSacksSearchQuery)}"` : ''}.</div>`;
+                return;
+            }
+
+            container.innerHTML = twentyFiveProducts.map(product => {
+                const productReport = report.data?.[product.id] || { end: 0, openedSacks: 0 };
+                const matchingPerKilo = shopProducts.find(item => item.name === product.name && item.category === 'Per Kilo');
+                const perKiloReport = matchingPerKilo ? (report.data?.[matchingPerKilo.id] || { end: 0 }) : null;
+                return `
+                    <div class="card p-6">
+                        <div class="flex items-start justify-between gap-4 mb-4">
+                            <div>
+                                <div class="rice-name-badge category-25kg">${escapeHtml(product.name)}</div>
+                                <div class="text-xs uppercase tracking-wide text-slate-500 mt-2">25 KG Sack</div>
+                            </div>
+                            <div class="text-right text-sm text-slate-500">
+                                <div>Available sacks: <span class="font-bold text-slate-800">${formatQuantity(productReport.end || 0)}</span></div>
+                                <div>Opened today: <span class="font-bold text-blue-700">${formatQuantity(productReport.openedSacks || 0)}</span></div>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-4 text-sm text-slate-600">
+                            ${matchingPerKilo
+                                ? `Matching Per Kilo stock: <span class="font-bold text-slate-800">${formatQuantity(perKiloReport?.end || 0)} kg</span>`
+                                : '<span class="text-red-600 font-semibold">No matching Per Kilo product found yet.</span>'}
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input id="open-sacks-tab-${product.id}" type="number" min="1" step="1" placeholder="How many sacks to open" class="flex-1">
+                            <button class="btn-primary" ${matchingPerKilo ? '' : 'disabled'} onclick="submitOpenSackFromTab('${product.id}', '${dateString}')">Open Sack</button>
+                        </div>
+                    </div>`;
+            }).join('');
+        } catch (error) {
+            container.innerHTML = `<div class="card p-6 text-red-600">${handleFirestoreError(error)}</div>`;
+        }
+    }
+
+    async function submitOpenSackFromTab(productId, dateString = todayDateString) {
+        const input = document.getElementById(`open-sacks-tab-${productId}`);
+        const sacksToAdd = parseInt(input?.value, 10) || 0;
+
+        if (sacksToAdd <= 0) {
+            Toast.fire({ icon: 'info', title: 'Enter a positive number of sacks.' });
+            return;
+        }
+
+        await transferOpenSacks(productId, sacksToAdd, dateString);
+        if (input) input.value = '';
+    }
+
     function updateInputValue(row, selector, value) {
         const el = row.querySelector(selector);
         if (el && el.value != value && document.activeElement !== el) {
@@ -2230,23 +3794,21 @@
         }
     }
     
-    async function submitOpenSack(buttonElement, productId, dateString) {
-        const parentDiv = buttonElement.parentElement;
-        const addSacksInput = parentDiv.querySelector('.open-sacks-add-input');
-        const sacksToAdd = parseInt(addSacksInput.value) || 0;
-
+    async function transferOpenSacks(productId, sacksToAdd, dateString = todayDateString) {
         if (sacksToAdd <= 0) {
-            return Toast.fire({ icon: 'info', title: 'Enter a positive number.' });
+            Toast.fire({ icon: 'info', title: 'Enter a positive number.' });
+            return false;
         }
 
         const sourceProduct = shopProducts.find(p => p.id === productId);
-        if (!sourceProduct || sourceProduct.category !== '25 KG') return;
+        if (!sourceProduct || sourceProduct.category !== '25 KG') return false;
 
         const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
         if (!targetProduct) {
-            return Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}. Please add it in Settings.`, 'error');
+            await Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}. Please add it in Settings.`, 'error');
+            return false;
         }
-        
+
         const { isConfirmed } = await Swal.fire({
             title: 'Confirm Transfer',
             html: `Are you sure you want to open <b>${sacksToAdd}</b> sack(s) of <b>${sourceProduct.name}</b>?<br><br>This will add <b>${sacksToAdd * 25} kg</b> to the "Per Kilo" inventory.`,
@@ -2256,43 +3818,55 @@
             confirmButtonText: 'Yes, transfer it!'
         });
 
-        if (!isConfirmed) return;
+        if (!isConfirmed) return false;
 
         try {
             const reportRef = db.collection('reports').doc(dateString);
             await db.runTransaction(async (transaction) => {
                 const reportDoc = await transaction.get(reportRef);
-                if (!reportDoc.exists) throw "Report not found!";
-                
+                if (!reportDoc.exists) throw 'Report not found!';
+
                 const report = reportDoc.data();
                 const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
-                // Calculate available stock excluding what's already accounted for in openedSacks
-                const availableStock = sourceData.begin + sourceData.newStock - sourceData.returns - sourceData.openedSacks - sourceData.end;
+                const targetData = report.data[targetProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
+                const availableStock = parseFloat(sourceData.end) || 0;
 
                 if (availableStock < sacksToAdd) {
-                    throw `Insufficient stock for ${sourceProduct.name}. Only ${availableStock} sack(s) are physically available to open.`;
+                    throw `Insufficient stock for ${sourceProduct.name}. Only ${formatQuantity(availableStock)} sack(s) are available to open.`;
                 }
 
                 const kilosToAdd = sacksToAdd * 25;
                 const updatePayload = {};
-                // Increment openedSacks in source product and update end stock
-                updatePayload[`data.${sourceProduct.id}.openedSacks`] = firebase.firestore.FieldValue.increment(sacksToAdd);
-                updatePayload[`data.${sourceProduct.id}.end`] = firebase.firestore.FieldValue.increment(-sacksToAdd);
-                
-                // Increment begin/end stock in target product
-                updatePayload[`data.${targetProduct.id}.begin`] = firebase.firestore.FieldValue.increment(kilosToAdd);
-                updatePayload[`data.${targetProduct.id}.end`] = firebase.firestore.FieldValue.increment(kilosToAdd);
-                
+                updatePayload[`data.${sourceProduct.id}.openedSacks`] = (parseFloat(sourceData.openedSacks) || 0) + sacksToAdd;
+                updatePayload[`data.${sourceProduct.id}.end`] = parseFloat((availableStock - sacksToAdd).toFixed(2));
+                updatePayload[`data.${targetProduct.id}.newStock`] = parseFloat(((parseFloat(targetData.newStock) || 0) + kilosToAdd).toFixed(2));
+                updatePayload[`data.${targetProduct.id}.end`] = parseFloat(((parseFloat(targetData.end) || 0) + kilosToAdd).toFixed(2));
+
                 transaction.update(reportRef, updatePayload);
-                addSacksInput.value = '';
             });
+
             Toast.fire({ icon: 'success', title: 'Stock transferred!' });
+            if (document.getElementById('open-sacks-view')?.classList.contains('active')) {
+                renderOpenSacksView(dateString);
+            }
+            return true;
         } catch (error) {
             const errorMessage = typeof error === 'string' ? error : handleFirestoreError(error);
-            Swal.fire('Error', errorMessage, 'error');
+            await Swal.fire('Error', errorMessage, 'error');
+            return false;
         }
     }
-    
+
+    async function submitOpenSack(buttonElement, productId, dateString) {
+        const parentDiv = buttonElement.parentElement;
+        const addSacksInput = parentDiv.querySelector('.open-sacks-add-input');
+        const sacksToAdd = parseInt(addSacksInput.value, 10) || 0;
+        const transferred = await transferOpenSacks(productId, sacksToAdd, dateString);
+        if (transferred && addSacksInput) {
+            addSacksInput.value = '';
+        }
+    }
+
     // --- UPDATED PASSWORD MODAL LOGIC ---
 
     let passwordModalResolver = null; // To handle the async result of the modal
@@ -2586,50 +4160,13 @@
     function listenForDashboardData() {
         renderDashboardPlaceholders();
 
-        // Listener for Today's data (Live/Pending)
         const todayReportRef = db.collection('reports').doc(todayDateString);
         const todayReportListener = todayReportRef.onSnapshot(doc => {
             const reportData = doc.exists ? doc.data() : null;
-            const todaySummary = calculateDailySummaryFromData(reportData);
-            
-            // Update Today's Sales card on dashboard
-            document.getElementById('dashboard-today-sales').outerHTML = `<p id="dashboard-today-sales" class="text-3xl font-bold text-green-700">₱${formatCurrency(todaySummary.totalSales)}</p>`;
-            
-            updateDashboardLowStock(reportData);
-            // Monthly Net Profit is no longer here
+            renderDashboardPos(reportData);
         }, (error) => console.error("Dashboard listener error (today's report):", error));
 
-        // Find the last finalized report for Yesterday's Data
-        const yesterdayReportQuery = db.collection('reports').where('isFinalized', '==', true).orderBy('date', 'desc').limit(1);
-        const yesterdayReportListener = yesterdayReportQuery.onSnapshot(async (snapshot) => {
-            const yesterdayReportDoc = snapshot.docs[0];
-            let yesterdayDate = dayjs(todayDateString).subtract(1, 'day').format('YYYY-MM-DD');
-            let reportData = null;
-            let yesterdayExpenses = 0;
-            
-            if (yesterdayReportDoc) {
-                reportData = yesterdayReportDoc.data();
-                yesterdayDate = reportData.date;
-                yesterdayExpenses = await getExpensesForDate(yesterdayDate);
-            } else {
-                // Fallback to check non-finalized yesterday report if no finalized one is found
-                const nonFinalizedYesterdayDoc = await db.collection('reports').doc(yesterdayDate).get();
-                if (nonFinalizedYesterdayDoc.exists) {
-                    reportData = nonFinalizedYesterdayDoc.data();
-                    yesterdayExpenses = await getExpensesForDate(yesterdayDate);
-                }
-            }
-
-            const yesterdaySummary = calculateDailySummaryFromData(reportData);
-            const yesterdayProfit = yesterdaySummary.totalProfit - yesterdayExpenses;
-            
-            document.getElementById('yesterday-sales-label').textContent = `${dayjs(yesterdayDate).format('MMM D')} Total Sales`;
-            document.getElementById('dashboard-yesterday-sales').outerHTML = `<p id="dashboard-yesterday-sales" class="text-3xl font-bold text-slate-800">₱${formatCurrency(yesterdaySummary.totalSales)}</p>`;
-            document.getElementById('dashboard-yesterday-expenses').outerHTML = `<p id="dashboard-yesterday-expenses" class="text-3xl font-bold text-slate-800">₱${formatCurrency(yesterdayExpenses)}</p>`;
-
-        }, (error) => console.error("Dashboard listener error (yesterday's report):", error));
-
-        dashboardListeners.push(todayReportListener, yesterdayReportListener);
+        dashboardListeners.push(todayReportListener);
     }
     
     function calculateDailySummaryFromData(report) {
@@ -2704,11 +4241,8 @@
     }
 
     function renderDashboardPlaceholders() {
-        document.getElementById('dashboard-date').textContent = `Loading data...`;
-        document.getElementById('dashboard-yesterday-sales').outerHTML = `<div id="dashboard-yesterday-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-32 mt-1"></div></div>`;
-        document.getElementById('dashboard-yesterday-expenses').outerHTML = `<div id="dashboard-yesterday-expenses" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-24 mt-1"></div></div>`;
-        document.getElementById('dashboard-today-sales').outerHTML = `<div id="dashboard-today-sales" class="animate-pulse"><div class="h-8 bg-slate-200 rounded w-28 mt-1"></div></div>`;
-        // Monthly Net Profit is no longer here
+        document.getElementById('dashboard-date').textContent = `Live ordering for ${dayjs(todayDateString).format('MMMM D, YYYY')}`;
+        renderDashboardPos(currentDashboardReport);
     }
 
     // Removed updateDashboardStockCards function
@@ -2725,20 +4259,7 @@
     }
     
     function updateDashboardLowStock(report) {
-        const lowStockList = document.getElementById('low-stock-list');
-        let lowStockItems = [];
-        if (report && report.data) {
-             lowStockItems = shopProducts
-                .map(p => ({ ...p, stock: report.data[p.id]?.end }))
-                .filter(p => (p.minStock || 0) > 0 && p.stock !== undefined && p.stock <= p.minStock)
-                .sort((a,b) => a.name.localeCompare(b.name));
-        }
-
-        if (lowStockItems.length > 0) {
-            lowStockList.innerHTML = lowStockItems.map(item => `<div class="low-stock-item"><span class="low-stock-name">${item.name} (${item.category})</span><span class="low-stock-qty">${item.stock} left (Min: ${item.minStock})</span></div>`).join('');
-        } else {
-            lowStockList.innerHTML = '<p class="text-slate-500 text-center py-4">All stock levels are good!</p>';
-        }
+        return report;
     }
 
     function showAnalyticsSubTab(contentId) { document.querySelectorAll('#settings-analytics-view .analytics-tab-content').forEach(content => content.classList.add('hidden')); document.querySelectorAll('#settings-analytics-view .analytics-tab').forEach(tab => {tab.classList.remove('active'); tab.setAttribute('aria-selected', 'false');}); const selectedContent = document.getElementById(contentId); if (selectedContent) { selectedContent.classList.remove('hidden'); const correspondingTab = document.querySelector(`#settings-analytics-view [aria-controls="${contentId}"]`); if (correspondingTab) { correspondingTab.classList.add('active'); correspondingTab.setAttribute('aria-selected', 'true');} } if (contentId === 'analytics-financial-summary-content') { loadFinancialSummary(); } else { loadAnalytics(); } }
@@ -2931,11 +4452,12 @@
         moneyFlowChartInstance = new Chart(ctx, config);
     }
     
-    async function renderExpensesView(dateString) { document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200"><div><p class="font-medium">${expense.description}</p><p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p></div><div class="no-print"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
-    async function saveExpense() { const saveBtn = document.getElementById('save-expense-btn'); const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Invalid description or amount.' }); return; } toggleButtonLoading(saveBtn, true); try { const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description, amount, date: todayDateString }; await db.collection('expenses').doc(docId).set(expenseData); Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' }); clearExpenseForm(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } finally { toggleButtonLoading(saveBtn, false); } }
+    async function renderExpensesView(dateString) { currentExpenseDate = dateString; document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200"><div><p class="font-medium">${escapeHtml(expense.description)}</p><p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p></div><div class="no-print"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
+    async function saveExpense() { const saveBtn = document.getElementById('save-expense-btn'); const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Invalid description or amount.' }); return; } toggleButtonLoading(saveBtn, true); try { const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description, amount, date: currentExpenseDate || todayDateString }; await db.collection('expenses').doc(docId).set(expenseData); Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' }); clearExpenseForm(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } finally { toggleButtonLoading(saveBtn, false); } }
     function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; document.getElementById('save-expense-btn').textContent = 'Save Expense'; }
     async function editExpense(id) { try { const expense = (await db.collection('expenses').doc(id).get()).data(); if (expense) { document.getElementById('expense-id').value = expense.id; document.getElementById('expense-description').value = expense.description; document.getElementById('expense-amount').value = expense.amount; document.getElementById('expense-form-title').textContent = 'Edit Expense'; document.getElementById('save-expense-btn').textContent = 'Update Expense'; } } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } }
     async function deleteExpense(expenseId) { const { isConfirmed } = await Swal.fire({ title: 'Delete Expense?', icon: 'warning', showCancelButton: true }); if (isConfirmed) { try { await db.collection('expenses').doc(expenseId).delete(); Toast.fire({ icon: 'success', title: 'Expense deleted!' }); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } } }
+
     
     // --- SETTINGS PANEL FUNCTIONS ---
     
@@ -2956,6 +4478,7 @@
             renderInventoryStockDetails();
         } else if (targetId === 'settings-profit-view') { // NEW LOGIC
             renderSettingsProfitDetails();
+            renderSettingsPriceManager(document.getElementById('settings-price-category-select')?.value || '25 KG');
         }
     }
 
@@ -3181,6 +4704,39 @@
         } finally {
             toggleButtonLoading(saveBtn, false);
         }
+    }
+
+
+    async function openQuickDeleteProductModal() {
+        const select = document.getElementById('quick-delete-product-select');
+        if (!select) return;
+
+        await loadProducts();
+        const products = [...shopProducts].sort((a, b) => a.name.localeCompare(b.name));
+        select.innerHTML = ['<option value="">-- Select a Product --</option>']
+            .concat(products.map(product => `<option value="${product.id}">${escapeHtml(product.name)} (${escapeHtml(product.category)})</option>`))
+            .join('');
+
+        document.getElementById('quick-delete-product-modal-overlay')?.classList.add('open');
+    }
+
+    function closeQuickDeleteProductModal() {
+        document.getElementById('quick-delete-product-modal-overlay')?.classList.remove('open');
+        const select = document.getElementById('quick-delete-product-select');
+        if (select) select.value = '';
+    }
+
+    async function deleteProductFromModal() {
+        const select = document.getElementById('quick-delete-product-select');
+        const productId = select?.value;
+
+        if (!productId) {
+            Toast.fire({ icon: 'warning', title: 'Select a product to delete first.' });
+            return;
+        }
+
+        closeQuickDeleteProductModal();
+        await deleteProduct(productId);
     }
     
     function renderProductList() { 
@@ -3509,6 +5065,185 @@
     }
 
     // FIXED FUNCTION
+    async function getTodayOrdersSummary() {
+        const snapshot = await db.collection('orders').where('date', '==', todayDateString).get();
+        const orders = snapshot.docs.map(doc => doc.data()).sort((a, b) => {
+            const aTime = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+            const bTime = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+            return bTime - aTime;
+        });
+        const totals = orders.reduce((acc, order) => {
+            acc.count += 1;
+            acc.sales += order.total || 0;
+            acc.items += (order.items || []).reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0);
+            return acc;
+        }, { count: 0, sales: 0, items: 0 });
+        return { orders, ...totals };
+    }
+
+    async function renderNightInventoryView() {
+        const tbody = document.getElementById('night-inventory-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>';
+        try {
+            await loadProducts();
+            const reportDoc = await db.collection('reports').doc(todayDateString).get();
+            const report = reportDoc.exists ? reportDoc.data() : null;
+            const orderSummary = await getTodayOrdersSummary();
+            const stockWorth = calculateStockWorth(report);
+            const rows = [];
+            let totalRemainingUnits = 0;
+            let totalOpenedSacks = 0;
+
+            shopProducts.forEach(product => {
+                const item = report?.data?.[product.id];
+                if (!item) return;
+                const sold = calculateSoldQuantity(item);
+                const remaining = item.end || 0;
+                totalRemainingUnits += remaining;
+                if (product.category === '25 KG') {
+                    totalOpenedSacks += parseFloat(item.openedSacks || 0) || 0;
+                }
+                rows.push(`
+                    <tr>
+                        <td class="font-semibold text-slate-800">${escapeHtml(product.name)}</td>
+                        <td>${escapeHtml(product.category)}</td>
+                        <td class="text-right">${formatQuantity(item.begin || 0)}</td>
+                        <td class="text-right">${formatQuantity(sold)}</td>
+                        <td class="text-right font-semibold">${formatQuantity(remaining)}</td>
+                    </tr>`);
+            });
+
+            tbody.innerHTML = rows.join('') || '<tr><td colspan="5" class="text-center p-4 text-slate-500">No inventory data for today yet.</td></tr>';
+            document.getElementById('night-orders-count').textContent = String(orderSummary.count);
+            document.getElementById('night-sales-total').textContent = `${String.fromCharCode(8369)}${formatCurrency(orderSummary.sales)}`;
+            document.getElementById('night-remaining-units').textContent = formatQuantity(totalRemainingUnits);
+            document.getElementById('night-opened-sacks').textContent = formatQuantity(totalOpenedSacks);
+            document.getElementById('night-remaining-value').textContent = `${String.fromCharCode(8369)}${formatCurrency(stockWorth.totalRiceWorth)}`;
+            document.getElementById('night-recent-orders').innerHTML = orderSummary.orders.slice(0, 6).map(order => {
+                const created = order.createdAt?.toDate ? dayjs(order.createdAt.toDate()).format('h:mm A') : 'Pending time';
+                return `<div class="p-3 rounded-lg bg-slate-50 border flex justify-between gap-3"><div><div class="font-medium text-slate-800">Order ${escapeHtml(order.id || 'Pending')}</div><div class="text-xs text-slate-500">${created} ? ${order.paymentEntered ? `Paid: &#8369;${formatCurrency(order.amountPaid || 0)}` : 'Payment not entered'}</div></div><div class="font-semibold text-slate-800">&#8369;${formatCurrency(order.total || 0)}</div></div>`;
+            }).join('') || '<div class="text-slate-400">No orders saved today.</div>';
+        } catch (error) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">${handleFirestoreError(error)}</td></tr>`;
+        }
+    }
+
+    async function renderSettingsPriceManager(category = '25 KG') {
+        const select = document.getElementById('settings-price-category-select');
+        const container = document.getElementById('settings-price-products-container');
+        if (!container) return;
+        if (select) select.value = category;
+        container.innerHTML = '<div class="loader"></div>';
+        await loadProducts();
+        const products = shopProducts.filter(product => product.category === category).sort((a, b) => a.name.localeCompare(b.name));
+        if (!products.length) {
+            container.innerHTML = '<p class="text-slate-500">No products in this category.</p>';
+            return;
+        }
+        container.innerHTML = products.map(product => {
+            const sellingPrice = (product.cost || 0) + (product.profitMargin || 0);
+            return `<div class="price-manager-row"><div><div class="font-semibold text-slate-800">${escapeHtml(product.name)}</div><div class="text-xs text-slate-500">${escapeHtml(product.category)}</div></div><input id="settings-cost-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.cost || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><input id="settings-profit-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.profitMargin || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><div class="font-bold text-blue-700">₱<span id="settings-sell-${product.id}">${formatCurrency(sellingPrice)}</span></div></div>`;
+        }).join('');
+    }
+
+    function updateSettingsPricePreview(productId) {
+        const cost = parseFloat(document.getElementById(`settings-cost-${productId}`)?.value) || 0;
+        const profit = parseFloat(document.getElementById(`settings-profit-${productId}`)?.value) || 0;
+        const sell = document.getElementById(`settings-sell-${productId}`);
+        if (sell) sell.textContent = formatCurrency(cost + profit);
+    }
+
+    async function saveSettingsPriceManager() {
+        const saveBtn = document.getElementById('save-settings-price-btn');
+        toggleButtonLoading(saveBtn, true);
+        try {
+            const batch = db.batch();
+            const reportUpdatePayload = {};
+            document.querySelectorAll('#settings-price-products-container input[data-product-id]').forEach(input => {
+                const productId = input.dataset.productId;
+                const cost = parseFloat(document.getElementById(`settings-cost-${productId}`).value) || 0;
+                const profit = parseFloat(document.getElementById(`settings-profit-${productId}`).value) || 0;
+                batch.update(db.collection('products').doc(productId), { cost, profitMargin: profit });
+                reportUpdatePayload[`data.${productId}.cost`] = cost;
+                reportUpdatePayload[`data.${productId}.profitMargin`] = profit;
+            });
+            await batch.commit();
+            if (Object.keys(reportUpdatePayload).length) {
+                await db.collection('reports').doc(todayDateString).update(reportUpdatePayload).catch(() => null);
+            }
+            await loadProducts();
+            renderSettingsPriceManager(document.getElementById('settings-price-category-select')?.value || '25 KG');
+            renderDashboardPos(currentDashboardReport);
+            Toast.fire({ icon: 'success', title: 'Prices updated.' });
+        } catch (error) {
+            Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
+        } finally {
+            toggleButtonLoading(saveBtn, false);
+        }
+    }
+
+    async function quickEditPosSellingPrice(productId) {
+        const product = shopProducts.find(item => item.id === productId);
+        if (!product) {
+            Toast.fire({ icon: 'error', title: 'Product not found.' });
+            return;
+        }
+
+        const currentSellingPrice = (product.cost || 0) + (product.profitMargin || 0);
+        const { value: newSellingPrice } = await Swal.fire({
+            title: `Edit Selling Price: ${product.name}`,
+            input: 'number',
+            inputValue: formatForInput(currentSellingPrice),
+            inputLabel: `Current capital is &#8369;${formatCurrency(product.cost || 0)}`,
+            inputAttributes: {
+                min: formatForInput(product.cost || 0),
+                step: '0.01'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Save Price',
+            inputValidator: (value) => {
+                if (value === '' || value === null) return 'Enter a selling price.';
+                const parsed = parseFloat(value);
+                if (!Number.isFinite(parsed)) return 'Enter a valid number.';
+                if (parsed < (product.cost || 0)) return 'Selling price cannot be lower than capital.';
+                return null;
+            }
+        });
+
+        if (newSellingPrice === undefined) {
+            return;
+        }
+
+        const sellValue = parseFloat(newSellingPrice);
+        const nextProfit = parseFloat((sellValue - (product.cost || 0)).toFixed(2));
+
+        try {
+            await db.collection('products').doc(productId).update({
+                profitMargin: nextProfit
+            });
+
+            await db.collection('reports').doc(todayDateString).update({
+                [`data.${productId}.profitMargin`]: nextProfit
+            }).catch(() => null);
+
+            const targetProduct = shopProducts.find(item => item.id === productId);
+            if (targetProduct) {
+                targetProduct.profitMargin = nextProfit;
+            }
+
+            renderPosProductGrid();
+            if (document.getElementById('settings-profit-view')?.classList.contains('active')) {
+                renderSettingsPriceManager(document.getElementById('settings-price-category-select')?.value || posSelectedCategory);
+            }
+
+            Toast.fire({ icon: 'success', title: `${product.name} selling price updated.` });
+        } catch (error) {
+            console.error('Quick price update failed:', error);
+            Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
+        }
+    }
+
     async function renderSettingsProfitDetails() {
         // Reset placeholders to avoid showing old data during load
         document.getElementById('settings-today-sales').textContent = 'Loading...';
