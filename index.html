@@ -1075,6 +1075,31 @@
       margin-top: 0.35rem;
     }
 
+
+    .pos-quick-cash-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.45rem;
+      margin-top: 0.55rem;
+    }
+
+    .pos-quick-cash-btn {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 12px;
+      min-height: 36px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: all 0.18s ease;
+    }
+
+    .pos-quick-cash-btn:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
     .pos-cart-actions {
       display: grid;
       gap: 0.45rem;
@@ -1362,6 +1387,72 @@
       border-bottom: 1px solid #e2e8f0;
     }
 
+    .daily-guide-table {
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+
+    .daily-guide-table thead th {
+      background: #f8fafc;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .daily-guide-row td {
+      background: #ffffff;
+      padding: 0.9rem 0.75rem;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+
+    .daily-guide-row td:first-child {
+      border-left: 1px solid #e2e8f0;
+      border-top-left-radius: 16px;
+      border-bottom-left-radius: 16px;
+      min-width: 180px;
+    }
+
+    .daily-guide-row td:last-child {
+      border-right: 1px solid #e2e8f0;
+      border-top-right-radius: 16px;
+      border-bottom-right-radius: 16px;
+    }
+
+    .daily-guide-rice-name {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .daily-guide-number {
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .daily-guide-sold-chip,
+    .daily-guide-remaining-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .daily-guide-sold-chip {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .daily-guide-remaining-chip {
+      background: #dcfce7;
+      color: #15803d;
+      box-shadow: inset 0 0 0 1px #86efac;
+    }
+
     .price-manager-row {
       display: grid;
       grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(110px, 1fr));
@@ -1543,6 +1634,15 @@
         font-size: 0.72rem;
       }
 
+      .pos-quick-cash-grid {
+        gap: 0.35rem;
+      }
+
+      .pos-quick-cash-btn {
+        min-height: 32px;
+        font-size: 0.72rem;
+      }
+
       .pos-payment-shell input {
         min-height: 34px;
         font-size: 0.82rem;
@@ -1690,6 +1790,11 @@
       body.pos-focus-mode #dashboard-view .pos-payment-label,
       body.pos-focus-mode #dashboard-view .pos-payment-note {
         font-size: 0.76rem;
+      }
+
+      body.pos-focus-mode #dashboard-view .pos-quick-cash-btn {
+        min-height: 36px;
+        font-size: 0.8rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-payment-shell input {
@@ -1927,7 +2032,15 @@
             <div class="pos-payment-shell">
               <label for="pos-cash-received" class="pos-payment-label">Customer Payment</label>
               <input id="pos-cash-received" type="number" min="0" step="0.01" placeholder="Optional amount received" oninput="renderPosCart()">
-              <p id="pos-payment-note" class="pos-payment-note text-slate-500">Add payment amount if the customer already handed over cash.</p>
+              <div class="pos-quick-cash-grid">
+                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(300)">300</button>
+                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(500)">500</button>
+                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(1000)">1000</button>
+                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(1500)">1500</button>
+                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(2000)">2000</button>
+                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(3000)">3000</button>
+              </div>
+              <p id="pos-payment-note" class="pos-payment-note hidden"></p>
             </div>
             <div class="pos-cart-actions">
               <button id="submit-order-btn" onclick="submitPosOrder()" class="btn-success w-full pos-primary-action">Submit Order & Print</button>
@@ -1955,6 +2068,9 @@
         </button>
         <button onclick="window.print()" class="btn-primary no-print" aria-label="Print this report">
             Print Report
+        </button>
+        <button onclick="showDailyGuideReportModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-md font-medium no-print" aria-label="Preview today's inventory guide">
+            Generate Report
         </button>
         <button id="reset-today-btn" onclick="resetTodaysReport()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md font-medium no-print" aria-label="Reset today's report">
             Reset Today's Report
@@ -2783,9 +2899,16 @@
     let calculationTimeout;
     let reportListener = null;
     let expensesListener = null;
+    let productsRealtimeListener = null;
+    let orderLogsRealtimeListener = null;
+    let nightOrdersRealtimeListener = null;
     let dashboardListeners = [];
     let currentDashboardReport = null;
     let selectedOrderLogsDate = '';
+    let activeInventoryDateString = '';
+    let currentDailyGuideReportData = null;
+    let currentDailyGuideReportDate = '';
+    let currentDailyGuideCategory = '25 KG';
     let posSelectedCategory = '25 KG';
     let posSearchQuery = '';
     let openSacksSearchQuery = '';
@@ -2857,6 +2980,8 @@
         // 1. Detach ALL old listeners
         if (typeof reportListener === 'function') { reportListener(); reportListener = null; }
         if (typeof expensesListener === 'function') { expensesListener(); expensesListener = null; }
+        if (typeof orderLogsRealtimeListener === 'function') { orderLogsRealtimeListener(); orderLogsRealtimeListener = null; }
+        if (typeof nightOrdersRealtimeListener === 'function') { nightOrdersRealtimeListener(); nightOrdersRealtimeListener = null; }
         dashboardListeners.forEach(unsubscribe => unsubscribe());
         dashboardListeners = [];
 
@@ -2867,6 +2992,7 @@
             loadProducts(),
             loadPrinterSettings()
         ]);
+        ensureProductsRealtimeSync();
 
         const activeView = document.querySelector('.main-view.active');
         if (activeView && activeView.id === 'add-product-view') {
@@ -3278,14 +3404,14 @@
         }
         if (paymentNoteEl) {
             if (!summary.paymentEntered) {
-                paymentNoteEl.textContent = 'Add payment amount if the customer already handed over cash.';
-                paymentNoteEl.className = 'text-xs text-slate-500';
+                paymentNoteEl.textContent = '';
+                paymentNoteEl.className = 'pos-payment-note hidden';
             } else if (summary.balanceDue > 0) {
                 paymentNoteEl.textContent = `Need ${String.fromCharCode(8369)}${formatCurrency(summary.balanceDue)} more to complete the payment.`;
-                paymentNoteEl.className = 'text-xs font-semibold text-red-600';
+                paymentNoteEl.className = 'pos-payment-note text-xs font-semibold text-red-600';
             } else {
                 paymentNoteEl.textContent = 'Payment is enough. Change is ready for the customer.';
-                paymentNoteEl.className = 'text-xs text-emerald-600';
+                paymentNoteEl.className = 'pos-payment-note text-xs text-emerald-600';
             }
         }
     }
@@ -3442,10 +3568,19 @@
 
     function renderDashboardPos(reportData) {
         currentDashboardReport = reportData;
+        if (currentDailyGuideReportDate && currentDailyGuideReportDate === todayDateString) {
+            currentDailyGuideReportData = reportData;
+            if (document.getElementById('daily-guide-products-body')) {
+                renderDailyGuideCategory(currentDailyGuideCategory || '25 KG');
+            }
+        }
         applyPosFocusMode();
         renderPosCategoryTabs();
         renderPosProductGrid();
         renderPosCart();
+        if (document.getElementById('open-sacks-view')?.classList.contains('active')) {
+            renderOpenSacksView(todayDateString);
+        }
         if (document.getElementById('night-inventory-view')?.classList.contains('active')) {
             renderNightInventoryView();
         }
@@ -3977,7 +4112,19 @@
         renderPrinterSettings();
 
         if (hasAndroidPrinterBridge() || printerSettings.connectionType === 'web-bluetooth') {
-            await attemptAutoReconnectPrinter();
+            setTimeout(async () => {
+                try {
+                    await Promise.race([
+                        attemptAutoReconnectPrinter(),
+                        new Promise(resolve => setTimeout(() => resolve(false), 4000))
+                    ]);
+                } catch (error) {
+                    console.warn('Background printer reconnect failed:', error);
+                } finally {
+                    renderPrinterSettings();
+                    renderHeaderPrinterStatus();
+                }
+            }, 0);
         }
     }
 
@@ -4382,6 +4529,61 @@
         loaderStatus.textContent = 'Loading application...';
     }
 
+    function syncProductsIntoActiveViews() {
+        renderDashboardPos(currentDashboardReport);
+
+        const activeView = document.querySelector('.main-view.active');
+        if (activeView?.id === 'add-product-view') {
+            renderProductList();
+        }
+        if (activeView?.id === 'open-sacks-view') {
+            renderOpenSacksView(todayDateString);
+        }
+        if (activeView?.id === 'night-inventory-view') {
+            renderNightInventoryView();
+        }
+        if (activeView?.id === 'daily-report-view' && currentDailyGuideReportData) {
+            renderDailyGuideCategory(currentDailyGuideCategory || '25 KG');
+        }
+
+        const settingsPanel = document.getElementById('settings-panel');
+        const isSettingsOpen = settingsPanel?.classList.contains('open');
+        if (isSettingsOpen) {
+            const activeSettingsView = document.querySelector('#settings-panel .settings-view-pane.active');
+            if (activeSettingsView?.id === 'settings-products-view') {
+                renderProductList();
+            }
+            if (activeSettingsView?.id === 'settings-profit-view') {
+                renderSettingsPriceManager(document.getElementById('settings-price-category-select')?.value || '25 KG');
+            }
+            if (activeSettingsView?.id === 'settings-inventory-view') {
+                renderInventoryStockDetails();
+            }
+        }
+    }
+
+    function ensureProductsRealtimeSync() {
+        if (typeof productsRealtimeListener === 'function') {
+            return;
+        }
+
+        productsRealtimeListener = db.collection('products').orderBy('name').onSnapshot(snapshot => {
+            const products = snapshot.docs.map(doc => {
+                const data = doc.data();
+                if (data.profitMargin === undefined) {
+                    const calculatedProfitMargin = (data.price || 0) - (data.cost || 0);
+                    data.profitMargin = Math.max(0, calculatedProfitMargin);
+                }
+                return data;
+            });
+            setShopProducts(products);
+            productsLoadPromise = Promise.resolve(shopProducts);
+            syncProductsIntoActiveViews();
+        }, error => {
+            console.error('Live product sync error:', error);
+        });
+    }
+
     async function loadProducts(options = {}) {
         const { force = false } = options;
         if (!force && shopProducts.length > 0) {
@@ -4588,6 +4790,205 @@
         }
     }
 
+    async function showFinalizeModal() {
+        let hasLogicErrors = false;
+        const errorMessages = [];
+
+        document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
+            const productName = row.querySelector('.product-name').textContent;
+            const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
+            const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
+            const end = parseFloat(row.querySelector('.end-input').value) || 0;
+            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
+            const returns = parseFloat(row.querySelector('.returns-input').value) || 0; 
+            
+            const availableStockIncludingNew = begin + newStock - openedSacks - returns; // UPDATED
+
+            if (end > availableStockIncludingNew) {
+                hasLogicErrors = true;
+                row.querySelector('.end-input').classList.add('invalid');
+                errorMessages.push(`Ending stock for "${productName}" (${end}) is greater than available stock (${availableStockIncludingNew}).`);
+            } else {
+                row.querySelector('.end-input').classList.remove('invalid');
+            }
+        });
+
+        if (hasLogicErrors) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Inventory Logic Errors Found!',
+                html: `Please correct the following errors before finalizing the report:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
+                confirmButtonText: 'Understood'
+            });
+            return;
+        }
+
+        const { isConfirmed } = await Swal.fire({
+            title: `Finalize Report for Today?`,
+            text: `This will lock today's report from further edits. You can still make corrections later from the History page (password required).`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            confirmButtonText: 'Yes, Finalize It!',
+            showLoaderOnConfirm: true,
+            preConfirm: () => finalizeReport().catch(err => Swal.showValidationMessage(`Request failed: ${err}`)),
+            allowOutsideClick: () => !Swal.isLoading()
+        });
+    }
+
+
+    function updateDailyGuideCategoryButtons(activeCategory) {
+        document.querySelectorAll('#daily-guide-category-tabs .pos-category-btn').forEach(button => {
+            button.classList.toggle('active', button.dataset.category === activeCategory);
+        });
+    }
+
+    function renderDailyGuideCategory(categoryFilter) {
+        const summaryContainer = document.getElementById('daily-guide-summary-cards');
+        const tableBody = document.getElementById('daily-guide-products-body');
+        const footer = document.getElementById('daily-guide-footer-note');
+        if (!summaryContainer || !tableBody || !currentDailyGuideReportData) return;
+
+        currentDailyGuideCategory = categoryFilter;
+        updateDailyGuideCategoryButtons(categoryFilter);
+
+        const products = shopProducts
+            .filter(product => product.category === categoryFilter)
+            .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+        let totalBegin = 0;
+        let totalNewStock = 0;
+        let totalSold = 0;
+        let totalRemaining = 0;
+
+        const rowsHtml = products.map(product => {
+            const item = currentDailyGuideReportData?.data?.[product.id] || buildInitialReportItem(product);
+            const metrics = calculateInventorySalesMetrics(item, product);
+            const begin = parseFloat(item.begin) || 0;
+            const newStock = parseFloat(item.newStock) || 0;
+            const sold = Math.max(0, metrics.sold || 0);
+            const remaining = Math.max(0, parseFloat(item.end) || 0);
+
+            totalBegin += begin;
+            totalNewStock += newStock;
+            totalSold += sold;
+            totalRemaining += remaining;
+
+            return `
+                <tr class="daily-guide-row">
+                    <td><div class="daily-guide-rice-name">${escapeHtml(product.name)}</div></td>
+                    <td class="text-right"><span class="daily-guide-number">${formatQuantity(begin)}</span></td>
+                    <td class="text-right"><span class="daily-guide-number">${formatQuantity(newStock)}</span></td>
+                    <td class="text-right"><span class="daily-guide-sold-chip">${formatQuantity(sold)}</span></td>
+                    <td class="text-right"><span class="daily-guide-remaining-chip">${formatQuantity(remaining)}</span></td>
+                </tr>
+            `;
+        }).join('');
+
+        summaryContainer.innerHTML = `
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">${escapeHtml(categoryFilter)} Begin</div>
+                <div class="mt-1 text-xl font-bold text-slate-800">${formatQuantity(totalBegin)}</div>
+            </div>
+            <div class="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3">
+                <div class="text-xs font-semibold uppercase tracking-wide text-cyan-700">${escapeHtml(categoryFilter)} New Stock</div>
+                <div class="mt-1 text-xl font-bold text-cyan-800">${formatQuantity(totalNewStock)}</div>
+            </div>
+            <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                <div class="text-xs font-semibold uppercase tracking-wide text-blue-700">${escapeHtml(categoryFilter)} Sold</div>
+                <div class="mt-1 text-xl font-bold text-blue-800">${formatQuantity(totalSold)}</div>
+            </div>
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                <div class="text-xs font-semibold uppercase tracking-wide text-emerald-700">${escapeHtml(categoryFilter)} Remaining</div>
+                <div class="mt-1 text-xl font-bold text-emerald-800">${formatQuantity(totalRemaining)}</div>
+            </div>
+        `;
+
+        tableBody.innerHTML = rowsHtml || `<tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No products found in ${escapeHtml(categoryFilter)}.</td></tr>`;
+
+        if (footer) {
+            footer.textContent = `Showing ${products.length} rice products in ${categoryFilter} for ${dayjs(currentDailyGuideReportDate).format('MMMM D, YYYY')}.`;
+        }
+    }
+
+    function switchDailyGuideReportCategory(categoryFilter) {
+        renderDailyGuideCategory(categoryFilter);
+    }
+
+    function buildDailyGuideReportMarkup(reportDate) {
+        return `
+            <div class="text-left">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 mb-4">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Report Date</div>
+                    <div class="mt-1 text-lg font-bold text-slate-800">${escapeHtml(dayjs(reportDate).format('MMMM D, YYYY'))}</div>
+                    <p class="mt-2 text-sm text-slate-600">Use this as a guide before closing the day. Employees can compare the remaining rice in the system with the actual rice on hand.</p>
+                </div>
+
+                <div id="daily-guide-category-tabs" class="flex flex-wrap gap-2 mb-4">
+                    <button type="button" class="pos-category-btn" data-category="25 KG" onclick="switchDailyGuideReportCategory('25 KG')">25 KG</button>
+                    <button type="button" class="pos-category-btn" data-category="10 KG" onclick="switchDailyGuideReportCategory('10 KG')">10 KG</button>
+                    <button type="button" class="pos-category-btn" data-category="5 KG" onclick="switchDailyGuideReportCategory('5 KG')">5 KG</button>
+                    <button type="button" class="pos-category-btn" data-category="Per Kilo" onclick="switchDailyGuideReportCategory('Per Kilo')">Per Kilo</button>
+                </div>
+
+                <div id="daily-guide-summary-cards" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-4"></div>
+
+                <div class="overflow-hidden rounded-xl border border-slate-200">
+                    <div class="max-h-[55vh] overflow-y-auto">
+                        <table class="min-w-full text-sm daily-guide-table">
+                            <thead class="sticky top-0 bg-slate-100 text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-2 text-left">Rice</th>
+                                    <th class="px-3 py-2 text-right">Begin</th>
+                                    <th class="px-3 py-2 text-right">New Stock</th>
+                                    <th class="px-3 py-2 text-right">Sold</th>
+                                    <th class="px-3 py-2 text-right">Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody id="daily-guide-products-body" class="bg-white">
+                                <tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">Loading report...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="daily-guide-footer-note" class="mt-3 text-xs text-slate-500"></div>
+            </div>
+        `;
+    }
+
+    async function showDailyGuideReportModal() {
+        const reportDate = activeInventoryDateString || todayDateString;
+        try {
+            await startDay(reportDate);
+            const reportDoc = await db.collection('reports').doc(reportDate).get();
+            if (!reportDoc.exists) {
+                Swal.fire('Error', 'No daily report found for this date.', 'error');
+                return;
+            }
+
+            currentDailyGuideReportData = reportDoc.data();
+            currentDailyGuideReportDate = reportDate;
+            currentDailyGuideCategory = RICE_CATEGORIES.includes(currentDailyGuideCategory) ? currentDailyGuideCategory : '25 KG';
+            await Swal.fire({
+                title: `Inventory Guide - ${dayjs(reportDate).format('MMMM D, YYYY')}`,
+                html: buildDailyGuideReportMarkup(reportDate),
+                width: 980,
+                confirmButtonText: 'Close',
+                confirmButtonColor: '#2563eb',
+                didOpen: () => {
+                    renderDailyGuideCategory(currentDailyGuideCategory || '25 KG');
+                },
+                willClose: () => {
+                    currentDailyGuideReportData = null;
+                    currentDailyGuideReportDate = '';
+                }
+            });
+        } catch (error) {
+            console.error('Error generating daily guide report:', error);
+            Swal.fire('Error', handleFirestoreError(error), 'error');
+        }
+    }
+
 
     // --- UI RENDERING & VIEW MANAGEMENT ---
 
@@ -4602,6 +5003,8 @@
         // Detach ALL old listeners to prevent memory leaks
         if (typeof reportListener === 'function') { reportListener(); reportListener = null; }
         if (typeof expensesListener === 'function') { expensesListener(); expensesListener = null; }
+        if (typeof orderLogsRealtimeListener === 'function') { orderLogsRealtimeListener(); orderLogsRealtimeListener = null; }
+        if (typeof nightOrdersRealtimeListener === 'function') { nightOrdersRealtimeListener(); nightOrdersRealtimeListener = null; }
         dashboardListeners.forEach(unsubscribe => unsubscribe());
         dashboardListeners = [];
 
@@ -4616,6 +5019,7 @@
         } else if (viewId === 'open-sacks-view') {
             renderOpenSacksView(todayDateString);
         } else if (viewId === 'night-inventory-view') {
+            ensureNightOrdersRealtimeSync();
             renderNightInventoryView();
         } else if (viewId === 'history-view') {
             loadHistoryView();
@@ -4630,6 +5034,7 @@
     
     async function showInventory(dateString, options = {}) {
         showView('daily-report-view');
+        activeInventoryDateString = dateString;
         try {
             await startDay(dateString);
 
@@ -5334,52 +5739,6 @@
         }
     }
 
-    async function showFinalizeModal() {
-        let hasLogicErrors = false;
-        const errorMessages = [];
-
-        document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
-            const productName = row.querySelector('.product-name').textContent;
-            const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
-            const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
-            const end = parseFloat(row.querySelector('.end-input').value) || 0;
-            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
-            const returns = parseFloat(row.querySelector('.returns-input').value) || 0; 
-            
-            const availableStockIncludingNew = begin + newStock - openedSacks - returns; // UPDATED
-
-            if (end > availableStockIncludingNew) {
-                hasLogicErrors = true;
-                row.querySelector('.end-input').classList.add('invalid');
-                errorMessages.push(`Ending stock for "${productName}" (${end}) is greater than available stock (${availableStockIncludingNew}).`);
-            } else {
-                row.querySelector('.end-input').classList.remove('invalid');
-            }
-        });
-
-        if (hasLogicErrors) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Inventory Logic Errors Found!',
-                html: `Please correct the following errors before finalizing the report:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
-                confirmButtonText: 'Understood'
-            });
-            return;
-        }
-
-        const { isConfirmed } = await Swal.fire({
-            title: `Finalize Report for Today?`,
-            text: `This will lock today's report from further edits. You can still make corrections later from the History page (password required).`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#10b981',
-            confirmButtonText: 'Yes, Finalize It!',
-            showLoaderOnConfirm: true,
-            preConfirm: () => finalizeReport().catch(err => Swal.showValidationMessage(`Request failed: ${err}`)),
-            allowOutsideClick: () => !Swal.isLoading()
-        });
-    }
-
     // --- HISTORY VIEW FUNCTIONS ---
 
     async function loadHistoryView() {
@@ -5516,6 +5875,20 @@
         }
     }
 
+    function ensureNightOrdersRealtimeSync() {
+        if (typeof nightOrdersRealtimeListener === 'function') {
+            return;
+        }
+
+        nightOrdersRealtimeListener = db.collection('orders').where('date', '==', todayDateString).onSnapshot(() => {
+            if (document.getElementById('night-inventory-view')?.classList.contains('active')) {
+                renderNightInventoryView();
+            }
+        }, error => {
+            console.error('Night inventory order listener error:', error);
+        });
+    }
+
     async function loadOrderLogsView(dateString = null) {
         const orderList = document.getElementById('order-logs-list');
         const dateInput = document.getElementById('order-logs-date-input');
@@ -5532,21 +5905,31 @@
         }
 
         orderList.innerHTML = '<div class="p-4 text-center"><div class="loader"></div></div>';
+
+        if (typeof orderLogsRealtimeListener === 'function') {
+            orderLogsRealtimeListener();
+            orderLogsRealtimeListener = null;
+        }
+
         try {
-            const ordersSnapshot = await db.collection('orders').where('date', '==', targetDate).limit(300).get();
-            const sortedDocs = [...ordersSnapshot.docs].sort((a, b) => {
-                const orderA = a.data() || {};
-                const orderB = b.data() || {};
-                const timeA = orderA.createdAt?.toDate ? orderA.createdAt.toDate().getTime() : 0;
-                const timeB = orderB.createdAt?.toDate ? orderB.createdAt.toDate().getTime() : 0;
-                if (timeA !== timeB) {
-                    return timeB - timeA;
-                }
-                const idA = String(orderA.id || a.id || '0');
-                const idB = String(orderB.id || b.id || '0');
-                return idB.localeCompare(idA, undefined, { numeric: true, sensitivity: 'base' });
-            }).slice(0, 200);
-            renderOrderLogsList(sortedDocs, targetDate);
+            orderLogsRealtimeListener = db.collection('orders').where('date', '==', targetDate).limit(300).onSnapshot(snapshot => {
+                const sortedDocs = [...snapshot.docs].sort((a, b) => {
+                    const orderA = a.data() || {};
+                    const orderB = b.data() || {};
+                    const timeA = orderA.createdAt?.toDate ? orderA.createdAt.toDate().getTime() : 0;
+                    const timeB = orderB.createdAt?.toDate ? orderB.createdAt.toDate().getTime() : 0;
+                    if (timeA !== timeB) {
+                        return timeB - timeA;
+                    }
+                    const idA = String(orderA.id || a.id || '0');
+                    const idB = String(orderB.id || b.id || '0');
+                    return idB.localeCompare(idA, undefined, { numeric: true, sensitivity: 'base' });
+                }).slice(0, 200);
+                renderOrderLogsList(sortedDocs, targetDate);
+            }, error => {
+                console.error('Error loading order logs:', error);
+                orderList.innerHTML = `<p class="p-4 text-center text-red-500">${handleFirestoreError(error)}</p>`;
+            });
         } catch (error) {
             console.error('Error loading order logs:', error);
             orderList.innerHTML = `<p class="p-4 text-center text-red-500">${handleFirestoreError(error)}</p>`;
