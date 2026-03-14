@@ -844,6 +844,57 @@
       border-style: dashed;
     }
 
+    .open-sacks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .open-sacks-card {
+      padding: 0.85rem;
+      border-radius: 16px;
+    }
+
+    .open-sacks-title {
+      font-size: 1rem;
+      line-height: 1.05;
+    }
+
+    .open-sacks-meta {
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    .open-sacks-kilo-box {
+      padding: 0.7rem 0.85rem;
+      border-radius: 14px;
+      margin-bottom: 0.75rem;
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .open-sacks-form {
+      display: flex;
+      gap: 0.55rem;
+      align-items: center;
+    }
+
+    .open-sacks-form input {
+      min-height: 42px;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 0.88rem;
+    }
+
+    .open-sacks-form .btn-primary {
+      min-height: 42px;
+      padding: 0.65rem 0.9rem;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
     .pos-stock-pill {
       display: inline-flex;
       align-items: center;
@@ -1199,6 +1250,21 @@
       color: #2563eb;
     }
 
+    .pos-cart-count.compact {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 26px;
+      padding: 0.2rem 0.62rem;
+      border-radius: 999px;
+      background: #dbeafe;
+      border: 1px solid #93c5fd;
+      color: #1d4ed8;
+      font-size: 0.68rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
     .pos-tap-actions {
       margin-top: 0.45rem;
       display: flex;
@@ -1231,9 +1297,9 @@
 
     .pos-tap-shell.tap-feedback {
       border-color: #2563eb;
-      background: linear-gradient(180deg, #bfdbfe 0%, #93c5fd 100%);
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.22), 0 10px 18px rgba(37, 99, 235, 0.18);
-      transform: scale(0.98);
+      background: linear-gradient(180deg, #93c5fd 0%, #60a5fa 100%);
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.24), 0 12px 22px rgba(37, 99, 235, 0.24);
+      transform: scale(0.97);
     }
 
     .pos-quick-add-note {
@@ -1250,6 +1316,19 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 0.4rem;
+    }
+
+    .pos-tap-shell.tap-feedback .rice-name-badge,
+    .pos-tap-shell.tap-feedback .pos-card-category,
+    .pos-tap-shell.tap-feedback .pos-selling-price-value,
+    .pos-tap-shell.tap-feedback .pos-quick-add-note,
+    .pos-tap-shell.tap-feedback .pos-cart-count.compact {
+      color: #0f172a;
+    }
+
+    .pos-tap-shell.tap-feedback .pos-cart-count.compact {
+      background: rgba(255, 255, 255, 0.78);
+      border-color: rgba(255, 255, 255, 0.85);
     }
 
     .pos-live-note {
@@ -1754,6 +1833,11 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
         </svg>
       </button>
+      <button onclick="showOrderLogs()" title="Order Logs" aria-label="View Order Logs" class="text-slate-600 hover:text-blue-600 p-2 transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"></path>
+        </svg>
+      </button>
       <button onclick="openSettingsWithPassword()" title="Settings" aria-label="Open Settings" class="text-slate-600 hover:text-blue-600 p-2 transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -1768,8 +1852,8 @@
     <button class="nav-tab active" role="tab" aria-selected="true" aria-controls="dashboard-view" onclick="showView('dashboard-view')">Dashboard</button>
     <button class="nav-tab" role="tab" aria-selected="false" aria-controls="daily-report-view" onclick="showCurrentDayReport()">Daily Report</button>
     <button class="nav-tab" role="tab" aria-selected="false" aria-controls="open-sacks-view" onclick="showView('open-sacks-view')">Open Sacks</button>
-    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="add-product-view" onclick="showView('add-product-view')">Add Product</button>
-    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="night-inventory-view" onclick="showView('night-inventory-view')">Night Inventory</button>
+    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="add-product-view" onclick="openAddProductViewWithPassword()">Add Product</button>
+    <button class="nav-tab" role="tab" aria-selected="false" aria-controls="night-inventory-view" onclick="openNightInventoryWithPassword()">Night Inventory</button>
   </nav>
 
   <!-- VIEW 1: Dashboard -->
@@ -1847,8 +1931,6 @@
             </div>
             <div class="pos-cart-actions">
               <button id="submit-order-btn" onclick="submitPosOrder()" class="btn-success w-full pos-primary-action">Submit Order & Print</button>
-              <button id="preview-receipt-btn" onclick="printDraftReceipt()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-full pos-secondary-action">Preview Receipt</button>
-              <button onclick="showView('night-inventory-view')" class="bg-slate-900 hover:bg-slate-700 text-white w-full pos-secondary-action">Open Night Inventory</button>
             </div>
           </div>
         </aside>
@@ -1933,8 +2015,8 @@
         <span class="pos-search-hint">Find rice faster before opening sacks</span>
       </div>
     </div>
-    <div id="open-sacks-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="card p-6 text-slate-500">Loading open sacks tools...</div>
+    <div id="open-sacks-container" class="open-sacks-grid">
+      <div class="card open-sacks-card text-slate-500">Loading open sacks tools...</div>
     </div>
   </div>
 
@@ -1949,6 +2031,8 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="openQuickAddProductModal()" class="btn-success text-sm">Add Product</button>
+                    <button onclick="openAddNewStockModal('all')" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-md text-sm">Add New Stocks</button>
+                    <button onclick="editBeginningStock('all')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md text-sm">Edit Beginning Rice</button>
                     <button onclick="openQuickProfitMarginModal()" class="btn-primary text-sm">Update Prices</button>
                     <button onclick="openQuickDeleteProductModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm">Delete Product</button>
                 </div>
@@ -1959,6 +2043,8 @@
                 <h3 class="text-lg font-bold text-slate-800 mb-3">Quick Actions</h3>
                 <div class="space-y-3">
                     <button onclick="openQuickAddProductModal()" class="btn-success w-full justify-center">Add New Rice</button>
+                    <button onclick="openAddNewStockModal('all')" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-3 rounded-xl font-semibold w-full">Add New Stocks</button>
+                    <button onclick="editBeginningStock('all')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-3 rounded-xl font-semibold w-full">Edit Beginning Rice</button>
                     <button onclick="openQuickProfitMarginModal()" class="btn-primary w-full justify-center">Edit Selling Prices</button>
                     <button onclick="openQuickDeleteProductModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl font-semibold w-full">Delete Product</button>
                     <button onclick="openSettingsWithPassword()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl font-semibold w-full">Open Full Settings</button>
@@ -1968,8 +2054,10 @@
                 <h3 class="text-lg font-bold text-slate-800 mb-3">How To Use</h3>
                 <div class="grid gap-3 text-sm text-slate-600">
                     <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">1. Tap <strong>Add Product</strong> to create a new rice item with category, capital, and profit.</div>
-                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">2. Tap <strong>Update Prices</strong> when you want to change the selling price quickly.</div>
-                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">3. Tap <strong>Delete Product</strong> only if you want to permanently remove a rice item.</div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">2. Tap <strong>Add New Stocks</strong> to record delivered stock by category without opening the full daily report.</div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">3. Tap <strong>Edit Beginning Rice</strong> to enter the starting sacks or kilos for today.</div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">4. Tap <strong>Update Prices</strong> when you want to change the selling price quickly.</div>
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50">5. Tap <strong>Delete Product</strong> only if you want to permanently remove a rice item.</div>
                     <div class="p-4 rounded-2xl border border-slate-200 bg-blue-50 text-blue-800 border-blue-200">This tab is now for product management only. Expense entry has been removed from the main navigation.</div>
                 </div>
             </div>
@@ -1995,6 +2083,21 @@
       <div class="night-card"><div class="text-sm text-slate-500">Total Rice Remaining</div><div id="night-remaining-units" class="text-3xl font-bold text-blue-700">Loading...</div></div>
       <div class="night-card"><div class="text-sm text-slate-500">Opened Sacks Today</div><div id="night-opened-sacks" class="text-3xl font-bold text-indigo-700">Loading...</div></div>
       <div class="night-card"><div class="text-sm text-slate-500">Remaining Capital Value</div><div id="night-remaining-value" class="text-3xl font-bold text-amber-700">Loading...</div></div>
+    </div>
+    <div class="card p-5 mb-6">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800">Profit Today by Category</h3>
+          <p class="text-sm text-slate-500">Based on sold quantity and profit margin for each rice category.</p>
+        </div>
+      </div>
+      <div class="night-grid">
+        <div class="night-card"><div class="text-sm text-slate-500">25 KG Profit</div><div id="night-profit-25kg" class="text-3xl font-bold text-emerald-700">Loading...</div></div>
+        <div class="night-card"><div class="text-sm text-slate-500">10 KG Profit</div><div id="night-profit-10kg" class="text-3xl font-bold text-emerald-700">Loading...</div></div>
+        <div class="night-card"><div class="text-sm text-slate-500">5 KG Profit</div><div id="night-profit-5kg" class="text-3xl font-bold text-emerald-700">Loading...</div></div>
+        <div class="night-card"><div class="text-sm text-slate-500">Per Kilo Profit</div><div id="night-profit-perkilo" class="text-3xl font-bold text-emerald-700">Loading...</div></div>
+        <div class="night-card"><div class="text-sm text-slate-500">Total Profit Today</div><div id="night-profit-total" class="text-3xl font-bold text-emerald-800">Loading...</div></div>
+      </div>
     </div>
     <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_340px] gap-6">
       <div class="card p-6">
@@ -2036,12 +2139,36 @@
 
   <!-- VIEW 5: Report History -->
   <div id="history-view" class="main-view max-w-7xl mx-auto" role="region" aria-labelledby="history-title">
-    <div class="mb-6 flex items-center gap-4">
+    <div class="mb-6 flex items-center justify-between gap-4">
       <h2 id="history-title" class="text-xl font-bold text-slate-700">Report History</h2>
+      <button onclick="showOrderLogs()" class="btn-primary no-print">Open Order Logs</button>
     </div>
     
     <div id="history-list" class="bg-white rounded-lg shadow divide-y" aria-live="polite" aria-atomic="true">
       <div class="p-4 text-center text-slate-500"><div class="loader" role="status" aria-label="Loading reports"></div></div>
+    </div>
+  </div>
+
+  <div id="order-logs-view" class="main-view max-w-7xl mx-auto" role="region" aria-labelledby="order-logs-title">
+    <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h2 id="order-logs-title" class="text-xl font-bold text-slate-700">Order Logs</h2>
+        <p class="text-sm text-slate-500">Review saved customer orders and reopen receipts anytime.</p>
+      </div>
+      <div class="flex flex-wrap items-end gap-3">
+        <div>
+          <label for="order-logs-date-input" class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Order Date</label>
+          <input id="order-logs-date-input" type="date" class="border border-slate-300 rounded-md px-3 py-2 text-sm" onchange="loadOrderLogsView(this.value)" />
+        </div>
+        <button onclick="resetOrderLogsDateFilter()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-md font-medium no-print">Today</button>
+        <button onclick="showHistory()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-md font-medium no-print">Report History</button>
+      </div>
+    </div>
+
+    <div id="order-logs-date-summary" class="mb-4 text-sm font-medium text-slate-600"></div>
+
+    <div id="order-logs-list" class="bg-white rounded-lg shadow divide-y" aria-live="polite" aria-atomic="true">
+      <div class="p-4 text-center text-slate-500"><div class="loader" role="status" aria-label="Loading orders"></div></div>
     </div>
   </div>
   
@@ -2395,15 +2522,11 @@
         <button onclick="closeQuickProfitMarginModal()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close quick profit margin modal">&times;</button>
       </div>
 
-      <div class="mb-4">
-        <label for="quick-profit-category-select" class="block text-sm font-medium text-slate-700 mb-1">Select Category:</label>
-        <select id="quick-profit-category-select" class="w-full border border-slate-300 p-2 rounded-md" onchange="renderQuickProfitMarginProducts(this.value)">
-          <option value="">-- Select a Category --</option>
-          <option value="25 KG">25 KG</option>
-          <option value="10 KG">10 KG</option>
-          <option value="5 KG">5 KG</option>
-          <option value="Per Kilo">Per Kilo</option>
-        </select>
+      <div id="quick-profit-category-tabs" class="flex flex-wrap gap-2 mb-4">
+        <button type="button" class="pos-category-btn" data-category="25 KG" onclick="switchQuickProfitCategory('25 KG')">25 KG</button>
+        <button type="button" class="pos-category-btn" data-category="10 KG" onclick="switchQuickProfitCategory('10 KG')">10 KG</button>
+        <button type="button" class="pos-category-btn" data-category="5 KG" onclick="switchQuickProfitCategory('5 KG')">5 KG</button>
+        <button type="button" class="pos-category-btn" data-category="Per Kilo" onclick="switchQuickProfitCategory('Per Kilo')">Per Kilo</button>
       </div>
 
       <div id="quick-profit-products-container" class="space-y-3 mb-6 max-h-64 overflow-y-auto border p-3 rounded bg-slate-50">
@@ -2490,6 +2613,13 @@
       </div>
 
       <input type="hidden" id="begin-stock-category-filter">
+
+      <div id="begin-stock-category-tabs" class="flex flex-wrap gap-2 mb-4">
+        <button type="button" class="pos-category-btn" data-category="25 KG" onclick="switchBeginningStockCategory('25 KG')">25 KG</button>
+        <button type="button" class="pos-category-btn" data-category="10 KG" onclick="switchBeginningStockCategory('10 KG')">10 KG</button>
+        <button type="button" class="pos-category-btn" data-category="5 KG" onclick="switchBeginningStockCategory('5 KG')">5 KG</button>
+        <button type="button" class="pos-category-btn" data-category="Per Kilo" onclick="switchBeginningStockCategory('Per Kilo')">Per Kilo</button>
+      </div>
       
       <div id="begin-stock-products-container" class="space-y-3 mb-6 max-h-64 overflow-y-auto border p-3 rounded bg-slate-50">
         <p class="text-center text-slate-500">Loading products...</p>
@@ -2502,6 +2632,52 @@
     </div>
   </div>
 
+
+  <!-- NEW: Add New Stocks Modal -->
+  <div id="add-stock-modal-overlay" class="quick-modal-overlay no-print">
+    <div class="quick-modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="add-stock-modal-title" class="text-xl font-bold text-slate-800">Add New Stocks</h3>
+        <button onclick="closeAddNewStockModal()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close modal">&times;</button>
+      </div>
+
+      <input type="hidden" id="add-stock-category-filter">
+
+      <div id="add-stock-category-tabs" class="flex flex-wrap gap-2 mb-4">
+        <button type="button" class="pos-category-btn" data-category="25 KG" onclick="switchAddNewStockCategory('25 KG')">25 KG</button>
+        <button type="button" class="pos-category-btn" data-category="10 KG" onclick="switchAddNewStockCategory('10 KG')">10 KG</button>
+        <button type="button" class="pos-category-btn" data-category="5 KG" onclick="switchAddNewStockCategory('5 KG')">5 KG</button>
+        <button type="button" class="pos-category-btn" data-category="Per Kilo" onclick="switchAddNewStockCategory('Per Kilo')">Per Kilo</button>
+      </div>
+
+      <div class="mb-3 text-xs text-slate-500">If a rice item still has no stock activity today, this will place the quantity into beginning stock. Otherwise it adds to today's new stock automatically.</div>
+
+      <div id="add-stock-products-container" class="space-y-3 mb-6 max-h-64 overflow-y-auto border p-3 rounded bg-slate-50">
+        <p class="text-center text-slate-500">Loading products...</p>
+      </div>
+
+      <div class="flex justify-center gap-2">
+        <button onclick="saveAddNewStockFromModal()" class="btn-primary">Save New Stocks</button>
+        <button onclick="closeAddNewStockModal()" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="receipt-preview-modal-overlay" class="quick-modal-overlay no-print">
+    <div class="quick-modal-content max-w-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-800">Order Receipt</h3>
+        <button onclick="closeReceiptPreviewModal()" class="text-slate-500 hover:text-red-500 text-3xl transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" aria-label="Close receipt preview modal">&times;</button>
+      </div>
+      <div id="receipt-preview-modal-body" class="rounded-2xl border border-slate-200 bg-slate-50 p-4 max-h-[65vh] overflow-y-auto">
+        <div class="text-center text-slate-500">Loading receipt...</div>
+      </div>
+      <div class="flex justify-center gap-2 mt-6">
+        <button id="receipt-preview-reprint-btn" onclick="reprintReceiptFromPreview()" class="btn-primary">Reprint to Thermal Printer</button>
+        <button onclick="closeReceiptPreviewModal()" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
 
   <!-- NEW: Custom Password Modal -->
   <div id="password-modal-overlay" class="quick-modal-overlay no-print">
@@ -2600,6 +2776,8 @@
     });
 
     let shopProducts = [];
+    let productsById = new Map();
+    let productsLoadPromise = null;
     let todayDateString;
     let moneyFlowChartInstance = null;
     let calculationTimeout;
@@ -2607,6 +2785,7 @@
     let expensesListener = null;
     let dashboardListeners = [];
     let currentDashboardReport = null;
+    let selectedOrderLogsDate = '';
     let posSelectedCategory = '25 KG';
     let posSearchQuery = '';
     let openSacksSearchQuery = '';
@@ -2618,6 +2797,20 @@
     let printerConnectionStatus = '';
     let currentExpenseDate = '';
     let isSubmittingPosOrder = false;
+    let posRenderFrame = 0;
+    let posGridNeedsRender = false;
+    let posCartNeedsRender = false;
+    let beginStockDraftValues = {};
+    let beginStockReportData = null;
+    let currentBeginStockCategory = '25 KG';
+    let quickProfitDraftValues = {};
+    let currentQuickProfitCategory = '25 KG';
+    let addStockDraftValues = {};
+    let addStockReportData = null;
+    let currentAddStockCategory = '25 KG';
+    let addProductAccessExpiresAt = 0;
+    let nightInventoryAccessExpiresAt = 0;
+    let activeReceiptPreviewOrder = null;
 
     
     
@@ -2669,12 +2862,17 @@
 
         todayDateString = dateString;
         document.getElementById('current-date-display').textContent = dayjs(todayDateString).format('MMMM D, YYYY');
-        
-        // Ensure products are loaded (or reloaded if a product was added/deleted)
-        await loadProducts(); 
-        renderProductList(); 
+
+        await Promise.all([
+            loadProducts(),
+            loadPrinterSettings()
+        ]);
+
+        const activeView = document.querySelector('.main-view.active');
+        if (activeView && activeView.id === 'add-product-view') {
+            renderProductList();
+        }
         renderDashboardPos(currentDashboardReport);
-        await loadPrinterSettings();
 
         // 2. Re-run dashboard setup
         listenForDashboardData(); 
@@ -2686,7 +2884,6 @@
         document.getElementById('financial-month-select').value = dayjs(todayDateString).format('YYYY-MM');
         
         // 4. Update current view if it was Daily Report or Expenses
-        const activeView = document.querySelector('.main-view.active');
         if (activeView && activeView.id === 'daily-report-view') {
             // Reload the daily report for the new day
             showInventory(todayDateString);
@@ -2806,6 +3003,86 @@
         return Number.isInteger(num) ? String(num) : num.toFixed(2);
     }
 
+
+    function setShopProducts(products) {
+        shopProducts = Array.isArray(products) ? products : [];
+        productsById = new Map(shopProducts.map(product => [product.id, product]));
+    }
+
+    function invalidateProductsCache() {
+        productsLoadPromise = null;
+    }
+
+    function getProductById(productId) {
+        return productsById.get(productId) || null;
+    }
+
+    function toNumber(value, fallback = 0) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function getEffectiveCost(item, product = null) {
+        if (item && item.cost !== undefined) {
+            return toNumber(item.cost);
+        }
+        return toNumber(product?.cost);
+    }
+
+    function getEffectiveProfitMargin(item, product = null) {
+        if (item && item.profitMargin !== undefined) {
+            return toNumber(item.profitMargin);
+        }
+        return toNumber(product?.profitMargin);
+    }
+
+    function calculateInventorySalesMetrics(item, product = null) {
+        if (!item) {
+            return {
+                sold: 0,
+                cost: getEffectiveCost(null, product),
+                profitMargin: getEffectiveProfitMargin(null, product),
+                sellingPrice: 0,
+                sales: 0,
+                profit: 0
+            };
+        }
+
+        const cost = getEffectiveCost(item, product);
+        const profitMargin = getEffectiveProfitMargin(item, product);
+        const sold = toNumber(item.begin) + toNumber(item.newStock) - toNumber(item.openedSacks) - toNumber(item.returns) - toNumber(item.end);
+        const sellingPrice = cost + profitMargin;
+        const positiveSold = Math.max(0, sold);
+        const sales = positiveSold * sellingPrice;
+        const profit = positiveSold * profitMargin;
+
+        return { sold, cost, profitMargin, sellingPrice, sales, profit };
+    }
+
+    function setElementTextById(id, value) {
+        const el = document.getElementById(id);
+        if (el && el.textContent !== value) {
+            el.textContent = value;
+        }
+    }
+
+    function schedulePosRender({ grid = false, cart = false } = {}) {
+        posGridNeedsRender = posGridNeedsRender || grid;
+        posCartNeedsRender = posCartNeedsRender || cart;
+        if (posRenderFrame) return;
+
+        posRenderFrame = window.requestAnimationFrame(() => {
+            const shouldRenderGrid = posGridNeedsRender;
+            const shouldRenderCart = posCartNeedsRender;
+            posRenderFrame = 0;
+            posGridNeedsRender = false;
+            posCartNeedsRender = false;
+
+            if (shouldRenderGrid) renderPosProductGrid();
+            if (shouldRenderCart) renderPosCart();
+        });
+    }
+
     function getQuantityStep(category) {
         return '1';
     }
@@ -2835,14 +3112,14 @@
 
     function setPosSearchQuery(value) {
         posSearchQuery = (value || '').trim().toLowerCase();
-        renderPosProductGrid();
+        schedulePosRender({ grid: true });
     }
 
     function clearPosSearch() {
         const input = document.getElementById('pos-search-input');
         if (input) input.value = '';
         posSearchQuery = '';
-        renderPosProductGrid();
+        schedulePosRender({ grid: true });
     }
 
     function getReservedQuantity(productId) {
@@ -2850,8 +3127,7 @@
     }
 
     function calculateSoldQuantity(item) {
-        if (!item) return 0;
-        return (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end;
+        return calculateInventorySalesMetrics(item).sold;
     }
 
     function getPosCartTotals() {
@@ -2887,6 +3163,7 @@
         const grid = document.getElementById('pos-products-grid');
         if (!grid) return;
 
+        const reservedQuantities = new Map(posCart.map(item => [item.productId, item.quantity]));
         const products = getPosProductsByCategory();
         if (products.length === 0) {
             grid.innerHTML = `<div class="pos-empty-state">No products found${posSearchQuery ? ` for "${escapeHtml(posSearchQuery)}"` : ''}.</div>`;
@@ -2895,7 +3172,7 @@
 
         grid.innerHTML = products.map(product => {
             const availableStock = getAvailableStock(product);
-            const reservedQuantity = getReservedQuantity(product.id);
+            const reservedQuantity = reservedQuantities.get(product.id) || 0;
             const freeStock = Math.max(availableStock - reservedQuantity, 0);
             const price = getProductSellingPrice(product);
             const isOutOfStock = freeStock <= 0;
@@ -2913,11 +3190,7 @@
                         <p class="pos-selling-price-value">&#8369;${formatCurrency(price)}</p>
                         <div class="pos-tap-actions">
                             <div class="pos-quick-add-note">Tap rice to add</div>
-                        </div>
-                    </div>
-                    <div class="pos-card-footer">
-                        <div class="w-full text-right">
-                            <div class="pos-cart-count">In cart: ${formatQuantity(reservedQuantity)}</div>
+                            <div class="pos-cart-count compact">In cart: ${formatQuantity(reservedQuantity)}</div>
                         </div>
                     </div>
                 </div>`;
@@ -3020,7 +3293,7 @@
     function setPosCategory(category) {
         posSelectedCategory = category;
         renderPosCategoryTabs();
-        renderPosProductGrid();
+        schedulePosRender({ grid: true });
     }
 
     function showPosTapFeedback(element) {
@@ -3030,11 +3303,11 @@
         element.classList.add('tap-feedback');
         window.setTimeout(() => {
             element.classList.remove('tap-feedback');
-        }, 220);
+        }, 320);
     }
 
     function quickAddPosProduct(productId, element = null) {
-        const product = shopProducts.find(item => item.id === productId);
+        const product = getProductById(productId);
         if (!product) return;
 
         showPosTapFeedback(element);
@@ -3055,7 +3328,7 @@
     }
 
     function addProductToPosCart(productId) {
-        const product = shopProducts.find(item => item.id === productId);
+        const product = getProductById(productId);
         if (!product) return;
 
         const quantityInput = document.getElementById(`pos-qty-${productId}`);
@@ -3089,19 +3362,17 @@
             quantityInput.value = getQuantityStep(product.category);
         }
 
-        renderPosProductGrid();
-        renderPosCart();
+        schedulePosRender({ grid: true, cart: true });
     }
 
     function removeFromPosCart(productId) {
         posCart = posCart.filter(item => item.productId !== productId);
-        renderPosProductGrid();
-        renderPosCart();
+        schedulePosRender({ grid: true, cart: true });
     }
 
     function updatePerKiloCartQuantity(productId, value) {
         const cartItem = posCart.find(item => item.productId === productId);
-        const product = shopProducts.find(item => item.id === productId);
+        const product = getProductById(productId);
         if (!cartItem || !product) return;
 
         const parsed = parseFloat(value);
@@ -3121,13 +3392,12 @@
 
         cartItem.quantity = nextQuantity;
         cartItem.total = parseFloat((cartItem.quantity * cartItem.price).toFixed(2));
-        renderPosProductGrid();
-        renderPosCart();
+        schedulePosRender({ grid: true, cart: true });
     }
 
     function adjustPosCartQuantity(productId, direction) {
         const cartItem = posCart.find(item => item.productId === productId);
-        const product = shopProducts.find(item => item.id === productId);
+        const product = getProductById(productId);
         if (!cartItem || !product) return;
 
         const step = parseFloat(getQuantityStep(product.category));
@@ -3146,14 +3416,12 @@
 
         cartItem.quantity = nextQuantity;
         cartItem.total = cartItem.quantity * cartItem.price;
-        renderPosProductGrid();
-        renderPosCart();
+        schedulePosRender({ grid: true, cart: true });
     }
 
     function clearPosCart() {
         posCart = [];
-        renderPosProductGrid();
-        renderPosCart();
+        schedulePosRender({ grid: true, cart: true });
     }
 
     function applyPosFocusMode() {
@@ -3820,6 +4088,22 @@
         return true;
     }
 
+
+    async function printSavedOrderInBackground(order) {
+        if (!printerSettings.autoPrint) return;
+        try {
+            const printed = await printReceiptViaBluetooth(order);
+            if (!printed) {
+                throw new Error('Printer is not ready.');
+            }
+        } catch (error) {
+            console.error('Bluetooth print failed:', error);
+            printerConnectionStatus = 'Order saved, but printer needs reconnect before the next print.';
+            renderPrinterSettings();
+            Toast.fire({ icon: 'warning', title: 'Order saved. Printer needs reconnect.' });
+        }
+    }
+
     function buildReceiptHtml(order, shouldAutoPrint = true) {
         const width = (order.paperWidth || printerSettings.paperWidth) === '58mm' ? '58mm' : '80mm';
         const itemsHtml = order.items.map(item => `
@@ -4017,8 +4301,10 @@
                         total: item.total
                     })),
                     total: orderTotals.amount,
+                    storeName: printerSettings.storeName || DEFAULT_PRINTER_SETTINGS.storeName,
                     printerName: printerSettings.printerName || '',
                     paperWidth: printerSettings.paperWidth,
+                    footerNote: printerSettings.footerNote || DEFAULT_PRINTER_SETTINGS.footerNote,
                     status: 'pending-payment'
                 });
             });
@@ -4037,25 +4323,15 @@
                 footerNote: printerSettings.footerNote
             };
 
-            if (printerSettings.autoPrint) {
-                try {
-                    const printed = await printReceiptViaBluetooth(completedOrder);
-                    if (!printed) {
-                        throw new Error('Bluetooth thermal printer is not ready.');
-                    }
-                } catch (error) {
-                    console.error('Bluetooth print failed:', error);
-                    printerConnectionStatus = 'Bluetooth print failed. Check the printer and reconnect, then use Test Print Receipt.';
-                    renderPrinterSettings();
-                    await Swal.fire('Bluetooth Print Failed', 'The order was saved, but the thermal printer did not finish printing. Please reconnect the printer and reprint if needed.', 'warning');
-                }
-            }
-
             clearPosCart();
             const cashReceivedInput = document.getElementById('pos-cash-received');
             if (cashReceivedInput) cashReceivedInput.value = '';
-            renderPosCart();
+            schedulePosRender({ grid: true, cart: true });
             Toast.fire({ icon: 'success', title: `Order ${orderId} saved.` });
+
+            if (printerSettings.autoPrint) {
+                void printSavedOrderInBackground(completedOrder);
+            }
         } catch (error) {
             const message = typeof error.message === 'string' ? error.message : handleFirestoreError(error);
             Swal.fire('Order Failed', message, 'error');
@@ -4106,27 +4382,44 @@
         loaderStatus.textContent = 'Loading application...';
     }
 
-    async function loadProducts() {
-        try {
-            const productsSnapshot = await db.collection('products').orderBy('name').get();
-            // Ensure products have a default profitMargin if missing (e.g., from old data or a new product creation without it)
-            shopProducts = productsSnapshot.docs.map(doc => {
-                const data = doc.data();
-                if (data.profitMargin === undefined) {
-                    // Fallback: if profitMargin is missing, try to calculate from price - cost, or default to 0
-                    const calculatedProfitMargin = (data.price || 0) - (data.cost || 0);
-                    data.profitMargin = Math.max(0, calculatedProfitMargin);
-                    // Optionally, you might want to save this back to Firestore
-                }
-                return data;
-            });
-        } catch (error) {
-            console.error("Error loading products:", error);
-            throw error;
+    async function loadProducts(options = {}) {
+        const { force = false } = options;
+        if (!force && shopProducts.length > 0) {
+            return shopProducts;
         }
+        if (!force && productsLoadPromise) {
+            return productsLoadPromise;
+        }
+
+        productsLoadPromise = (async () => {
+            try {
+                const productsSnapshot = await db.collection('products').orderBy('name').get();
+                const products = productsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    if (data.profitMargin === undefined) {
+                        const calculatedProfitMargin = (data.price || 0) - (data.cost || 0);
+                        data.profitMargin = Math.max(0, calculatedProfitMargin);
+                    }
+                    return data;
+                });
+                setShopProducts(products);
+                return shopProducts;
+            } catch (error) {
+                console.error("Error loading products:", error);
+                throw error;
+            } finally {
+                productsLoadPromise = null;
+            }
+        })();
+
+        return productsLoadPromise;
     }
 
     async function startDay(dateString) {
+        if (dateString === todayDateString && currentDashboardReport?.date === dateString) {
+            return currentDashboardReport;
+        }
+
         const reportRef = db.collection('reports').doc(dateString);
         let reportDoc = await reportRef.get();
 
@@ -4160,12 +4453,16 @@
 
     async function saveInventoryData(dateString, productId, data) {
         try {
+            await startDay(dateString);
             const reportRef = db.collection('reports').doc(dateString);
             const updatePayload = {};
             for (const key in data) {
                 updatePayload[`data.${productId}.${key}`] = data[key];
             }
-            await reportRef.update(updatePayload);
+            await reportRef.set(updatePayload, { merge: true });
+            if (dateString === todayDateString && currentDashboardReport?.data?.[productId]) {
+                Object.assign(currentDashboardReport.data[productId], data);
+            }
             recalculateAndRenderAllTotals();
         } catch (error) {
             Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
@@ -4321,7 +4618,9 @@
         } else if (viewId === 'night-inventory-view') {
             renderNightInventoryView();
         } else if (viewId === 'history-view') {
-            showHistory();
+            loadHistoryView();
+        } else if (viewId === 'order-logs-view') {
+            loadOrderLogsView();
         }
     }
     
@@ -4601,7 +4900,7 @@
             searchInput.value = openSacksSearchQuery;
         }
 
-        container.innerHTML = '<div class="card p-6 text-slate-500">Loading open sacks tools...</div>';
+        container.innerHTML = '<div class="card open-sacks-card text-slate-500">Loading open sacks tools...</div>';
 
         try {
             await startDay(dateString);
@@ -4610,7 +4909,7 @@
             const report = reportDoc.exists ? reportDoc.data() : null;
 
             if (!report) {
-                container.innerHTML = '<div class="card p-6 text-slate-500">No report found for this day yet.</div>';
+                container.innerHTML = '<div class="card open-sacks-card text-slate-500">No report found for this day yet.</div>';
                 return;
             }
 
@@ -4620,7 +4919,7 @@
                 .sort((a, b) => a.name.localeCompare(b.name));
 
             if (twentyFiveProducts.length === 0) {
-                container.innerHTML = `<div class="card p-6 text-slate-500">No 25 KG products found${openSacksSearchQuery ? ` for "${escapeHtml(openSacksSearchQuery)}"` : ''}.</div>`;
+                container.innerHTML = `<div class="card open-sacks-card text-slate-500">No 25 KG products found${openSacksSearchQuery ? ` for "${escapeHtml(openSacksSearchQuery)}"` : ''}.</div>`;
                 return;
             }
 
@@ -4629,30 +4928,30 @@
                 const matchingPerKilo = shopProducts.find(item => item.name === product.name && item.category === 'Per Kilo');
                 const perKiloReport = matchingPerKilo ? (report.data?.[matchingPerKilo.id] || { end: 0 }) : null;
                 return `
-                    <div class="card p-6">
-                        <div class="flex items-start justify-between gap-4 mb-4">
+                    <div class="card open-sacks-card">
+                        <div class="flex items-start justify-between gap-3 mb-3">
                             <div>
-                                <div class="rice-name-badge category-25kg">${escapeHtml(product.name)}</div>
-                                <div class="text-xs uppercase tracking-wide text-slate-500 mt-2">25 KG Sack</div>
+                                <div class="rice-name-badge category-25kg open-sacks-title">${escapeHtml(product.name)}</div>
+                                <div class="text-[11px] uppercase tracking-wide text-slate-500 mt-1">25 KG Sack</div>
                             </div>
-                            <div class="text-right text-sm text-slate-500">
+                            <div class="text-right text-slate-500 open-sacks-meta">
                                 <div>Available sacks: <span class="font-bold text-slate-800">${formatQuantity(productReport.end || 0)}</span></div>
                                 <div>Opened today: <span class="font-bold text-blue-700">${formatQuantity(productReport.openedSacks || 0)}</span></div>
                             </div>
                         </div>
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-4 text-sm text-slate-600">
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 open-sacks-kilo-box">
                             ${matchingPerKilo
                                 ? `Matching Per Kilo stock: <span class="font-bold text-slate-800">${formatQuantity(perKiloReport?.end || 0)} kg</span>`
                                 : '<span class="text-red-600 font-semibold">No matching Per Kilo product found yet.</span>'}
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="open-sacks-form">
                             <input id="open-sacks-tab-${product.id}" type="number" min="1" step="1" placeholder="How many sacks to open" class="flex-1">
                             <button class="btn-primary" ${matchingPerKilo ? '' : 'disabled'} onclick="submitOpenSackFromTab('${product.id}', '${dateString}')">Open Sack</button>
                         </div>
                     </div>`;
             }).join('');
         } catch (error) {
-            container.innerHTML = `<div class="card p-6 text-red-600">${handleFirestoreError(error)}</div>`;
+            container.innerHTML = `<div class="card open-sacks-card text-red-600">${handleFirestoreError(error)}</div>`;
         }
     }
 
@@ -4839,7 +5138,7 @@
             return false;
         }
 
-        const sourceProduct = shopProducts.find(p => p.id === productId);
+        const sourceProduct = getProductById(productId);
         if (!sourceProduct || sourceProduct.category !== '25 KG') return false;
 
         const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
@@ -5083,9 +5382,9 @@
 
     // --- HISTORY VIEW FUNCTIONS ---
 
-    async function showHistory() {
-        showView('history-view');
+    async function loadHistoryView() {
         const historyList = document.getElementById('history-list');
+        if (!historyList) return;
         historyList.innerHTML = '<div class="p-4 text-center"><div class="loader"></div></div>';
         try {
             const reportsSnapshot = await db.collection('reports').orderBy('date', 'desc').get();
@@ -5094,6 +5393,204 @@
              console.error("Error loading history:", error);
              historyList.innerHTML = `<p class="p-4 text-center text-red-500">${handleFirestoreError(error)}</p>`;
         }
+    }
+
+    async function showHistory() {
+        showView('history-view');
+    }
+
+    function normalizeSavedOrderForReceipt(order) {
+        return {
+            ...order,
+            createdAt: order?.createdAt?.toDate ? order.createdAt.toDate().toISOString() : (order?.createdAt || new Date().toISOString()),
+            storeName: order?.storeName || printerSettings.storeName || DEFAULT_PRINTER_SETTINGS.storeName,
+            printerName: order?.printerName || printerSettings.printerName || DEFAULT_PRINTER_SETTINGS.printerName,
+            paperWidth: order?.paperWidth || printerSettings.paperWidth || DEFAULT_PRINTER_SETTINGS.paperWidth,
+            footerNote: order?.footerNote || printerSettings.footerNote || DEFAULT_PRINTER_SETTINGS.footerNote,
+            items: Array.isArray(order?.items) ? order.items : []
+        };
+    }
+
+    function buildReceiptPreviewMarkup(order) {
+        const createdAtLabel = order?.createdAt ? dayjs(order.createdAt).format('MMMM D, YYYY h:mm A') : 'Pending time';
+        const itemsHtml = (order.items || []).map(item => `
+            <div class="flex justify-between gap-3 py-2 border-b border-dashed border-slate-300 text-sm">
+                <div>
+                    <div class="font-semibold text-slate-800">${escapeHtml(item.name)}</div>
+                    <div class="text-xs text-slate-500">${escapeHtml(item.category || '')} x ${formatQuantity(item.quantity)}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-slate-500">&#8369;${formatCurrency(item.price)}</div>
+                    <div class="font-semibold text-slate-800">&#8369;${formatCurrency(item.total)}</div>
+                </div>
+            </div>
+        `).join('') || '<div class="text-center text-slate-500 py-4">No items found.</div>';
+
+        return `
+            <div class="mx-auto w-full max-w-sm bg-white rounded-2xl border border-slate-200 px-4 py-5 shadow-sm font-mono text-sm text-slate-800">
+                <div class="text-center border-b border-dashed border-slate-300 pb-3 mb-3">
+                    <div class="text-lg font-bold">${escapeHtml(order.storeName || DEFAULT_PRINTER_SETTINGS.storeName)}</div>
+                    <div class="text-xs text-slate-500 mt-1">${escapeHtml(order.printerName || DEFAULT_PRINTER_SETTINGS.printerName)}</div>
+                    <div class="text-xs text-slate-500 mt-1">${escapeHtml(createdAtLabel)}</div>
+                    <div class="text-xs text-slate-500 mt-1">Order #: ${escapeHtml(order.id || '')}</div>
+                </div>
+                <div class="space-y-1 text-sm mb-3">
+                    <div class="flex justify-between gap-3"><span>Cash Received</span><span>${order.paymentEntered ? `&#8369;${formatCurrency(order.amountPaid || 0)}` : 'Not entered'}</span></div>
+                    <div class="flex justify-between gap-3"><span>Change</span><span>&#8369;${formatCurrency(order.changeDue || 0)}</span></div>
+                </div>
+                <div class="border-t border-dashed border-slate-300 pt-1">${itemsHtml}</div>
+                <div class="flex justify-between gap-3 mt-4 pt-3 border-t border-dashed border-slate-300 text-base font-bold">
+                    <span>Grand Total</span>
+                    <span>&#8369;${formatCurrency(order.total || 0)}</span>
+                </div>
+                <div class="text-center text-xs text-slate-500 mt-4">${escapeHtml(order.footerNote || DEFAULT_PRINTER_SETTINGS.footerNote)}</div>
+            </div>
+        `;
+    }
+
+    function closeReceiptPreviewModal() {
+        document.getElementById('receipt-preview-modal-overlay')?.classList.remove('open');
+        activeReceiptPreviewOrder = null;
+    }
+
+    function showReceiptPreviewModal(order) {
+        activeReceiptPreviewOrder = order;
+        const body = document.getElementById('receipt-preview-modal-body');
+        if (body) {
+            body.innerHTML = buildReceiptPreviewMarkup(order);
+        }
+        document.getElementById('receipt-preview-modal-overlay')?.classList.add('open');
+    }
+
+    async function openSavedOrderReceipt(orderId) {
+        try {
+            await loadPrinterSettings();
+            const orderDoc = await db.collection('orders').doc(orderId).get();
+            if (!orderDoc.exists) {
+                Toast.fire({ icon: 'error', title: 'Order not found.' });
+                return;
+            }
+            showReceiptPreviewModal(normalizeSavedOrderForReceipt(orderDoc.data()));
+        } catch (error) {
+            Swal.fire('Error', handleFirestoreError(error), 'error');
+        }
+    }
+
+    async function reprintSavedOrder(orderId) {
+        try {
+            await loadPrinterSettings();
+            const orderDoc = await db.collection('orders').doc(orderId).get();
+            if (!orderDoc.exists) {
+                Toast.fire({ icon: 'error', title: 'Order not found.' });
+                return;
+            }
+            const order = normalizeSavedOrderForReceipt(orderDoc.data());
+            if (!(await ensurePrinterConnection())) return;
+            const printed = await printReceiptViaBluetooth(order);
+            if (!printed) {
+                throw new Error('Printer is not ready.');
+            }
+            Toast.fire({ icon: 'success', title: `Order ${order.id} reprinted.` });
+        } catch (error) {
+            console.error('Saved order reprint failed:', error);
+            Swal.fire('Reprint Failed', error.message || handleFirestoreError(error), 'error');
+        }
+    }
+
+    async function reprintReceiptFromPreview() {
+        if (!activeReceiptPreviewOrder) {
+            Toast.fire({ icon: 'info', title: 'Open a receipt first.' });
+            return;
+        }
+        try {
+            await loadPrinterSettings();
+            if (!(await ensurePrinterConnection())) return;
+            const printed = await printReceiptViaBluetooth(activeReceiptPreviewOrder);
+            if (!printed) {
+                throw new Error('Printer is not ready.');
+            }
+            Toast.fire({ icon: 'success', title: `Order ${activeReceiptPreviewOrder.id} reprinted.` });
+        } catch (error) {
+            console.error('Preview reprint failed:', error);
+            Swal.fire('Reprint Failed', error.message || handleFirestoreError(error), 'error');
+        }
+    }
+
+    async function loadOrderLogsView(dateString = null) {
+        const orderList = document.getElementById('order-logs-list');
+        const dateInput = document.getElementById('order-logs-date-input');
+        const summaryEl = document.getElementById('order-logs-date-summary');
+        if (!orderList) return;
+
+        const targetDate = dateString || selectedOrderLogsDate || todayDateString || dayjs().format('YYYY-MM-DD');
+        selectedOrderLogsDate = targetDate;
+        if (dateInput && dateInput.value !== targetDate) {
+            dateInput.value = targetDate;
+        }
+        if (summaryEl) {
+            summaryEl.textContent = `Showing orders for ${dayjs(targetDate).format('MMMM D, YYYY')}`;
+        }
+
+        orderList.innerHTML = '<div class="p-4 text-center"><div class="loader"></div></div>';
+        try {
+            const ordersSnapshot = await db.collection('orders').where('date', '==', targetDate).limit(300).get();
+            const sortedDocs = [...ordersSnapshot.docs].sort((a, b) => {
+                const orderA = a.data() || {};
+                const orderB = b.data() || {};
+                const timeA = orderA.createdAt?.toDate ? orderA.createdAt.toDate().getTime() : 0;
+                const timeB = orderB.createdAt?.toDate ? orderB.createdAt.toDate().getTime() : 0;
+                if (timeA !== timeB) {
+                    return timeB - timeA;
+                }
+                const idA = String(orderA.id || a.id || '0');
+                const idB = String(orderB.id || b.id || '0');
+                return idB.localeCompare(idA, undefined, { numeric: true, sensitivity: 'base' });
+            }).slice(0, 200);
+            renderOrderLogsList(sortedDocs, targetDate);
+        } catch (error) {
+            console.error('Error loading order logs:', error);
+            orderList.innerHTML = `<p class="p-4 text-center text-red-500">${handleFirestoreError(error)}</p>`;
+        }
+    }
+
+    function resetOrderLogsDateFilter() {
+        selectedOrderLogsDate = todayDateString || dayjs().format('YYYY-MM-DD');
+        loadOrderLogsView(selectedOrderLogsDate);
+    }
+
+    function showOrderLogs() {
+        selectedOrderLogsDate = todayDateString || dayjs().format('YYYY-MM-DD');
+        showView('order-logs-view');
+    }
+
+    function renderOrderLogsList(orderDocs, dateString = selectedOrderLogsDate) {
+        const listEl = document.getElementById('order-logs-list');
+        if (!listEl) return;
+        if (orderDocs.length === 0) {
+            listEl.innerHTML = `<p class="text-center text-slate-500 p-8">No saved orders found for ${dayjs(dateString).format('MMMM D, YYYY')}.</p>`;
+            return;
+        }
+        listEl.innerHTML = orderDocs.map(doc => {
+            const order = doc.data();
+            const createdAt = order.createdAt?.toDate ? dayjs(order.createdAt.toDate()).format('MMMM D, YYYY h:mm A') : 'Pending time';
+            const itemsCount = Array.isArray(order.items) ? order.items.length : 0;
+            const paymentLine = order.paymentEntered ? `Paid: &#8369;${formatCurrency(order.amountPaid || 0)} | Change: &#8369;${formatCurrency(order.changeDue || 0)}` : 'Payment not entered';
+            return `
+            <div class="p-4 hover:bg-slate-50 transition-colors">
+                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <div class="font-semibold text-slate-800">Order ${escapeHtml(order.id || doc.id)}</div>
+                        <div class="text-sm text-slate-500">${createdAt}</div>
+                        <div class="text-sm text-slate-500">${itemsCount} item line(s) | ${paymentLine}</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right font-bold text-slate-800">&#8369;${formatCurrency(order.total || 0)}</div>
+                        <button onclick="openSavedOrderReceipt('${doc.id}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View Receipt</button>
+                        <button onclick="reprintSavedOrder('${doc.id}')" class="text-emerald-600 hover:text-emerald-800 text-sm font-medium">Reprint</button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
     }
     
     function renderHistoryList(reportDocs) {
@@ -5218,27 +5715,18 @@
     }
     
     function calculateDailySummaryFromData(report) {
-        let totalSales = 0, totalProfit = 0;
+        let totalSales = 0;
+        let totalProfit = 0;
         if (report && report.data) {
             for (const productId in report.data) {
                 const item = report.data[productId];
-                const product = shopProducts.find(p => p.id === productId); 
-                const effectiveCost = item.cost !== undefined ? item.cost : (product ? product.cost : 0);
-
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end;
-                if (sold > 0) {
-                    const effectiveProfitMargin = item.profitMargin !== undefined ? item.profitMargin : (product ? product.profitMargin : 0);
-                    const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
-                    
-                    const sales = sold * calculatedSellingPrice;
-                    const profit = sales - (sold * effectiveCost);
-                    totalSales += sales;
-                    totalProfit += profit;
-                }
+                const product = getProductById(productId);
+                const metrics = calculateInventorySalesMetrics(item, product);
+                totalSales += metrics.sales;
+                totalProfit += metrics.profit;
             }
         }
-        const discount = report?.discountAmount || 0;
-        
+        const discount = toNumber(report?.discountAmount);
         return { totalSales: totalSales - discount, totalProfit: totalProfit - discount };
     }
 
@@ -5261,10 +5749,10 @@
                 if (!item || item.end === undefined) return;
 
                 // Get the cost price / capital
-                const effectiveCost = item.cost !== undefined ? item.cost : (product.cost || 0);
+                const effectiveCost = getEffectiveCost(item, product);
                 
                 // Calculate worth: End Stock * Cost Price
-                const endStock = item.end || 0;
+                const endStock = toNumber(item.end);
                 const stockWorth = endStock * effectiveCost;
 
                 const detail = {
@@ -5329,22 +5817,16 @@
             
             for (const productId in report.data) { 
                 const item = report.data[productId]; 
-                const product = shopProducts.find(p => p.id === productId);
-                const effectiveCost = item.cost !== undefined ? item.cost : (product ? product.cost : 0);
+                const product = getProductById(productId);
+                const metrics = calculateInventorySalesMetrics(item, product);
 
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end; 
-                if (sold > 0) { 
-                    const effectiveProfitMargin = item.profitMargin !== undefined ? item.profitMargin : (product ? product.profitMargin : 0);
-                    const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
-
-                    const sales = sold * calculatedSellingPrice; 
-                    const profit = sales - (sold * effectiveCost); 
-                    totalSales += sales; 
-                    totalProfit += profit; 
+                if (metrics.sold > 0) { 
+                    totalSales += metrics.sales; 
+                    totalProfit += metrics.profit; 
                     if (productPerformance[productId]) { 
-                        productPerformance[productId].sold += sold; 
-                        productPerformance[productId].sales += sales; 
-                        productPerformance[productId].profit += profit; 
+                        productPerformance[productId].sold += metrics.sold; 
+                        productPerformance[productId].sales += metrics.sales; 
+                        productPerformance[productId].profit += metrics.profit; 
                     } 
                 } 
             } 
@@ -5384,22 +5866,16 @@
             
             for (const productId in report.data) { 
                 const item = report.data[productId]; 
-                const product = shopProducts.find(p => p.id === productId); 
-                const effectiveCost = item.cost !== undefined ? item.cost : (product ? product.cost : 0);
+                const product = getProductById(productId); 
+                const metrics = calculateInventorySalesMetrics(item, product);
 
-                const sold = (item.begin + item.newStock) - (item.openedSacks || 0) - (item.returns || 0) - item.end; 
-                if (sold > 0) { 
-                    const effectiveProfitMargin = item.profitMargin !== undefined ? item.profitMargin : (product ? product.profitMargin : 0);
-                    const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
-
-                    const sales = sold * calculatedSellingPrice; 
-                    const cogs = sold * effectiveCost; 
-                    totalSales += sales; 
-                    totalCOGS += cogs; 
-                    dailyNetProfit += (sales - cogs); 
+                if (metrics.sold > 0) { 
+                    totalSales += metrics.sales; 
+                    totalCOGS += metrics.sold * metrics.cost; 
+                    dailyNetProfit += metrics.profit; 
                 } 
-                if (item.newStock > 0) { 
-                    const newStockCost = item.newStock * effectiveCost; 
+                if (toNumber(item.newStock) > 0) { 
+                    const newStockCost = toNumber(item.newStock) * metrics.cost; 
                     totalNewStockCost += newStockCost; 
                     dailyNewStockCost += newStockCost; 
                 } 
@@ -5537,6 +6013,46 @@
         showSettingsView('settings-products-view', document.querySelector('.settings-nav-link'));
     }
     function closeSettingsPanel() { document.getElementById('settings-panel').classList.remove('open'); }
+    function hasAddProductAccess() {
+        return addProductAccessExpiresAt > Date.now();
+    }
+
+    function hasNightInventoryAccess() {
+        return nightInventoryAccessExpiresAt > Date.now();
+    }
+
+    async function openAddProductViewWithPassword() {
+        if (hasAddProductAccess()) {
+            showView('add-product-view');
+            return true;
+        }
+
+        const password = await getPassword({ allowBypassIfUnset: false });
+        if (!password.success) {
+            return false;
+        }
+
+        addProductAccessExpiresAt = Date.now() + (10 * 60 * 1000);
+        showView('add-product-view');
+        return true;
+    }
+
+    async function openNightInventoryWithPassword() {
+        if (hasNightInventoryAccess()) {
+            showView('night-inventory-view');
+            return true;
+        }
+
+        const password = await getPassword({ allowBypassIfUnset: false });
+        if (!password.success) {
+            return false;
+        }
+
+        nightInventoryAccessExpiresAt = Date.now() + (10 * 60 * 1000);
+        showView('night-inventory-view');
+        return true;
+    }
+
     async function openSettingsWithPassword() { 
         const password = await getPassword({ allowBypassIfUnset: false }); 
         if (password.success) {
@@ -5569,6 +6085,68 @@
         document.getElementById('quick-add-product-modal-overlay').classList.remove('open');
     }
 
+    function buildInitialReportItem(productData) {
+        return {
+            begin: 0,
+            newStock: 0,
+            openedSacks: 0,
+            returns: 0,
+            end: 0,
+            profitMargin: productData.profitMargin,
+            cost: productData.cost
+        };
+    }
+
+    function roundPriceValue(value) {
+        return Math.round((Number(value) || 0) * 100) / 100;
+    }
+
+    function buildMatchingPerKiloProduct(productData) {
+        return {
+            id: `${productData.id}_perkilo`,
+            name: productData.name,
+            cost: roundPriceValue((productData.cost || 0) / 25),
+            profitMargin: roundPriceValue((productData.profitMargin || 0) / 25),
+            category: 'Per Kilo',
+            minStock: 0
+        };
+    }
+
+    async function saveProductWithAutoPerKilo(productData, options = {}) {
+        const { updateTodayReport = false, allowAutoPerKilo = true } = options;
+        const batch = db.batch();
+        const productRef = db.collection('products').doc(productData.id);
+        batch.set(productRef, productData);
+
+        let autoCreatedPerKiloProduct = null;
+        if (allowAutoPerKilo && productData.category === '25 KG') {
+            const existingPerKilo = shopProducts.find(product => product.name === productData.name && product.category === 'Per Kilo');
+            if (!existingPerKilo) {
+                autoCreatedPerKiloProduct = buildMatchingPerKiloProduct(productData);
+                const perKiloRef = db.collection('products').doc(autoCreatedPerKiloProduct.id);
+                batch.set(perKiloRef, autoCreatedPerKiloProduct);
+            }
+        }
+
+        if (updateTodayReport) {
+            const reportRef = db.collection('reports').doc(todayDateString);
+            const reportPayload = {
+                [`data.${productData.id}`]: buildInitialReportItem(productData)
+            };
+            if (autoCreatedPerKiloProduct) {
+                reportPayload[`data.${autoCreatedPerKiloProduct.id}`] = buildInitialReportItem(autoCreatedPerKiloProduct);
+            }
+            batch.set(reportRef, reportPayload, { merge: true });
+        }
+
+        await batch.commit();
+
+        return {
+            autoCreatedPerKilo: Boolean(autoCreatedPerKiloProduct),
+            perKiloProduct: autoCreatedPerKiloProduct
+        };
+    }
+
     async function saveQuickProductFromModal() {
         const saveBtn = document.getElementById('save-quick-product-btn'); 
         const nameInput = document.getElementById('quick-prod-name'); 
@@ -5598,25 +6176,14 @@
                 category: categoryInput.value, 
                 minStock: 0 // Default to 0 for quick add
             }; 
-            
-            await db.collection('products').doc(docId).set(productData); 
-            
-            // Re-initialize the current day's report data with the new product's initial stock (0)
-            const reportRef = db.collection('reports').doc(todayDateString);
-            const initialReportUpdate = {};
-            initialReportUpdate[`data.${docId}`] = { 
-                begin: 0, 
-                newStock: 0, 
-                openedSacks: 0,
-                returns: 0,
-                end: 0, 
-                profitMargin: productData.profitMargin, 
-                cost: productData.cost 
-            };
-            await reportRef.update(initialReportUpdate); // Update today's report
-            
-            Toast.fire({ icon: 'success', title: `${productData.name} added! Please refresh the Daily Report to see it.` }); 
-            await loadProducts(); // Reload products globally
+
+            const saveResult = await saveProductWithAutoPerKilo(productData, { updateTodayReport: true });
+            const successTitle = saveResult.autoCreatedPerKilo
+                ? `${productData.name} added with matching Per Kilo.`
+                : `${productData.name} added! Please refresh the Daily Report to see it.`;
+            Toast.fire({ icon: 'success', title: successTitle }); 
+            invalidateProductsCache();
+            await loadProducts({ force: true }); // Reload products globally
             closeQuickAddProductModal();
         } catch(error) { 
             Swal.fire('Error', handleFirestoreError(error), 'error'); 
@@ -5628,22 +6195,229 @@
 
     function openQuickProfitMarginModal(preselectCategory = null) {
         document.getElementById('quick-profit-modal-overlay').classList.add('open');
-        const categorySelect = document.getElementById('quick-profit-category-select');
-        if (preselectCategory && RICE_CATEGORIES.includes(preselectCategory)) {
-            categorySelect.value = preselectCategory;
-            renderQuickProfitMarginProducts(preselectCategory);
-        } else {
-            categorySelect.value = '';
-            document.getElementById('quick-profit-products-container').innerHTML = '<p class="text-center text-slate-500">Select a category to view products.</p>';
-        }
+        quickProfitDraftValues = {};
+        const initialCategory = preselectCategory && RICE_CATEGORIES.includes(preselectCategory) ? preselectCategory : '25 KG';
+        renderQuickProfitMarginProducts(initialCategory);
     }
 
     function closeQuickProfitMarginModal() {
         document.getElementById('quick-profit-modal-overlay').classList.remove('open');
+        quickProfitDraftValues = {};
+        currentQuickProfitCategory = '25 KG';
+    }
+
+    function cacheQuickProfitDraftValues() {
+        document.querySelectorAll('#quick-profit-products-container input[data-product-id]').forEach(input => {
+            const productId = input.dataset.productId;
+            if (!quickProfitDraftValues[productId]) {
+                quickProfitDraftValues[productId] = {};
+            }
+            const value = parseFloat(input.value);
+            if (input.id.includes('quick-cost-')) {
+                quickProfitDraftValues[productId].cost = Number.isFinite(value) && value >= 0 ? value : 0;
+            } else if (input.id.includes('quick-profit-margin-')) {
+                quickProfitDraftValues[productId].profitMargin = Number.isFinite(value) && value >= 0 ? value : 0;
+            }
+        });
+    }
+
+    function updateQuickProfitCategoryButtons(activeCategory) {
+        document.querySelectorAll('#quick-profit-category-tabs .pos-category-btn').forEach(button => {
+            button.classList.toggle('active', button.dataset.category === activeCategory);
+        });
+    }
+
+    function switchQuickProfitCategory(category) {
+        cacheQuickProfitDraftValues();
+        renderQuickProfitMarginProducts(category);
     }
     
     function closeBeginStockModal() {
         document.getElementById('begin-stock-modal-overlay').classList.remove('open');
+        beginStockDraftValues = {};
+        beginStockReportData = null;
+        currentBeginStockCategory = '25 KG';
+    }
+
+    function cacheBeginStockDraftValues() {
+        document.querySelectorAll('#begin-stock-products-container input[data-product-id]').forEach(input => {
+            const productId = input.dataset.productId;
+            const value = parseFloat(input.value);
+            beginStockDraftValues[productId] = Number.isFinite(value) && value >= 0 ? value : 0;
+        });
+    }
+
+    function updateBeginningStockCategoryButtons(activeCategory) {
+        document.querySelectorAll('#begin-stock-category-tabs .pos-category-btn').forEach(button => {
+            button.classList.toggle('active', button.dataset.category === activeCategory);
+        });
+    }
+
+    function formatBeginStockInputValue(value) {
+        const numericValue = Number(value) || 0;
+        return Number.isInteger(numericValue) ? String(numericValue) : formatForInput(numericValue);
+    }
+
+    function renderBeginningStockCategory(categoryFilter) {
+        const container = document.getElementById('begin-stock-products-container');
+        if (!container || !beginStockReportData) return;
+
+        currentBeginStockCategory = categoryFilter;
+        document.getElementById('begin-stock-category-filter').value = categoryFilter;
+        document.getElementById('begin-stock-modal-title').textContent = `Edit Beginning Stock for ${categoryFilter}`;
+        updateBeginningStockCategoryButtons(categoryFilter);
+
+        const products = shopProducts
+            .filter(product => product.category === categoryFilter)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (products.length === 0) {
+            container.innerHTML = `<p class="text-center text-slate-500 py-4">No products found in ${escapeHtml(categoryFilter)}.</p>`;
+            return;
+        }
+
+        let modalHtml = '<div class="space-y-2">';
+        products.forEach(product => {
+            const currentBegin = beginStockReportData.data?.[product.id]?.begin || 0;
+            const draftBegin = Object.prototype.hasOwnProperty.call(beginStockDraftValues, product.id)
+                ? beginStockDraftValues[product.id]
+                : currentBegin;
+            modalHtml += `
+            <div class="grid grid-cols-2 gap-x-4 items-center">
+                <label for="begin-${product.id}" class="font-medium text-right text-sm">${escapeHtml(product.name)}</label>
+                <input type="number" id="begin-${product.id}" data-product-id="${product.id}" data-old-begin="${currentBegin}" value="${formatBeginStockInputValue(draftBegin)}" class="border p-1 w-full rounded text-sm" oninput="validateNumberInput(this)">
+            </div>`;
+        });
+        modalHtml += '</div>';
+        container.innerHTML = modalHtml;
+    }
+
+    function switchBeginningStockCategory(categoryFilter) {
+        cacheBeginStockDraftValues();
+        renderBeginningStockCategory(categoryFilter);
+    }
+
+    function closeAddNewStockModal() {
+        document.getElementById('add-stock-modal-overlay').classList.remove('open');
+        addStockDraftValues = {};
+        addStockReportData = null;
+        currentAddStockCategory = '25 KG';
+    }
+
+    function cacheAddNewStockDraftValues() {
+        document.querySelectorAll('#add-stock-products-container input[data-product-id]').forEach(input => {
+            const productId = input.dataset.productId;
+            const value = parseFloat(input.value);
+            addStockDraftValues[productId] = Number.isFinite(value) && value > 0 ? value : 0;
+        });
+    }
+
+    function updateAddNewStockCategoryButtons(activeCategory) {
+        document.querySelectorAll('#add-stock-category-tabs .pos-category-btn').forEach(button => {
+            button.classList.toggle('active', button.dataset.category === activeCategory);
+        });
+    }
+
+    function renderAddNewStockCategory(categoryFilter) {
+        const container = document.getElementById('add-stock-products-container');
+        if (!container || !addStockReportData) return;
+
+        currentAddStockCategory = categoryFilter;
+        document.getElementById('add-stock-category-filter').value = categoryFilter;
+        document.getElementById('add-stock-modal-title').textContent = `Add New Stocks for ${categoryFilter}`;
+        updateAddNewStockCategoryButtons(categoryFilter);
+
+        const products = shopProducts
+            .filter(product => product.category === categoryFilter)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (products.length === 0) {
+            container.innerHTML = `<p class="text-center text-slate-500 py-4">No products found in ${escapeHtml(categoryFilter)}.</p>`;
+            return;
+        }
+
+        let modalHtml = '<div class="space-y-2">';
+        products.forEach(product => {
+            const reportItem = addStockReportData.data?.[product.id] || { begin: 0, newStock: 0, end: 0 };
+            const draftQty = addStockDraftValues[product.id] || 0;
+            const displayQty = draftQty > 0 ? formatBeginStockInputValue(draftQty) : '';
+            modalHtml += `
+            <div class="grid grid-cols-[minmax(0,1.2fr)_auto_minmax(0,120px)] gap-x-4 items-center rounded-lg border border-slate-200 bg-white px-3 py-2">
+                <div>
+                    <label for="add-stock-${product.id}" class="font-medium text-sm text-slate-800">${escapeHtml(product.name)}</label>
+                    <div class="text-xs text-slate-500">Begin: ${formatQuantity(reportItem.begin || 0)} | New Stock: ${formatQuantity(reportItem.newStock || 0)} | Available: ${formatQuantity(reportItem.end || 0)}</div>
+                </div>
+                <div class="text-xs text-slate-500">Add</div>
+                <input type="number" id="add-stock-${product.id}" data-product-id="${product.id}" value="${displayQty}" placeholder="0" class="border p-2 w-full rounded text-sm text-right" step="${categoryFilter === 'Per Kilo' ? '0.25' : '1'}" oninput="validateNumberInput(this)">
+            </div>`;
+        });
+        modalHtml += '</div>';
+        container.innerHTML = modalHtml;
+    }
+
+    function switchAddNewStockCategory(categoryFilter) {
+        cacheAddNewStockDraftValues();
+        renderAddNewStockCategory(categoryFilter);
+    }
+
+    async function openAddNewStockModal(categoryFilter = 'all') {
+        await loadProducts();
+        await startDay(todayDateString);
+        const reportDoc = await db.collection('reports').doc(todayDateString).get();
+        if (!reportDoc.exists) {
+            Toast.fire({ icon: 'error', title: 'Today report not found.' });
+            return;
+        }
+
+        addStockReportData = reportDoc.data();
+        addStockDraftValues = {};
+        const initialCategory = categoryFilter && categoryFilter !== 'all' ? categoryFilter : '25 KG';
+        document.getElementById('add-stock-modal-overlay').classList.add('open');
+        renderAddNewStockCategory(initialCategory);
+    }
+
+    async function saveAddNewStockFromModal() {
+        const saveBtn = document.querySelector('#add-stock-modal-overlay .btn-primary');
+        toggleButtonLoading(saveBtn, true);
+        try {
+            cacheAddNewStockDraftValues();
+            const updatePayload = {};
+            let changeCount = 0;
+
+            shopProducts.forEach(product => {
+                const quantityToAdd = parseFloat(addStockDraftValues[product.id]) || 0;
+                if (quantityToAdd <= 0) return;
+
+                const reportItem = addStockReportData?.data?.[product.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
+                const hasNoStockActivity =
+                    (parseFloat(reportItem.begin) || 0) === 0 &&
+                    (parseFloat(reportItem.newStock) || 0) === 0 &&
+                    (parseFloat(reportItem.openedSacks) || 0) === 0 &&
+                    (parseFloat(reportItem.returns) || 0) === 0 &&
+                    (parseFloat(reportItem.end) || 0) === 0;
+
+                if (hasNoStockActivity) {
+                    updatePayload[`data.${product.id}.begin`] = firebase.firestore.FieldValue.increment(quantityToAdd);
+                } else {
+                    updatePayload[`data.${product.id}.newStock`] = firebase.firestore.FieldValue.increment(quantityToAdd);
+                }
+                updatePayload[`data.${product.id}.end`] = firebase.firestore.FieldValue.increment(quantityToAdd);
+                changeCount += 1;
+            });
+
+            if (!changeCount) {
+                Toast.fire({ icon: 'info', title: 'No new stock amounts were entered.' });
+                return;
+            }
+
+            await db.collection('reports').doc(todayDateString).update(updatePayload);
+            Toast.fire({ icon: 'success', title: 'New stocks added successfully!' });
+            closeAddNewStockModal();
+        } catch (error) {
+            Swal.fire('Error', handleFirestoreError(error), 'error');
+        } finally {
+            toggleButtonLoading(saveBtn, false);
+        }
     }
 
     function updateModalSellingPrice(productId, isQuickModal = false) {
@@ -5665,41 +6439,42 @@
         container.innerHTML = '<div class="loader"></div>';
         await loadProducts();
 
-        if (!category) {
-            container.innerHTML = '<p class="text-center text-slate-500">Select a category to view products.</p>';
-            return;
-        }
+        currentQuickProfitCategory = category;
+        updateQuickProfitCategoryButtons(category);
 
         const productsInCategory = shopProducts
             .filter(p => p.category === category)
             .sort((a, b) => a.name.localeCompare(b.name));
 
         if (productsInCategory.length === 0) {
-            container.innerHTML = `<p class="text-center text-slate-500 py-4">No products found in ${category}.</p>`;
+            container.innerHTML = `<p class="text-center text-slate-500 py-4">No products found in ${escapeHtml(category)}.</p>`;
             return;
         }
 
         let html = '<div class="space-y-3">';
         productsInCategory.forEach(p => {
-            const currentSellingPrice = (p.cost || 0) + (p.profitMargin || 0);
+            const draft = quickProfitDraftValues[p.id] || {};
+            const displayCost = Object.prototype.hasOwnProperty.call(draft, 'cost') ? draft.cost : (p.cost || 0);
+            const displayProfit = Object.prototype.hasOwnProperty.call(draft, 'profitMargin') ? draft.profitMargin : (p.profitMargin || 0);
+            const currentSellingPrice = (displayCost || 0) + (displayProfit || 0);
             html += `
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-2 items-center bg-white p-3 rounded shadow-sm border border-slate-200">
-                <div class="font-medium text-slate-800 md:col-span-1">${p.name}</div>
+            <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-3 items-center bg-white p-3 rounded shadow-sm border border-slate-200">
+                <div class="font-medium text-slate-800 md:col-span-1">${escapeHtml(p.name)}</div>
                 <div class="flex items-center gap-1 md:col-span-1">
                     <label for="quick-cost-${p.id}" class="text-sm text-slate-600">Cost:</label>
                     <input type="number" id="quick-cost-${p.id}" data-product-id="${p.id}" 
-                        value="${formatForInput(p.cost || 0)}" 
-                        class="cost-input w-20 text-right text-sm" 
+                        value="${formatForInput(displayCost)}" 
+                        class="cost-input w-28 min-w-[7rem] text-right text-sm" 
                         step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}', true);">
                 </div>
                 <div class="flex items-center gap-1 md:col-span-1">
                     <label for="quick-profit-margin-${p.id}" class="text-sm text-slate-600">Profit:</label>
                     <input type="number" id="quick-profit-margin-${p.id}" data-product-id="${p.id}" 
-                        value="${formatForInput(p.profitMargin || 0)}" 
-                        class="profit-margin-input w-20 text-right text-sm" 
+                        value="${formatForInput(displayProfit)}" 
+                        class="profit-margin-input w-28 min-w-[7rem] text-right text-sm" 
                         step="0.01" oninput="validateNumberInput(this); updateModalSellingPrice('${p.id}', true);">
                 </div>
-                <div class="font-semibold text-blue-600 text-right md:col-span-2">Sell: ₱<span id="quick-selling-price-${p.id}">${formatCurrency(currentSellingPrice)}</span></div>
+                <div class="font-semibold text-blue-600 text-right md:text-right">Sell: &#8369;<span id="quick-selling-price-${p.id}">${formatCurrency(currentSellingPrice)}</span></div>
             </div>`;
         });
         html += '</div>';
@@ -5711,10 +6486,9 @@
         toggleButtonLoading(saveBtn, true);
 
         try {
-            const productBatch = db.batch();
-            const reportUpdatePayload = {};
+            cacheQuickProfitDraftValues();
             let hasErrors = false;
-            let errorMessages = [];
+            const errorMessages = [];
 
             document.querySelectorAll('#quick-profit-products-container input[data-product-id]').forEach(input => {
                 const productId = input.dataset.productId;
@@ -5731,27 +6505,40 @@
                 return;
             }
 
-            const productInputs = Array.from(document.querySelectorAll('#quick-profit-products-container input[data-product-id]'));
-            const productIdsToUpdate = [...new Set(productInputs.map(input => input.dataset.productId))];
+            const productBatch = db.batch();
+            const reportUpdatePayload = {};
+            let changedCount = 0;
 
-            productIdsToUpdate.forEach(productId => {
-                const costInput = document.getElementById(`quick-cost-${productId}`);
-                const profitInput = document.getElementById(`quick-profit-margin-${productId}`);
-                const newCost = parseFloat(costInput.value) || 0;
-                const newProfitMargin = parseFloat(profitInput.value) || 0;
-                const productRef = db.collection('products').doc(productId);
+            shopProducts.forEach(product => {
+                const draft = quickProfitDraftValues[product.id];
+                if (!draft) return;
+
+                const newCost = Object.prototype.hasOwnProperty.call(draft, 'cost') ? (parseFloat(draft.cost) || 0) : (product.cost || 0);
+                const newProfitMargin = Object.prototype.hasOwnProperty.call(draft, 'profitMargin') ? (parseFloat(draft.profitMargin) || 0) : (product.profitMargin || 0);
+                const currentCost = product.cost || 0;
+                const currentProfit = product.profitMargin || 0;
+
+                if (newCost == currentCost && newProfitMargin == currentProfit) {
+                    return;
+                }
+
+                changedCount += 1;
+                const productRef = db.collection('products').doc(product.id);
                 productBatch.update(productRef, { cost: newCost, profitMargin: newProfitMargin });
-                reportUpdatePayload[`data.${productId}.cost`] = newCost;
-                reportUpdatePayload[`data.${productId}.profitMargin`] = newProfitMargin;
+                reportUpdatePayload[`data.${product.id}.cost`] = newCost;
+                reportUpdatePayload[`data.${product.id}.profitMargin`] = newProfitMargin;
             });
 
-            if (Object.keys(reportUpdatePayload).length > 0) {
+            if (changedCount > 0) {
                 const reportRef = db.collection('reports').doc(todayDateString);
-                await Promise.all([ productBatch.commit(), reportRef.update(reportUpdatePayload) ]);
+                await Promise.all([productBatch.commit(), reportRef.update(reportUpdatePayload)]);
+                invalidateProductsCache();
+                await loadProducts({ force: true });
+                Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
+            } else {
+                Toast.fire({ icon: 'info', title: 'No price changes were made.' });
             }
 
-            await loadProducts();
-            Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
             closeQuickProfitMarginModal();
         } catch (error) {
             Swal.fire('Error', handleFirestoreError(error), 'error');
@@ -5839,9 +6626,18 @@
                 category: document.getElementById('product-category').value, 
                 minStock: parseInt(minStockInput.value) || 0 
             }; 
-            await db.collection('products').doc(docId).set(productData); 
-            Toast.fire({ icon: 'success', title: productId ? 'Product updated!' : 'Product added!' }); 
-            await loadProducts(); 
+            const saveResult = await saveProductWithAutoPerKilo(productData, {
+                updateTodayReport: !productId,
+                allowAutoPerKilo: !productId
+            }); 
+            const successTitle = productId
+                ? 'Product updated!'
+                : saveResult.autoCreatedPerKilo
+                    ? 'Product added with matching Per Kilo!'
+                    : 'Product added!';
+            Toast.fire({ icon: 'success', title: successTitle }); 
+            invalidateProductsCache();
+            await loadProducts({ force: true }); 
             renderProductList(); 
             clearProductForm(); 
         } catch(error) { 
@@ -5898,7 +6694,8 @@
                 await batch.commit();
 
                 Toast.fire({ icon: 'success', title: 'Product deleted!' }); 
-                await loadProducts(); 
+                invalidateProductsCache();
+                await loadProducts({ force: true }); 
                 renderProductList(); 
                 // Re-initialize listeners to update all views (especially Daily Report if open)
                 initializeListeners(todayDateString);
@@ -5939,28 +6736,15 @@
         const password = await getPassword();
         if (!password.success) return;
 
-        const products = categoryFilter === 'all' ? shopProducts : shopProducts.filter(p => p.category === categoryFilter);
         const reportDoc = await db.collection('reports').doc(todayDateString).get();
         if (!reportDoc.exists) return;
 
-        const initialReport = reportDoc.data();
-        const container = document.getElementById('begin-stock-products-container');
-        
-        let modalHtml = '<div class="space-y-2">';
-        products.forEach(p => {
-            const currentBegin = initialReport.data[p.id]?.begin || 0;
-            modalHtml += `
-            <div class="grid grid-cols-2 gap-x-4 items-center">
-                <label for="begin-${p.id}" class="font-medium text-right text-sm">${p.name}</label>
-                <input type="number" id="begin-${p.id}" data-product-id="${p.id}" data-old-begin="${currentBegin}" value="${currentBegin}" class="border p-1 w-full rounded text-sm">
-            </div>`;
-        });
-        modalHtml += '</div>';
+        beginStockReportData = reportDoc.data();
+        beginStockDraftValues = {};
+        const initialCategory = categoryFilter && categoryFilter !== 'all' ? categoryFilter : '25 KG';
 
-        container.innerHTML = modalHtml;
-        document.getElementById('begin-stock-category-filter').value = categoryFilter;
-        document.getElementById('begin-stock-modal-title').textContent = `Edit Beginning Stock for ${categoryFilter === 'all' ? 'All Categories' : categoryFilter}`;
         document.getElementById('begin-stock-modal-overlay').classList.add('open');
+        renderBeginningStockCategory(initialCategory);
     }
 
     async function saveBeginStockFromModal() {
@@ -5968,18 +6752,19 @@
         toggleButtonLoading(saveBtn, true);
         
         try {
+            cacheBeginStockDraftValues();
             const updatePayload = {};
-            const inputs = document.querySelectorAll('#begin-stock-products-container input');
-            
-            inputs.forEach(input => {
-                const productId = input.dataset.productId;
-                const oldBegin = parseFloat(input.dataset.oldBegin) || 0;
-                const newBegin = parseFloat(input.value) || 0;
+
+            shopProducts.forEach(product => {
+                const oldBegin = parseFloat(beginStockReportData?.data?.[product.id]?.begin) || 0;
+                const newBegin = Object.prototype.hasOwnProperty.call(beginStockDraftValues, product.id)
+                    ? (parseFloat(beginStockDraftValues[product.id]) || 0)
+                    : oldBegin;
 
                 if (oldBegin !== newBegin) {
                     const diff = newBegin - oldBegin;
-                    updatePayload[`data.${productId}.begin`] = newBegin;
-                    updatePayload[`data.${productId}.end`] = firebase.firestore.FieldValue.increment(diff);
+                    updatePayload[`data.${product.id}.begin`] = newBegin;
+                    updatePayload[`data.${product.id}.end`] = firebase.firestore.FieldValue.increment(diff);
                 }
             });
 
@@ -6148,32 +6933,47 @@
             const rows = [];
             let totalRemainingUnits = 0;
             let totalOpenedSacks = 0;
+            const profitByCategory = {
+                '25 KG': 0,
+                '10 KG': 0,
+                '5 KG': 0,
+                'Per Kilo': 0
+            };
 
             shopProducts.forEach(product => {
                 const item = report?.data?.[product.id];
                 if (!item) return;
-                const sold = calculateSoldQuantity(item);
-                const remaining = item.end || 0;
+                const metrics = calculateInventorySalesMetrics(item, product);
+                const remaining = toNumber(item.end);
                 totalRemainingUnits += remaining;
                 if (product.category === '25 KG') {
-                    totalOpenedSacks += parseFloat(item.openedSacks || 0) || 0;
+                    totalOpenedSacks += toNumber(item.openedSacks);
+                }
+                if (metrics.sold > 0 && Object.prototype.hasOwnProperty.call(profitByCategory, product.category)) {
+                    profitByCategory[product.category] += metrics.profit;
                 }
                 rows.push(`
                     <tr>
                         <td class="font-semibold text-slate-800">${escapeHtml(product.name)}</td>
                         <td>${escapeHtml(product.category)}</td>
                         <td class="text-right">${formatQuantity(item.begin || 0)}</td>
-                        <td class="text-right">${formatQuantity(sold)}</td>
+                        <td class="text-right">${formatQuantity(metrics.sold)}</td>
                         <td class="text-right font-semibold">${formatQuantity(remaining)}</td>
                     </tr>`);
             });
 
             tbody.innerHTML = rows.join('') || '<tr><td colspan="5" class="text-center p-4 text-slate-500">No inventory data for today yet.</td></tr>';
-            document.getElementById('night-orders-count').textContent = String(orderSummary.count);
-            document.getElementById('night-sales-total').textContent = `${String.fromCharCode(8369)}${formatCurrency(orderSummary.sales)}`;
-            document.getElementById('night-remaining-units').textContent = formatQuantity(totalRemainingUnits);
-            document.getElementById('night-opened-sacks').textContent = formatQuantity(totalOpenedSacks);
-            document.getElementById('night-remaining-value').textContent = `${String.fromCharCode(8369)}${formatCurrency(stockWorth.totalRiceWorth)}`;
+            setElementTextById('night-orders-count', String(orderSummary.count));
+            setElementTextById('night-sales-total', `${String.fromCharCode(8369)}${formatCurrency(orderSummary.sales)}`);
+            setElementTextById('night-remaining-units', formatQuantity(totalRemainingUnits));
+            setElementTextById('night-opened-sacks', formatQuantity(totalOpenedSacks));
+            setElementTextById('night-remaining-value', `${String.fromCharCode(8369)}${formatCurrency(stockWorth.totalRiceWorth)}`);
+            const totalProfitToday = profitByCategory['25 KG'] + profitByCategory['10 KG'] + profitByCategory['5 KG'] + profitByCategory['Per Kilo'];
+            setElementTextById('night-profit-25kg', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['25 KG'])}`);
+            setElementTextById('night-profit-10kg', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['10 KG'])}`);
+            setElementTextById('night-profit-5kg', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['5 KG'])}`);
+            setElementTextById('night-profit-perkilo', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['Per Kilo'])}`);
+            setElementTextById('night-profit-total', `${String.fromCharCode(8369)}${formatCurrency(totalProfitToday)}`);
             document.getElementById('night-recent-orders').innerHTML = orderSummary.orders.slice(0, 6).map(order => {
                 const created = order.createdAt?.toDate ? dayjs(order.createdAt.toDate()).format('h:mm A') : 'Pending time';
                 return `<div class="p-3 rounded-lg bg-slate-50 border flex justify-between gap-3"><div><div class="font-medium text-slate-800">Order ${escapeHtml(order.id || 'Pending')}</div><div class="text-xs text-slate-500">${created} ? ${order.paymentEntered ? `Paid: &#8369;${formatCurrency(order.amountPaid || 0)}` : 'Payment not entered'}</div></div><div class="font-semibold text-slate-800">&#8369;${formatCurrency(order.total || 0)}</div></div>`;
