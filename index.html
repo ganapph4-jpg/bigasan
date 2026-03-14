@@ -1362,8 +1362,6 @@
       justify-content: space-between;
       gap: 0.4rem;
     }
-
-    .pos-tap-shell.tap-feedback .rice-name-badge,
     .pos-tap-shell.tap-feedback .pos-card-category,
     .pos-tap-shell.tap-feedback .pos-selling-price-value,
     .pos-tap-shell.tap-feedback .pos-quick-add-note,
@@ -2126,9 +2124,9 @@
               <th>OPEN SACKS</th>
               <th>ENDING</th>
               <th>SOLD</th>
-              <th>SELLING PRICE (₱) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
-              <th>TOTAL SALES (₱)</th>
-              <th>PROFIT (₱)</th>
+              <th>SELLING PRICE (â‚±) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
+              <th>TOTAL SALES (â‚±)</th>
+              <th>PROFIT (â‚±)</th>
             </tr>
           </thead>
           <tbody id="inventory-tbody">
@@ -2349,11 +2347,11 @@
                                 <input id="product-name" type="text" placeholder="e.g., Kylo" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
                             </div>
                             <div>
-                                <label for="product-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (₱)</label>
+                                <label for="product-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (â‚±)</label>
                                 <input id="product-cost" type="number" step="0.01" placeholder="e.g., 1150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
                             </div>
                             <div>
-                                <label for="product-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (₱)</label>
+                                <label for="product-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (â‚±)</label>
                                 <input id="product-profit-margin" type="number" step="0.01" placeholder="e.g., 50.00" class="border border-slate-300 p-2 w-full rounded-md profit-margin-input" oninput="validateNumberInput(this)" aria-required="true">
                             </div>
                             <div>
@@ -2406,8 +2404,8 @@
                                     <th scope="col" class="py-3 px-3">Product Name</th>
                                     <th scope="col" class="py-3 px-3 text-right">Category</th>
                                     <th scope="col" class="py-3 px-3 text-right">End Stock (Qty)</th>
-                                    <th scope="col" class="py-3 px-3 text-right">Cost Price (₱)</th>
-                                    <th scope="col" class="py-3 px-3 text-right">Total Worth (Capital ₱)</th>
+                                    <th scope="col" class="py-3 px-3 text-right">Cost Price (â‚±)</th>
+                                    <th scope="col" class="py-3 px-3 text-right">Total Worth (Capital â‚±)</th>
                                 </tr>
                             </thead>
                             <tbody id="inventory-stock-tbody">
@@ -2518,15 +2516,15 @@
                                 <div class="space-y-3">
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Total Sales</span>
-                                    <span id="analytics-total-sales" class="font-semibold">₱0.00</span>
+                                    <span id="analytics-total-sales" class="font-semibold">â‚±0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Total Profit</span>
-                                    <span id="analytics-total-profit" class="font-semibold">₱0.00</span>
+                                    <span id="analytics-total-profit" class="font-semibold">â‚±0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Average Daily Sales</span>
-                                    <span id="analytics-avg-sales" class="font-semibold">₱0.00</span>
+                                    <span id="analytics-avg-sales" class="font-semibold">â‚±0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Average Profit Margin</span>
@@ -2698,11 +2696,11 @@
               <input id="quick-prod-name" type="text" placeholder="e.g., Kylo" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
           </div>
           <div>
-              <label for="quick-prod-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (₱)</label>
+              <label for="quick-prod-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (â‚±)</label>
               <input id="quick-prod-cost" type="number" step="0.01" placeholder="e.g., 1150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
           </div>
           <div>
-              <label for="quick-prod-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (₱)</label>
+              <label for="quick-prod-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (â‚±)</label>
               <input id="quick-prod-profit-margin" type="number" step="0.01" placeholder="e.g., 50.00" class="border border-slate-300 p-2 w-full rounded-md profit-margin-input" oninput="validateNumberInput(this)" aria-required="true">
           </div>
           <div>
@@ -5297,9 +5295,9 @@
                         <th>OPEN SACKS</th>
                         <th>ENDING</th>
                         <th>SOLD</th>
-                        <th>SELLING PRICE (₱) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
-                        <th>TOTAL SALES (₱)</th>
-                        <th>PROFIT (₱)</th>
+                        <th>SELLING PRICE (â‚±) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
+                        <th>TOTAL SALES (â‚±)</th>
+                        <th>PROFIT (â‚±)</th>
                     </tr>`;
                 }
 
@@ -5315,11 +5313,11 @@
                         <td><input type="number" class="new-stock-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="returns-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
                         <td class="!p-1">
-                            ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!manualInputsEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">➔</button></div>` : `<span class="text-slate-400">-</span>`}
+                            ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!manualInputsEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">âž”</button></div>` : `<span class="text-slate-400">-</span>`}
                         </td>
                         <td><input type="number" class="end-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="sold-val" disabled /></td>
-                        <td class="selling-price-display font-medium">₱${formatCurrency(calculatedSellingPrice)}</td> 
+                        <td class="selling-price-display font-medium">â‚±${formatCurrency(calculatedSellingPrice)}</td> 
                         <td class="total-sales-val font-semibold" aria-live="polite"></td>
                         <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
                     </tr>`;
@@ -5350,15 +5348,15 @@
 
                 <div class="space-y-3 mb-6">
                     <div class="flex justify-between items-center">
-                        <label for="discount-given" class="text-sm font-medium text-slate-600">Discount Given (₱)</label>
+                        <label for="discount-given" class="text-sm font-medium text-slate-600">Discount Given (â‚±)</label>
                         <input type="number" id="discount-given" placeholder="0.00" class="w-28 text-right font-semibold p-1 rounded discount-input" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label for="gcash-payment" class="text-sm font-medium text-slate-600">GCash Received (₱)</label>
+                        <label for="gcash-payment" class="text-sm font-medium text-slate-600">GCash Received (â‚±)</label>
                         <input type="number" id="gcash-payment" placeholder="0.00" class="w-28 text-right font-semibold p-1 rounded gcash-input" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label for="cash-on-hand" class="text-sm font-medium text-slate-600">Cash on Hand (₱)</label>
+                        <label for="cash-on-hand" class="text-sm font-medium text-slate-600">Cash on Hand (â‚±)</label>
                         <input type="number" id="cash-on-hand" placeholder="0.00" class="w-28 text-right font-semibold p-1 rounded" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} />
                     </div>
                 </div>
@@ -5408,15 +5406,15 @@
             
             updateInputValue(row, '.end-input', data.end);
             
-            updateTextContent(row, '.selling-price-display', `₱${formatCurrency(calculatedSellingPrice)}`);
+            updateTextContent(row, '.selling-price-display', `â‚±${formatCurrency(calculatedSellingPrice)}`);
 
             const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - (data.returns || 0) - data.end;
             const totalSales = Math.max(0, sold) * calculatedSellingPrice; 
             const profit = totalSales - (Math.max(0, sold) * effectiveCost); 
 
             updateInputValue(row, '.sold-val', sold);
-            updateTextContent(row, '.total-sales-val', `₱${formatCurrency(totalSales)}`);
-            updateTextContent(row, '.profit-val', `₱${formatCurrency(profit)}`);
+            updateTextContent(row, '.total-sales-val', `â‚±${formatCurrency(totalSales)}`);
+            updateTextContent(row, '.profit-val', `â‚±${formatCurrency(profit)}`);
             row.classList.toggle('row-has-sales', sold > 0);
             row.classList.toggle('row-logic-error', sold < 0);
             row.classList.toggle('row-negative-stock', data.end < 0);
@@ -5703,8 +5701,8 @@
         document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
             const category = row.dataset.category;
             const sold = parseFloat(row.querySelector('.sold-val')?.value) || 0;
-            const sales = parseFloat(row.querySelector('.total-sales-val')?.textContent.replace(/[₱,]/g, '')) || 0;
-            const profit = parseFloat(row.querySelector('.profit-val')?.textContent.replace(/[₱,]/g, '')) || 0;
+            const sales = parseFloat(row.querySelector('.total-sales-val')?.textContent.replace(/[â‚±,]/g, '')) || 0;
+            const profit = parseFloat(row.querySelector('.profit-val')?.textContent.replace(/[â‚±,]/g, '')) || 0;
 
             if (categoryTotals[category]) {
                 categoryTotals[category].sold += sold > 0 ? sold : 0;
@@ -5726,8 +5724,8 @@
                 // Colspan is 6 for the columns up to "ENDING"
                 totalRow.querySelector('td:first-child').setAttribute('colspan', 6);
                 updateTextContent(totalRow, '.category-total-sold', totals.sold);
-                updateTextContent(totalRow, '.category-total-sales', `₱${formatCurrency(totals.sales)}`);
-                updateTextContent(totalRow, '.category-total-profit', `₱${formatCurrency(totals.profit)}`);
+                updateTextContent(totalRow, '.category-total-sales', `â‚±${formatCurrency(totals.sales)}`);
+                updateTextContent(totalRow, '.category-total-profit', `â‚±${formatCurrency(totals.profit)}`);
             }
             overallTotalSold += totals.sold;
             overallTotalSales += totals.sales;
@@ -5742,8 +5740,8 @@
 
 
         updateTextContent(document, '#overall-total-sold', overallTotalSold);
-        updateTextContent(document, '#overall-total-sales', `₱${formatCurrency(overallTotalSales)}`);
-        updateTextContent(document, '#overall-total-profit', `₱${formatCurrency(overallTotalProfit)}`);
+        updateTextContent(document, '#overall-total-sales', `â‚±${formatCurrency(overallTotalSales)}`);
+        updateTextContent(document, '#overall-total-profit', `â‚±${formatCurrency(overallTotalProfit)}`);
         calculateCashDifference();
     }
 
@@ -5757,11 +5755,11 @@
         
         if (!totalSalesEl || !cashInput || !discountInput || !gcashInput || !differenceDisplay || !expectedCashEl) return;
 
-        const totalSales = parseFloat(totalSalesEl.textContent.replace(/[₱,]/g, '')) || 0;
+        const totalSales = parseFloat(totalSalesEl.textContent.replace(/[â‚±,]/g, '')) || 0;
         const discountAmount = parseFloat(discountInput.value) || 0;
         const adjustedTotalSales = totalSales - discountAmount; 
         
-        expectedCashEl.textContent = `₱${formatCurrency(adjustedTotalSales)}`;
+        expectedCashEl.textContent = `â‚±${formatCurrency(adjustedTotalSales)}`;
         
         if (cashInput.value.trim() === '' && discountInput.value.trim() === '' && gcashInput.value.trim() === '') {
             differenceDisplay.textContent = '-';
@@ -5776,10 +5774,10 @@
         differenceDisplay.className = 'font-bold text-xl';
         
         if (difference < 0) {
-            differenceDisplay.textContent = `(₱${formatCurrency(Math.abs(difference))})`;
+            differenceDisplay.textContent = `(â‚±${formatCurrency(Math.abs(difference))})`;
             differenceDisplay.classList.add('cash-short');
         } else if (difference > 0) {
-            differenceDisplay.textContent = `+₱${formatCurrency(difference)}`;
+            differenceDisplay.textContent = `+â‚±${formatCurrency(difference)}`;
             differenceDisplay.classList.add('cash-over');
         } else {
             differenceDisplay.textContent = 'Balanced';
@@ -6463,7 +6461,7 @@
         const { monthlyNetProfit } = await getMonthlySummary(todayDateString);
         const monthlyProfitEl = document.getElementById('settings-monthly-net-profit');
         if(monthlyProfitEl) {
-             monthlyProfitEl.textContent = `₱${formatCurrency(monthlyNetProfit)}`;
+             monthlyProfitEl.textContent = `â‚±${formatCurrency(monthlyNetProfit)}`;
         }
     }
     
@@ -6507,13 +6505,13 @@
             totalProfit -= discount; 
         }); 
         numDays = numDays || 1; 
-        document.getElementById('analytics-total-sales').textContent = `₱${formatCurrency(totalSales)}`; 
-        document.getElementById('analytics-total-profit').textContent = `₱${formatCurrency(totalProfit)}`; 
-        document.getElementById('analytics-avg-sales').textContent = `₱${formatCurrency(totalSales / numDays)}`; 
+        document.getElementById('analytics-total-sales').textContent = `â‚±${formatCurrency(totalSales)}`; 
+        document.getElementById('analytics-total-profit').textContent = `â‚±${formatCurrency(totalProfit)}`; 
+        document.getElementById('analytics-avg-sales').textContent = `â‚±${formatCurrency(totalSales / numDays)}`; 
         document.getElementById('analytics-avg-margin').textContent = `${formatForInput((totalSales > 0 ? (totalProfit / totalSales) * 100 : 0))}%`; 
         renderTopPerformingProducts(productPerformance); 
     }
-    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div><div class="text-right"><div class="font-semibold">₱${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">₱${formatCurrency(p.profit)} profit</div></div></div>`).join(''); }
+    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div><div class="text-right"><div class="font-semibold">â‚±${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">â‚±${formatCurrency(p.profit)} profit</div></div></div>`).join(''); }
     
     // UPDATED to support new chart
     async function loadFinancialSummary() { 
@@ -6567,12 +6565,12 @@
         }); 
         const grossProfit = totalSales - totalCOGS; 
         const netProfit = grossProfit - totalExpenses; 
-        document.getElementById('fs-total-sales').textContent = `₱${formatCurrency(totalSales)}`; 
-        document.getElementById('fs-total-cogs').textContent = `₱${formatCurrency(totalCOGS)}`; 
-        document.getElementById('fs-gross-profit').textContent = `₱${formatCurrency(grossProfit)}`; 
-        document.getElementById('fs-total-expenses').textContent = `₱${formatCurrency(totalExpenses)}`; 
-        document.getElementById('fs-new-stock-cost').textContent = `₱${formatCurrency(totalNewStockCost)}`; 
-        document.getElementById('fs-net-profit').textContent = `₱${formatCurrency(netProfit)}`; 
+        document.getElementById('fs-total-sales').textContent = `â‚±${formatCurrency(totalSales)}`; 
+        document.getElementById('fs-total-cogs').textContent = `â‚±${formatCurrency(totalCOGS)}`; 
+        document.getElementById('fs-gross-profit').textContent = `â‚±${formatCurrency(grossProfit)}`; 
+        document.getElementById('fs-total-expenses').textContent = `â‚±${formatCurrency(totalExpenses)}`; 
+        document.getElementById('fs-new-stock-cost').textContent = `â‚±${formatCurrency(totalNewStockCost)}`; 
+        document.getElementById('fs-net-profit').textContent = `â‚±${formatCurrency(netProfit)}`; 
         renderMoneyFlowChart(dailyFlow); 
     }
 
@@ -6627,7 +6625,7 @@
               },
               tooltip: {
                 callbacks: {
-                  label: (context) => `${context.dataset.label}: ₱${formatCurrency(context.raw)}`
+                  label: (context) => `${context.dataset.label}: â‚±${formatCurrency(context.raw)}`
                 }
               }
             },
@@ -6639,7 +6637,7 @@
                 beginAtZero: true,
                 grid: { drawBorder: false },
                 ticks: {
-                  callback: (value) => `₱${value.toLocaleString()}`
+                  callback: (value) => `â‚±${value.toLocaleString()}`
                 }
               },
             },
@@ -6649,7 +6647,7 @@
         moneyFlowChartInstance = new Chart(ctx, config);
     }
     
-    async function renderExpensesView(dateString) { currentExpenseDate = dateString; document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200"><div><p class="font-medium">${escapeHtml(expense.description)}</p><p class="text-sm text-slate-500">₱${formatCurrency(expense.amount)}</p></div><div class="no-print"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `₱${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
+    async function renderExpensesView(dateString) { currentExpenseDate = dateString; document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200"><div><p class="font-medium">${escapeHtml(expense.description)}</p><p class="text-sm text-slate-500">â‚±${formatCurrency(expense.amount)}</p></div><div class="no-print"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `â‚±${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
     async function saveExpense() { const saveBtn = document.getElementById('save-expense-btn'); const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Invalid description or amount.' }); return; } toggleButtonLoading(saveBtn, true); try { const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description, amount, date: currentExpenseDate || todayDateString }; await db.collection('expenses').doc(docId).set(expenseData); Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' }); clearExpenseForm(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } finally { toggleButtonLoading(saveBtn, false); } }
     function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; document.getElementById('save-expense-btn').textContent = 'Save Expense'; }
     async function editExpense(id) { try { const expense = (await db.collection('expenses').doc(id).get()).data(); if (expense) { document.getElementById('expense-id').value = expense.id; document.getElementById('expense-description').value = expense.description; document.getElementById('expense-amount').value = expense.amount; document.getElementById('expense-form-title').textContent = 'Edit Expense'; document.getElementById('save-expense-btn').textContent = 'Update Expense'; } } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } }
@@ -7261,7 +7259,7 @@
         } 
         container.innerHTML = shopProducts.map(p => {
             const calculatedSellingPrice = (p.cost || 0) + (p.profitMargin || 0);
-            return `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Cost: ₱${formatCurrency(p.cost || 0)}</span> <span class="text-xs text-slate-400">Profit: ₱${formatCurrency(p.profitMargin || 0)}</span> <span class="text-xs font-semibold text-blue-600">Sell: ₱${formatCurrency(calculatedSellingPrice)}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`
+            return `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Cost: â‚±${formatCurrency(p.cost || 0)}</span> <span class="text-xs text-slate-400">Profit: â‚±${formatCurrency(p.profitMargin || 0)}</span> <span class="text-xs font-semibold text-blue-600">Sell: â‚±${formatCurrency(calculatedSellingPrice)}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`
         }).join(''); 
     }
 
@@ -7475,9 +7473,9 @@
                 if (!report.isFinalized && summary.totalSales === 0 && report.discountAmount === 0) { 
                     differenceHtml = '<span>-</span>';
                 } else if (difference < 0) {
-                    differenceHtml = `<span class="cash-short font-semibold">(₱${formatCurrency(Math.abs(difference))})</span>`;
+                    differenceHtml = `<span class="cash-short font-semibold">(â‚±${formatCurrency(Math.abs(difference))})</span>`;
                 } else if (difference > 0) {
-                    differenceHtml = `<span class="cash-over font-semibold">+₱${formatCurrency(difference)}</span>`;
+                    differenceHtml = `<span class="cash-over font-semibold">+â‚±${formatCurrency(difference)}</span>`;
                 } else {
                     differenceHtml = `<span class="cash-balanced font-semibold">Balanced</span>`;
                 }
@@ -7485,9 +7483,9 @@
                 tableHtml += `
                 <tr class="bg-white border-b"> 
                     <td class="py-4 px-6 font-medium text-slate-900">${dayjs(report.date).format('MMM D, YYYY')}</td> 
-                    <td class="py-4 px-6 text-right">₱${formatCurrency(summary.totalSales)}</td> 
-                    <td class="py-4 px-6 text-right text-green-600">₱${formatCurrency(summary.totalProfit)}</td> 
-                    <td class="py-4 px-6 text-right">₱${formatCurrency(cashOnHand)}</td> 
+                    <td class="py-4 px-6 text-right">â‚±${formatCurrency(summary.totalSales)}</td> 
+                    <td class="py-4 px-6 text-right text-green-600">â‚±${formatCurrency(summary.totalProfit)}</td> 
+                    <td class="py-4 px-6 text-right">â‚±${formatCurrency(cashOnHand)}</td> 
                     <td class="py-4 px-6 text-right">${differenceHtml}</td>
                 </tr>`; 
             } 
@@ -7512,15 +7510,15 @@
 
             if (!report) {
                 stockTbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-slate-500">No report data found for today.</td></tr>';
-                document.getElementById('inv-rice-worth').textContent = '₱0.00';
-                document.getElementById('inv-all-stock-worth').textContent = '₱0.00';
+                document.getElementById('inv-rice-worth').textContent = 'â‚±0.00';
+                document.getElementById('inv-all-stock-worth').textContent = 'â‚±0.00';
                 return;
             }
 
             const { totalRiceWorth, totalAllStockWorth, breakdown } = calculateStockWorth(report);
             
-            document.getElementById('inv-rice-worth').textContent = `₱${formatCurrency(totalRiceWorth)}`;
-            document.getElementById('inv-all-stock-worth').textContent = `₱${formatCurrency(totalAllStockWorth)}`;
+            document.getElementById('inv-rice-worth').textContent = `â‚±${formatCurrency(totalRiceWorth)}`;
+            document.getElementById('inv-all-stock-worth').textContent = `â‚±${formatCurrency(totalAllStockWorth)}`;
 
             let tableHtml = '';
             if (breakdown.length === 0) {
@@ -7546,7 +7544,7 @@
                                 <td class="py-2 px-3 text-right">Total:</td>
                                 <td class="py-2 px-3 text-right">${categoryQty}</td>
                                 <td class="py-2 px-3 text-right">-</td>
-                                <td class="py-2 px-3 text-right">₱${formatCurrency(categoryWorth)}</td>
+                                <td class="py-2 px-3 text-right">â‚±${formatCurrency(categoryWorth)}</td>
                             </tr>
                         `;
 
@@ -7557,8 +7555,8 @@
                                     <td class="py-2 px-3">${p.name}</td>
                                     <td class="py-2 px-3 text-right text-xs text-slate-400">${p.category}</td>
                                     <td class="py-2 px-3 text-right font-medium">${p.endStock}</td>
-                                    <td class="py-2 px-3 text-right">₱${formatCurrency(p.costPrice)}</td>
-                                    <td class="py-2 px-3 text-right text-red-600 font-semibold">₱${formatCurrency(p.worth)}</td>
+                                    <td class="py-2 px-3 text-right">â‚±${formatCurrency(p.costPrice)}</td>
+                                    <td class="py-2 px-3 text-right text-red-600 font-semibold">â‚±${formatCurrency(p.worth)}</td>
                                 </tr>
                             `;
                         });
@@ -7670,7 +7668,7 @@
         }
         container.innerHTML = products.map(product => {
             const sellingPrice = (product.cost || 0) + (product.profitMargin || 0);
-            return `<div class="price-manager-row"><div><div class="font-semibold text-slate-800">${escapeHtml(product.name)}</div><div class="text-xs text-slate-500">${escapeHtml(product.category)}</div></div><input id="settings-cost-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.cost || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><input id="settings-profit-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.profitMargin || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><div class="font-bold text-blue-700">₱<span id="settings-sell-${product.id}">${formatCurrency(sellingPrice)}</span></div></div>`;
+            return `<div class="price-manager-row"><div><div class="font-semibold text-slate-800">${escapeHtml(product.name)}</div><div class="text-xs text-slate-500">${escapeHtml(product.category)}</div></div><input id="settings-cost-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.cost || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><input id="settings-profit-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.profitMargin || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><div class="font-bold text-blue-700">â‚±<span id="settings-sell-${product.id}">${formatCurrency(sellingPrice)}</span></div></div>`;
         }).join('');
     }
 
@@ -7806,18 +7804,18 @@
             const monthlyNetProfit = monthlyData.monthlyNetProfit;
 
             // 4. Update UI
-            document.getElementById('settings-today-sales').textContent = `₱${formatCurrency(todaySummary.totalSales)}`;
-            document.getElementById('settings-today-profit').textContent = `₱${formatCurrency(todayNetProfit)}`;
-            document.getElementById('settings-yesterday-profit').textContent = `₱${formatCurrency(yesterdayNetProfit)}`;
-            document.getElementById('settings-monthly-net-profit').textContent = `₱${formatCurrency(monthlyNetProfit)}`;
+            document.getElementById('settings-today-sales').textContent = `â‚±${formatCurrency(todaySummary.totalSales)}`;
+            document.getElementById('settings-today-profit').textContent = `â‚±${formatCurrency(todayNetProfit)}`;
+            document.getElementById('settings-yesterday-profit').textContent = `â‚±${formatCurrency(yesterdayNetProfit)}`;
+            document.getElementById('settings-monthly-net-profit').textContent = `â‚±${formatCurrency(monthlyNetProfit)}`;
 
         } catch (error) {
             console.error("Error loading profit details:", error);
             // Fallback to safe defaults if there's an issue
-            document.getElementById('settings-today-sales').textContent = `₱${formatCurrency(0)}`;
-            document.getElementById('settings-today-profit').textContent = `₱${formatCurrency(0)}`;
-            document.getElementById('settings-yesterday-profit').textContent = `₱${formatCurrency(0)}`;
-            document.getElementById('settings-monthly-net-profit').textContent = `₱${formatCurrency(0)}`;
+            document.getElementById('settings-today-sales').textContent = `â‚±${formatCurrency(0)}`;
+            document.getElementById('settings-today-profit').textContent = `â‚±${formatCurrency(0)}`;
+            document.getElementById('settings-yesterday-profit').textContent = `â‚±${formatCurrency(0)}`;
+            document.getElementById('settings-monthly-net-profit').textContent = `â‚±${formatCurrency(0)}`;
         }
     }
     
@@ -7993,3 +7991,4 @@
 </body>
 </html>
 ```
+
