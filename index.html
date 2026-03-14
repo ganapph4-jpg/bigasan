@@ -1044,8 +1044,14 @@
     }
 
     .pos-summary-row.change-row {
-      font-size: 0.92rem;
+      font-size: 1rem;
       font-weight: 700;
+      color: #047857;
+    }
+
+    .pos-change-value {
+      font-size: 1.4rem;
+      font-weight: 800;
       color: #047857;
     }
 
@@ -1622,7 +1628,11 @@
       }
 
       .pos-summary-row.change-row {
-        font-size: 0.78rem;
+        font-size: 0.82rem;
+      }
+
+      .pos-change-value {
+        font-size: 1.15rem;
       }
 
       .pos-payment-shell {
@@ -1780,7 +1790,11 @@
       }
 
       body.pos-focus-mode #dashboard-view .pos-summary-row.change-row {
-        font-size: 0.86rem;
+        font-size: 0.92rem;
+      }
+
+      body.pos-focus-mode #dashboard-view .pos-change-value {
+        font-size: 1.28rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-payment-shell {
@@ -2027,7 +2041,7 @@
             </div>
             <div class="pos-summary-row change-row">
               <span>Change</span>
-              <span id="pos-change-display">&#8369;0.00</span>
+              <span id="pos-change-display" class="pos-change-value">&#8369;0.00</span>
             </div>
             <div class="pos-payment-shell">
               <label for="pos-cash-received" class="pos-payment-label">Customer Payment</label>
@@ -3321,6 +3335,15 @@
                     </div>
                 </div>`;
         }).join('');
+    }
+
+    function applyQuickCashAmount(amount) {
+        const cashInput = document.getElementById('pos-cash-received');
+        if (!cashInput) return;
+
+        cashInput.value = String(amount);
+        renderPosCart();
+        cashInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     function parsePosCashReceived() {
