@@ -509,6 +509,18 @@
       color: #b91c1c;
     }
 
+    .header-printer-icon-btn.reconnecting {
+      border-color: #fde68a;
+      background: #fffbeb;
+      color: #b45309;
+      animation: printerReconnectPulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes printerReconnectPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(245, 158, 11, 0); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.14); }
+    }
+
     .header-printer-icon-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
@@ -2932,6 +2944,10 @@
     let bluetoothPrinterDevice = null;
     let bluetoothPrinterCharacteristic = null;
     let printerConnectionStatus = '';
+    let printerReconnectAttemptInFlight = null;
+    let printerReconnectIntervalId = null;
+    let printerReconnectHelperStarted = false;
+    let lastPrinterReconnectAttemptAt = 0;
     let currentExpenseDate = '';
     let isSubmittingPosOrder = false;
     let posRenderFrame = 0;
@@ -3628,7 +3644,7 @@
     function handlePrinterDisconnected() {
         bluetoothPrinterDevice = null;
         bluetoothPrinterCharacteristic = null;
-        printerConnectionStatus = 'Bluetooth thermal printer disconnected.';
+        printerConnectionStatus = 'Bluetooth thermal printer disconnected. Trying to reconnect...';
         printerSettings = {
             ...printerSettings,
             printerConnected: false,
@@ -3637,6 +3653,7 @@
             connectedDeviceId: ''
         };
         renderPrinterSettings();
+        void runPrinterReconnectHelper('disconnect');
     }
 
     function getAndroidPrinterBridge() {
@@ -3782,21 +3799,32 @@
         return !!((printerSettings.connectedDeviceId || '').trim() || (printerSettings.connectedDeviceName || printerSettings.printerName || '').trim());
     }
 
+    function isPrinterReconnectInProgress() {
+        return !!printerReconnectAttemptInFlight
+            || /trying to reconnect/i.test(printerConnectionStatus || '')
+            || /reconnecting/i.test(printerConnectionStatus || '');
+    }
+
     function renderHeaderPrinterStatus() {
         const badge = document.getElementById('header-printer-status');
         const isConnected = isBluetoothPrinterReady();
+        const isReconnecting = !isConnected && isPrinterReconnectInProgress();
         const deviceName = printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID';
 
         if (!badge) return;
 
-        badge.classList.remove('connected', 'disconnected');
-        badge.classList.add(isConnected ? 'connected' : 'disconnected');
-        badge.title = isConnected ? `${deviceName} ready to print` : 'Printer not connected';
-        badge.setAttribute('aria-label', isConnected ? `${deviceName} ready to print` : 'Printer not connected');
+        badge.classList.remove('connected', 'disconnected', 'reconnecting');
+        badge.classList.add(isConnected ? 'connected' : (isReconnecting ? 'reconnecting' : 'disconnected'));
+        const label = isConnected
+            ? `${deviceName} ready to print`
+            : (isReconnecting ? 'Reconnecting printer...' : 'Printer not connected');
+        badge.title = label;
+        badge.setAttribute('aria-label', label);
     }
 
     function showPrinterConnectionInfo() {
         const isConnected = isBluetoothPrinterReady();
+        const isReconnecting = !isConnected && isPrinterReconnectInProgress();
         const deviceName = hasAndroidPrinterBridge()
             ? (getAndroidPrinterDisplayName() || printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID')
             : (printerSettings.connectedDeviceName || printerSettings.printerName || 'XP-58IID');
@@ -3809,11 +3837,12 @@
             title: 'Printer Status',
             html: `
                 <div style="text-align:left; font-size:14px; line-height:1.6;">
-                    <div><strong>Status:</strong> ${isConnected ? 'Connected' : 'Not Connected'}</div>
+                    <div><strong>Status:</strong> ${isConnected ? 'Connected' : (isReconnecting ? 'Reconnecting...' : 'Not Connected')}</div>
                     <div><strong>Printer:</strong> ${escapeHtml(deviceName)}</div>
                     <div><strong>Mode:</strong> ${escapeHtml(modeLabel)}</div>
                     <div><strong>Auto Print:</strong> Enabled</div>
                     <div><strong>Last Connected:</strong> ${escapeHtml(lastConnected)}</div>
+                    ${isReconnecting ? '<div style="margin-top:8px; color:#b45309; font-weight:700;">Reconnecting...</div>' : ''}
                     <div style="display:grid; gap:8px; margin-top:14px;">
                         <button type="button" onclick="Swal.close(); searchAndConnectPrinter();" style="padding:10px 12px; border-radius:10px; border:none; background:#dbeafe; color:#1d4ed8; font-weight:700;">Search & Connect Printer</button>
                         <button type="button" onclick="Swal.close(); disconnectPrinterConnection();" style="padding:10px 12px; border-radius:10px; border:none; background:#e2e8f0; color:#334155; font-weight:700;">Disconnect Printer</button>
@@ -3821,7 +3850,7 @@
                     </div>
                 </div>
             `,
-            icon: isConnected ? 'success' : 'info',
+            icon: isConnected ? 'success' : (isReconnecting ? 'warning' : 'info'),
             showConfirmButton: false,
             showCloseButton: true
         });
@@ -3837,6 +3866,9 @@
                 const deviceName = settings.connectedDeviceName || settings.printerName || 'XP-58IID';
                 connectionEl.textContent = `Bluetooth printer ready: ${deviceName}`;
                 connectionEl.className = 'text-sm font-medium text-emerald-700 mt-3';
+            } else if (isPrinterReconnectInProgress()) {
+                connectionEl.textContent = 'Reconnecting saved Bluetooth printer...';
+                connectionEl.className = 'text-sm font-medium text-amber-700 mt-3';
             } else {
                 connectionEl.textContent = 'Printer not connected. Tap the printer icon to connect.';
                 connectionEl.className = 'text-sm font-medium text-slate-700 mt-3';
@@ -3848,6 +3880,8 @@
                 statusEl.textContent = printerConnectionStatus;
             } else if (isBluetoothPrinterReady()) {
                 statusEl.textContent = 'Bluetooth thermal printer is ready. Submit Order & Print will send the receipt directly.';
+            } else if (isPrinterReconnectInProgress()) {
+                statusEl.textContent = 'Reconnecting saved Bluetooth printer...';
             } else {
                 statusEl.textContent = 'Tap the printer icon and connect your thermal printer before submitting orders.';
             }
@@ -4011,6 +4045,66 @@
         }
     }
 
+    async function runPrinterReconnectHelper(trigger = 'background') {
+        if (printerReconnectAttemptInFlight || isBluetoothPrinterReady() || !hasRememberedPrinter()) {
+            return false;
+        }
+
+        const minimumGapMs = trigger === 'interval' ? 15000 : 3000;
+        if (Date.now() - lastPrinterReconnectAttemptAt < minimumGapMs) {
+            return false;
+        }
+
+        lastPrinterReconnectAttemptAt = Date.now();
+        printerReconnectAttemptInFlight = (async () => {
+            try {
+                printerConnectionStatus = 'Trying to reconnect the saved Bluetooth printer...';
+                renderPrinterSettings();
+                return await Promise.race([
+                    attemptAutoReconnectPrinter(),
+                    new Promise(resolve => setTimeout(() => resolve(false), 4000))
+                ]);
+            } catch (error) {
+                console.warn(`Printer reconnect helper failed during ${trigger}:`, error);
+                return false;
+            } finally {
+                printerReconnectAttemptInFlight = null;
+                renderPrinterSettings();
+                renderHeaderPrinterStatus();
+            }
+        })();
+
+        return printerReconnectAttemptInFlight;
+    }
+
+    function startPrinterReconnectHelper() {
+        if (printerReconnectHelperStarted) return;
+        printerReconnectHelperStarted = true;
+
+        const reconnectIfNeeded = () => {
+            if (document.hidden) return;
+            void runPrinterReconnectHelper('resume');
+        };
+
+        window.addEventListener('focus', reconnectIfNeeded);
+        window.addEventListener('pageshow', reconnectIfNeeded);
+        window.addEventListener('online', reconnectIfNeeded);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                void runPrinterReconnectHelper('visibility');
+            }
+        });
+
+        if (printerReconnectIntervalId) {
+            clearInterval(printerReconnectIntervalId);
+        }
+        printerReconnectIntervalId = window.setInterval(() => {
+            if (!document.hidden) {
+                void runPrinterReconnectHelper('interval');
+            }
+        }, 20000);
+    }
+
     async function searchAndConnectPrinter({ silentCancel = false } = {}) {
         if (hasAndroidPrinterBridge()) {
             return searchAndConnectAndroidPrinter({ silentCancel });
@@ -4133,20 +4227,11 @@
 
         printerConnectionStatus = '';
         renderPrinterSettings();
+        startPrinterReconnectHelper();
 
         if (hasAndroidPrinterBridge() || printerSettings.connectionType === 'web-bluetooth') {
-            setTimeout(async () => {
-                try {
-                    await Promise.race([
-                        attemptAutoReconnectPrinter(),
-                        new Promise(resolve => setTimeout(() => resolve(false), 4000))
-                    ]);
-                } catch (error) {
-                    console.warn('Background printer reconnect failed:', error);
-                } finally {
-                    renderPrinterSettings();
-                    renderHeaderPrinterStatus();
-                }
+            setTimeout(() => {
+                void runPrinterReconnectHelper('startup');
             }, 0);
         }
     }
