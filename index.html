@@ -3680,13 +3680,27 @@
         return (bridge.getConnectedPrinterName?.() || bridge.getSavedPrinterName?.() || '').trim();
     }
 
+    function getAndroidSavedPrinterAddress() {
+        const bridge = getAndroidPrinterBridge();
+        if (!bridge) return '';
+        return (bridge.getSavedPrinterAddress?.() || '').trim();
+    }
+
     async function ensureAndroidPrinterPermissions({ silent = false } = {}) {
         const bridge = getAndroidPrinterBridge();
         if (!bridge) return false;
         if (bridge.hasPermissions?.()) return true;
         bridge.requestPermissionsFromApp?.();
+
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+            await new Promise(resolve => setTimeout(resolve, 250));
+            if (bridge.hasPermissions?.()) {
+                return true;
+            }
+        }
+
         if (!silent) {
-            await Swal.fire('Bluetooth Permission', 'Allow Bluetooth permission on the tablet, then tap connect again.', 'info');
+            await Swal.fire('Bluetooth Permission', 'Allow Bluetooth permission on the tablet so the saved printer can reconnect automatically.', 'info');
         }
         return !!bridge.hasPermissions?.();
     }
@@ -3971,34 +3985,29 @@
                 renderPrinterSettings();
                 return false;
             }
-            if (!(await ensureAndroidPrinterPermissions({ silent: true }))) {
-                return false;
-            }
 
-            const result = parsePrinterBridgeResponse(bridge.connectSavedPrinter?.());
-            if (!result.success) {
+            const savedAddress = getAndroidSavedPrinterAddress() || (printerSettings.connectedDeviceId || '').trim();
+            if (!savedAddress) {
                 printerSettings = {
                     ...printerSettings,
                     printerConnected: false
                 };
-                printerConnectionStatus = result.message || 'Android could not reconnect the saved printer.';
+                printerConnectionStatus = 'No saved printer yet. Connect the thermal printer once first.';
                 renderPrinterSettings();
                 return false;
             }
 
-            const deviceName = result.name || bridge.getConnectedPrinterName?.() || bridge.getSavedPrinterName?.() || 'Bluetooth Printer';
-            printerSettings = {
-                ...getPrinterSettingsFromForm(),
-                printerConnected: true,
-                connectionType: 'android-bridge',
-                connectedDeviceName: deviceName,
-                connectedDeviceId: result.address || bridge.getSavedPrinterAddress?.() || '',
-                printerName: deviceName,
-                lastConnectedAt: new Date().toISOString()
-            };
-            printerConnectionStatus = `Bluetooth thermal printer connected: ${deviceName}.`;
-            renderPrinterSettings();
-            return true;
+            if (!(await ensureAndroidPrinterPermissions({ silent: false }))) {
+                printerSettings = {
+                    ...printerSettings,
+                    printerConnected: false
+                };
+                printerConnectionStatus = 'Allow Bluetooth permission so the saved printer can reconnect automatically.';
+                renderPrinterSettings();
+                return false;
+            }
+
+            return connectAndroidPrinterByAddress(savedAddress, { silent: true });
         }
 
         if (!navigator.bluetooth || typeof navigator.bluetooth.getDevices !== 'function') {
@@ -4060,12 +4069,18 @@
             try {
                 printerConnectionStatus = 'Trying to reconnect the saved Bluetooth printer...';
                 renderPrinterSettings();
-                return await Promise.race([
+                const reconnected = await Promise.race([
                     attemptAutoReconnectPrinter(),
                     new Promise(resolve => setTimeout(() => resolve(false), 4000))
                 ]);
+
+                if (!reconnected && !isBluetoothPrinterReady() && /trying to reconnect/i.test(printerConnectionStatus || '')) {
+                    printerConnectionStatus = 'Auto reconnect did not complete yet. The app will keep trying in the background.';
+                }
+                return reconnected;
             } catch (error) {
                 console.warn(`Printer reconnect helper failed during ${trigger}:`, error);
+                printerConnectionStatus = 'Auto reconnect failed for now. The app will keep trying.';
                 return false;
             } finally {
                 printerReconnectAttemptInFlight = null;
