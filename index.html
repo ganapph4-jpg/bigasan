@@ -4104,6 +4104,27 @@
         window.addEventListener('focus', reconnectIfNeeded);
         window.addEventListener('pageshow', reconnectIfNeeded);
         window.addEventListener('online', reconnectIfNeeded);
+        window.addEventListener('android-printer-permission-result', () => {
+            void runPrinterReconnectHelper('permission');
+        });
+        window.addEventListener('android-printer-auto-reconnect', () => {
+            if (hasAndroidPrinterBridge() && isBluetoothPrinterReady()) {
+                const deviceName = getAndroidPrinterDisplayName() || printerSettings.connectedDeviceName || printerSettings.printerName || 'Bluetooth Printer';
+                printerSettings = {
+                    ...printerSettings,
+                    printerConnected: true,
+                    connectionType: 'android-bridge',
+                    connectedDeviceName: deviceName,
+                    connectedDeviceId: getAndroidSavedPrinterAddress() || printerSettings.connectedDeviceId || '',
+                    printerName: deviceName,
+                    lastConnectedAt: new Date().toISOString()
+                };
+                printerConnectionStatus = `Bluetooth thermal printer connected: ${deviceName}.`;
+                renderPrinterSettings();
+                return;
+            }
+            void runPrinterReconnectHelper('android-resume');
+        });
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 void runPrinterReconnectHelper('visibility');
@@ -4268,29 +4289,41 @@
         }
     }
 
+    function formatReceiptCategoryLabel(category) {
+        switch ((category || '').trim()) {
+            case '25 KG': return '25KG';
+            case '10 KG': return '10KG';
+            case '5 KG': return '5KG';
+            case 'Per Kilo': return 'PK';
+            default: return (category || '').replace(/\s+/g, '').toUpperCase();
+        }
+    }
+
     function buildBluetoothReceiptText(order) {
         const lines = [
             order.storeName || printerSettings.storeName || 'Rice Inventory Management',
-            dayjs(order.createdAt).format('MMMM D, YYYY h:mm A'),
-            `Order #: ${order.id}`,
-            '',
-            '-------------------------'
+            dayjs(order.createdAt).format('MM/DD/YYYY h:mm A'),
+            `OR ${order.id}`,
+            '------------------------'
         ];
 
         order.items.forEach(item => {
-            lines.push(item.name);
-            lines.push(`${item.category} x ${formatQuantity(item.quantity)}`);
-            lines.push(`TOTAL: PHP ${formatCurrency(item.total)}`);
-            lines.push('-------------------------');
+            const categoryLabel = formatReceiptCategoryLabel(item.category);
+            const qtyLabel = `${categoryLabel}x${formatQuantity(item.quantity)}`;
+            lines.push(`${item.name} ${qtyLabel} ${formatCurrency(item.total)}`);
         });
 
-        lines.push(`GRAND TOTAL: PHP ${formatCurrency(order.total)}`);
+        lines.push('------------------------');
+        lines.push(`TOTAL ${formatCurrency(order.total)}`);
         if (order.paymentEntered) {
-            lines.push(`CASH: PHP ${formatCurrency(order.amountPaid)}`);
-            lines.push(`CHANGE: PHP ${formatCurrency(order.changeDue || 0)}`);
+            lines.push(`CASH ${formatCurrency(order.amountPaid)}`);
+            lines.push(`CHANGE ${formatCurrency(order.changeDue || 0)}`);
         }
-        lines.push('');
-        lines.push(order.footerNote || printerSettings.footerNote || 'Thank you for your purchase!');
+        const footerNote = order.footerNote || printerSettings.footerNote || 'Thank you';
+        if (footerNote) {
+            lines.push('------------------------');
+            lines.push(footerNote);
+        }
         lines.push('');
         return lines.join('\n');
     }
@@ -4376,14 +4409,17 @@
 
     function buildReceiptHtml(order, shouldAutoPrint = true) {
         const width = (order.paperWidth || printerSettings.paperWidth) === '58mm' ? '58mm' : '80mm';
-        const itemsHtml = order.items.map(item => `
-            <tr>
-                <td>${escapeHtml(item.name)}</td>
-                <td style="text-align:center;">${formatQuantity(item.quantity)}</td>
-                <td style="text-align:right;">${formatCurrency(item.price)}</td>
-                <td style="text-align:right;">${formatCurrency(item.total)}</td>
-            </tr>
-        `).join('');
+        const itemsHtml = order.items.map(item => {
+            const categoryLabel = formatReceiptCategoryLabel(item.category);
+            return `
+            <div class="item-row">
+              <div class="item-line">
+                <span class="item-name">${escapeHtml(item.name)}</span>
+                <span class="item-total">&#8369;${formatCurrency(item.total)}</span>
+              </div>
+              <div class="item-meta">${escapeHtml(categoryLabel)} x ${formatQuantity(item.quantity)} @ &#8369;${formatCurrency(item.price)}</div>
+            </div>`;
+        }).join('');
 
         return `<!doctype html>
 <html>
@@ -4391,39 +4427,36 @@
   <meta charset="utf-8">
   <title>Receipt ${escapeHtml(order.id)}</title>
   <style>
-    body { font-family: 'Courier New', monospace; margin: 0; padding: 8px; color: #000; }
-    .receipt { width: ${width}; margin: 0 auto; }
+    body { font-family: 'Courier New', monospace; margin: 0; padding: 6px; color: #000; }
+    .receipt { width: ${width}; margin: 0 auto; font-size: 11px; }
     .center { text-align: center; }
-    .row { display: flex; justify-content: space-between; gap: 8px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th, td { font-size: 12px; padding: 4px 0; border-bottom: 1px dashed #999; vertical-align: top; }
-    th { text-align: left; }
-    .total { font-size: 16px; font-weight: bold; margin-top: 10px; }
-    .muted { font-size: 11px; color: #444; }
-    @page { size: auto; margin: 4mm; }
+    .muted { font-size: 10px; color: #444; }
+    .divider { border-top: 1px dashed #777; margin: 6px 0; }
+    .row { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; }
+    .item-row { padding: 4px 0; border-bottom: 1px dashed #bbb; }
+    .item-line { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 700; }
+    .item-name { flex: 1; }
+    .item-total { white-space: nowrap; }
+    .item-meta { font-size: 10px; color: #444; margin-top: 2px; }
+    .total { font-size: 13px; font-weight: 800; margin-top: 6px; }
+    @page { size: auto; margin: 3mm; }
   </style>
 </head>
 <body onload="${shouldAutoPrint ? 'window.print();' : ''}">
   <div class="receipt">
     <div class="center">
-      <div style="font-size:18px;font-weight:bold;">${escapeHtml(order.storeName)}</div>
-      <div class="muted">${escapeHtml(order.printerName || 'Thermal Receipt')}</div>
-      <div class="muted">${escapeHtml(dayjs(order.createdAt).format('MMMM D, YYYY h:mm A'))}</div>
-      <div class="muted">Order #: ${escapeHtml(order.id)}</div>
+      <div style="font-size:14px;font-weight:bold;">${escapeHtml(order.storeName)}</div>
+      <div class="muted">${escapeHtml(dayjs(order.createdAt).format('MM/DD/YYYY h:mm A'))}</div>
+      <div class="muted">OR ${escapeHtml(order.id)}</div>
     </div>
-    <div style="margin-top:10px;">
-      <div class="row"><span>Cash Received</span><span>${order.paymentEntered ? `&#8369;${formatCurrency(order.amountPaid)}` : 'Not entered'}</span></div>
-      <div class="row"><span>Change</span><span>&#8369;${formatCurrency(order.changeDue || 0)}</span></div>
-    </div>
-    <table>
-      <thead>
-        <tr><th>Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr>
-      </thead>
-      <tbody>${itemsHtml}</tbody>
-    </table>
-    <div class="row total"><span>Grand Total</span><span>₱${formatCurrency(order.total)}</span></div>
-    <div class="center" style="margin-top:12px;">
-      <div class="muted">${escapeHtml(order.footerNote)}</div>
+    <div class="divider"></div>
+    ${itemsHtml}
+    <div class="divider"></div>
+    <div class="row total"><span>TOTAL</span><span>&#8369;${formatCurrency(order.total)}</span></div>
+    <div class="row"><span>CASH</span><span>${order.paymentEntered ? `&#8369;${formatCurrency(order.amountPaid)}` : '---'}</span></div>
+    <div class="row"><span>CHANGE</span><span>&#8369;${formatCurrency(order.changeDue || 0)}</span></div>
+    <div class="center" style="margin-top:8px;">
+      <div class="muted">${escapeHtml(order.footerNote || 'Thank you')}</div>
     </div>
   </div>
 </body>
@@ -5894,40 +5927,33 @@
     }
 
     function buildReceiptPreviewMarkup(order) {
-        const createdAtLabel = order?.createdAt ? dayjs(order.createdAt).format('MMMM D, YYYY h:mm A') : 'Pending time';
-        const itemsHtml = (order.items || []).map(item => `
-            <div class="flex justify-between gap-3 py-2 border-b border-dashed border-slate-300 text-sm">
-                <div>
-                    <div class="font-semibold text-slate-800">${escapeHtml(item.name)}</div>
-                    <div class="text-xs text-slate-500">${escapeHtml(item.category || '')} x ${formatQuantity(item.quantity)}</div>
+        const createdAtLabel = order?.createdAt ? dayjs(order.createdAt).format('MM/DD/YYYY h:mm A') : 'Pending time';
+        const itemsHtml = (order.items || []).map(item => {
+            const categoryLabel = formatReceiptCategoryLabel(item.category);
+            return `
+            <div class="py-2 border-b border-dashed border-slate-300 text-xs">
+                <div class="flex justify-between gap-3 font-semibold text-slate-800">
+                    <span>${escapeHtml(item.name)}</span>
+                    <span>&#8369;${formatCurrency(item.total)}</span>
                 </div>
-                <div class="text-right">
-                    <div class="text-slate-500">&#8369;${formatCurrency(item.price)}</div>
-                    <div class="font-semibold text-slate-800">&#8369;${formatCurrency(item.total)}</div>
-                </div>
-            </div>
-        `).join('') || '<div class="text-center text-slate-500 py-4">No items found.</div>';
+                <div class="text-[11px] text-slate-500 mt-1">${escapeHtml(categoryLabel)} x ${formatQuantity(item.quantity)} @ &#8369;${formatCurrency(item.price)}</div>
+            </div>`;
+        }).join('') || '<div class="text-center text-slate-500 py-4">No items found.</div>';
 
         return `
-            <div class="mx-auto w-full max-w-sm bg-white rounded-2xl border border-slate-200 px-4 py-5 shadow-sm font-mono text-sm text-slate-800">
-                <div class="text-center border-b border-dashed border-slate-300 pb-3 mb-3">
-                    <div class="text-lg font-bold">${escapeHtml(order.storeName || DEFAULT_PRINTER_SETTINGS.storeName)}</div>
-                    <div class="text-xs text-slate-500 mt-1">${escapeHtml(order.printerName || DEFAULT_PRINTER_SETTINGS.printerName)}</div>
-                    <div class="text-xs text-slate-500 mt-1">${escapeHtml(createdAtLabel)}</div>
-                    <div class="text-xs text-slate-500 mt-1">Order #: ${escapeHtml(order.id || '')}</div>
+            <div class="mx-auto w-full max-w-xs bg-white rounded-2xl border border-slate-200 px-3 py-4 shadow-sm font-mono text-xs text-slate-800">
+                <div class="text-center border-b border-dashed border-slate-300 pb-2 mb-2">
+                    <div class="text-base font-bold">${escapeHtml(order.storeName || DEFAULT_PRINTER_SETTINGS.storeName)}</div>
+                    <div class="text-[11px] text-slate-500 mt-1">${escapeHtml(createdAtLabel)}</div>
+                    <div class="text-[11px] text-slate-500 mt-1">OR ${escapeHtml(order.id || '')}</div>
                 </div>
-                <div class="space-y-1 text-sm mb-3">
-                    <div class="flex justify-between gap-3"><span>Cash Received</span><span>${order.paymentEntered ? `&#8369;${formatCurrency(order.amountPaid || 0)}` : 'Not entered'}</span></div>
-                    <div class="flex justify-between gap-3"><span>Change</span><span>&#8369;${formatCurrency(order.changeDue || 0)}</span></div>
+                <div>${itemsHtml}</div>
+                <div class="border-t border-dashed border-slate-300 mt-2 pt-2 space-y-1 text-xs">
+                    <div class="flex justify-between gap-3 font-semibold"><span>TOTAL</span><span>&#8369;${formatCurrency(order.total || 0)}</span></div>
+                    <div class="flex justify-between gap-3"><span>CASH</span><span>${order.paymentEntered ? `&#8369;${formatCurrency(order.amountPaid || 0)}` : '---'}</span></div>
+                    <div class="flex justify-between gap-3"><span>CHANGE</span><span>&#8369;${formatCurrency(order.changeDue || 0)}</span></div>
                 </div>
-                <div class="border-t border-dashed border-slate-300 pt-1">${itemsHtml}</div>
-                <div class="flex justify-between gap-3 mt-4 pt-3 border-t border-dashed border-slate-300 text-base font-bold">
-                    <span>Grand Total</span>
-                    <span>&#8369;${formatCurrency(order.total || 0)}</span>
-                </div>
-                <div class="text-center text-xs text-slate-500 mt-4">${escapeHtml(order.footerNote || DEFAULT_PRINTER_SETTINGS.footerNote)}</div>
-            </div>
-        `;
+            </div>`;
     }
 
     function closeReceiptPreviewModal() {
