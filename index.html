@@ -899,12 +899,14 @@
       font-size: 0.88rem;
     }
 
-    .open-sacks-form .btn-primary {
+    .open-sacks-form .btn-primary,
+    .open-sacks-form .btn-secondary {
       min-height: 42px;
-      padding: 0.65rem 0.9rem;
+      padding: 0.65rem 0.85rem;
       border-radius: 12px;
-      font-size: 0.88rem;
+      font-size: 0.84rem;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .pos-stock-pill {
@@ -921,10 +923,10 @@
 
     .rice-name-badge {
       display: inline-block;
-      font-size: 1.12rem;
+      font-size: 1.28rem;
       font-weight: 900;
-      letter-spacing: 0.015em;
-      line-height: 1.12;
+      letter-spacing: 0.018em;
+      line-height: 1.08;
       text-shadow: 0 1px 0 rgba(255,255,255,0.65);
     }
 
@@ -1572,7 +1574,7 @@
       }
 
       .rice-name-badge {
-        font-size: 0.9rem;
+        font-size: 1.02rem;
       }
 
       .pos-selling-price-value {
@@ -1737,7 +1739,7 @@
       }
 
       body.pos-focus-mode #dashboard-view .rice-name-badge {
-        font-size: 1.02rem;
+        font-size: 1.18rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-selling-price-value {
@@ -5511,6 +5513,7 @@
                         <div class="open-sacks-form">
                             <input id="open-sacks-tab-${product.id}" type="number" min="1" step="1" placeholder="How many sacks to open" class="flex-1">
                             <button class="btn-primary" ${matchingPerKilo ? '' : 'disabled'} onclick="submitOpenSackFromTab('${product.id}', '${dateString}')">Open Sack</button>
+                            <button class="btn-secondary" ${matchingPerKilo ? '' : 'disabled'} onclick="editOpenSacksEntry('${product.id}', '${dateString}')">Edit</button>
                         </div>
                     </div>`;
             }).join('');
@@ -5530,6 +5533,141 @@
 
         await transferOpenSacks(productId, sacksToAdd, dateString);
         if (input) input.value = '';
+    }
+
+    async function saveOpenSacksCorrection(productId, desiredOpenedSacks, dateString = todayDateString) {
+        const sourceProduct = getProductById(productId);
+        if (!sourceProduct || sourceProduct.category !== '25 KG') {
+            Toast.fire({ icon: 'error', title: '25 KG product not found.' });
+            return false;
+        }
+
+        const targetProduct = shopProducts.find(item => item.name === sourceProduct.name && item.category === 'Per Kilo');
+        if (!targetProduct) {
+            Toast.fire({ icon: 'error', title: `No matching Per Kilo product found for ${sourceProduct.name}.` });
+            return false;
+        }
+
+        try {
+            await startDay(dateString);
+            await loadProducts();
+            const reportDoc = await db.collection('reports').doc(dateString).get();
+            const report = reportDoc.exists ? reportDoc.data() : null;
+            const sourceData = report?.data?.[sourceProduct.id] || { openedSacks: 0 };
+            const currentOpenedSacks = parseInt(sourceData.openedSacks, 10) || 0;
+
+            if (desiredOpenedSacks === currentOpenedSacks) {
+                Toast.fire({ icon: 'info', title: 'No changes were made.' });
+                return false;
+            }
+
+            const delta = desiredOpenedSacks - currentOpenedSacks;
+            const reportRef = db.collection('reports').doc(dateString);
+
+            await db.runTransaction(async transaction => {
+                const latestReportDoc = await transaction.get(reportRef);
+                if (!latestReportDoc.exists) {
+                    throw 'Today report was not found.';
+                }
+
+                const latestReport = latestReportDoc.data();
+                const latestSourceData = latestReport.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
+                const latestTargetData = latestReport.data[targetProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
+                const latestOpenedSacks = parseFloat(latestSourceData.openedSacks) || 0;
+                const availableSacks = parseFloat(latestSourceData.end) || 0;
+                const targetEnd = parseFloat(latestTargetData.end) || 0;
+                const targetNewStock = parseFloat(latestTargetData.newStock) || 0;
+
+                if (latestOpenedSacks !== currentOpenedSacks) {
+                    throw 'Open sacks changed on another screen. Please try again.';
+                }
+
+                const updatePayload = {};
+                updatePayload[`data.${sourceProduct.id}.openedSacks`] = desiredOpenedSacks;
+
+                if (delta > 0) {
+                    if (availableSacks < delta) {
+                        throw `Only ${formatQuantity(availableSacks)} sack(s) are available to open.`;
+                    }
+                    const kilosToAdd = delta * 25;
+                    updatePayload[`data.${sourceProduct.id}.end`] = parseFloat((availableSacks - delta).toFixed(2));
+                    updatePayload[`data.${targetProduct.id}.newStock`] = parseFloat((targetNewStock + kilosToAdd).toFixed(2));
+                    updatePayload[`data.${targetProduct.id}.end`] = parseFloat((targetEnd + kilosToAdd).toFixed(2));
+                } else {
+                    const sacksToReturn = Math.abs(delta);
+                    const kilosToReturn = sacksToReturn * 25;
+                    if (targetEnd < kilosToReturn) {
+                        throw `Cannot reduce by ${formatQuantity(sacksToReturn)} sack(s) because only ${formatQuantity(targetEnd)} kg remains in Per Kilo stock.`;
+                    }
+                    if (targetNewStock < kilosToReturn) {
+                        throw 'This correction would make Per Kilo new stock negative.';
+                    }
+                    updatePayload[`data.${sourceProduct.id}.end`] = parseFloat((availableSacks + sacksToReturn).toFixed(2));
+                    updatePayload[`data.${targetProduct.id}.newStock`] = parseFloat((targetNewStock - kilosToReturn).toFixed(2));
+                    updatePayload[`data.${targetProduct.id}.end`] = parseFloat((targetEnd - kilosToReturn).toFixed(2));
+                }
+
+                transaction.update(reportRef, updatePayload);
+            });
+
+            Toast.fire({ icon: 'success', title: 'Opened sacks corrected.' });
+            if (document.getElementById('open-sacks-view')?.classList.contains('active')) {
+                renderOpenSacksView(dateString);
+            }
+            return true;
+        } catch (error) {
+            const errorMessage = typeof error === 'string' ? error : handleFirestoreError(error);
+            await Swal.fire('Correction Failed', errorMessage, 'error');
+            return false;
+        }
+    }
+
+
+    async function editOpenSacksEntry(productId, dateString = todayDateString) {
+        const password = await getPassword({ allowBypassIfUnset: false });
+        if (!password.success) return;
+
+        const sourceProduct = getProductById(productId);
+        if (!sourceProduct || sourceProduct.category !== '25 KG') {
+            Toast.fire({ icon: 'error', title: '25 KG product not found.' });
+            return;
+        }
+
+        try {
+            await startDay(dateString);
+            await loadProducts();
+            const reportDoc = await db.collection('reports').doc(dateString).get();
+            const report = reportDoc.exists ? reportDoc.data() : null;
+            const sourceData = report?.data?.[sourceProduct.id] || { openedSacks: 0 };
+            const currentOpenedSacks = parseInt(sourceData.openedSacks, 10) || 0;
+
+            const { value: newOpenedSacks } = await Swal.fire({
+                title: `Edit Opened Sacks: ${sourceProduct.name}`,
+                text: 'Enter the correct total opened sacks for today.',
+                input: 'number',
+                inputValue: String(currentOpenedSacks),
+                inputAttributes: {
+                    min: '0',
+                    step: '1'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Save Correction',
+                inputValidator: value => {
+                    if (value === '' || value === null) return 'Enter the correct total.';
+                    if (Number(value) < 0) return 'Opened sacks cannot be negative.';
+                    if (!Number.isInteger(Number(value))) return 'Use whole sacks only.';
+                    return null;
+                }
+            });
+
+            if (newOpenedSacks === undefined) {
+                return;
+            }
+
+            await saveOpenSacksCorrection(productId, parseInt(newOpenedSacks, 10) || 0, dateString);
+        } catch (error) {
+            await Swal.fire('Correction Failed', handleFirestoreError(error), 'error');
+        }
     }
 
     function updateInputValue(row, selector, value) {
