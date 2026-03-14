@@ -1681,7 +1681,79 @@
       }
     }
 
-    @media (min-width: 900px) and (orientation: landscape) {
+
+    @media (min-width: 1367px) {
+      .pos-product-grid {
+        grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+        gap: 0.9rem;
+      }
+
+      .pos-tap-shell {
+        border-color: #93c5fd;
+        background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
+        box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+      }
+
+      .pos-tap-shell:hover,
+      .pos-tap-shell:focus-visible {
+        border-color: #2563eb;
+        box-shadow: 0 14px 24px rgba(37, 99, 235, 0.18);
+      }
+
+      .rice-name-badge {
+        font-size: 1.38rem;
+        font-weight: 950;
+        text-shadow: none;
+      }
+
+      .rice-name-badge.category-25kg {
+        color: #1e40af;
+      }
+
+      .rice-name-badge.category-10kg {
+        color: #9a3412;
+      }
+
+      .rice-name-badge.category-5kg {
+        color: #166534;
+      }
+
+      .rice-name-badge.category-perkilo {
+        color: #334155;
+      }
+
+      .pos-card-category {
+        color: #475569;
+        font-weight: 800;
+      }
+
+      .pos-stock-pill {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .pos-selling-price-label {
+        color: #b91c1c;
+      }
+
+      .pos-selling-price-value {
+        color: #b91c1c;
+        font-size: 1.5rem;
+        text-shadow: none;
+      }
+
+      .pos-quick-add-note {
+        color: #166534;
+        font-weight: 800;
+      }
+
+      .pos-cart-count.compact {
+        background: #dbeafe;
+        border-color: #60a5fa;
+        color: #1e40af;
+        font-weight: 900;
+      }
+    }    @media (min-width: 900px) and (orientation: landscape) {
       body.pos-focus-mode #dashboard-view .pos-layout {
         grid-template-columns: minmax(0, 1fr) 320px;
         gap: 1rem;
@@ -7991,4 +8063,5 @@
 </body>
 </html>
 ```
+
 
