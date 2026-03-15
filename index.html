@@ -875,6 +875,8 @@
     .open-sacks-meta {
       font-size: 0.78rem;
       line-height: 1.35;
+      color: #0f172a;
+      font-weight: 700;
     }
 
     .open-sacks-kilo-box {
@@ -883,6 +885,18 @@
       margin-bottom: 0.75rem;
       font-size: 0.82rem;
       line-height: 1.35;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .open-sacks-available-value {
+      color: #15803d;
+      font-weight: 900;
+    }
+
+    .open-sacks-opened-value {
+      color: #db2777;
+      font-weight: 900;
     }
 
     .open-sacks-form {
@@ -918,7 +932,7 @@
       background: #eff6ff;
       color: #1d4ed8;
       font-size: 0.75rem;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .rice-name-badge {
@@ -943,7 +957,7 @@
     }
 
     .rice-name-badge.category-perkilo {
-      color: #475569;
+      color: #111827;
     }
 
     .pos-selling-price-label {
@@ -955,11 +969,15 @@
     }
 
     .pos-selling-price-value {
+      display: block;
+      width: 100%;
+      text-align: center;
       font-size: 1.45rem;
       font-weight: 900;
       line-height: 1;
       color: #dc2626;
       text-shadow: 0 1px 0 rgba(255,255,255,0.65);
+      margin-top: 0.2rem;
     }
 
     .pos-cart {
@@ -1287,6 +1305,7 @@
       text-transform: uppercase;
       letter-spacing: 0.11em;
       margin-top: 0.25rem;
+      font-weight: 800;
     }
 
     .pos-cart-count {
@@ -1299,61 +1318,73 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 26px;
-      padding: 0.2rem 0.62rem;
-      border-radius: 999px;
-      background: #dbeafe;
+      min-height: 30px;
+      min-width: 112px;
+      padding: 0.35rem 0.85rem;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
       border: 1px solid #93c5fd;
       color: #1d4ed8;
-      font-size: 0.68rem;
+      font-size: 0.72rem;
+      font-weight: 900;
       line-height: 1;
       white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
     }
 
     .pos-tap-actions {
-      margin-top: 0.45rem;
+      margin-top: 0.55rem;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       gap: 0.5rem;
     }
 
     .pos-tap-shell {
       border: 1px solid #bfdbfe;
+      border-top-width: 4px;
       background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
       border-radius: 16px;
       padding: 0.7rem;
       cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
       outline: none;
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.07);
+    }
+
+    .pos-tap-shell.category-25kg {
+      border-top-color: #1d4ed8;
+    }
+
+    .pos-tap-shell.category-10kg {
+      border-top-color: #b45309;
+    }
+
+    .pos-tap-shell.category-5kg {
+      border-top-color: #15803d;
+    }
+
+    .pos-tap-shell.category-perkilo {
+      border-top-color: #111827;
     }
 
     .pos-tap-shell:hover,
     .pos-tap-shell:focus-visible {
       border-color: #60a5fa;
-      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.12);
-      transform: translateY(-1px);
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.16);
+      transform: translateY(-2px);
     }
 
     .pos-tap-shell:active {
-      transform: scale(0.98);
+      transform: translateY(1px) scale(0.985);
       box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12);
     }
 
     .pos-tap-shell.tap-feedback {
       border-color: #2563eb;
-      background: linear-gradient(180deg, #93c5fd 0%, #60a5fa 100%);
-      box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.24), 0 12px 22px rgba(37, 99, 235, 0.24);
-      transform: scale(0.97);
-    }
-
-    .pos-quick-add-note {
-      margin-top: 0.3rem;
-      font-size: 0.62rem;
-      font-weight: 700;
-      color: #15803d;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16), 0 16px 26px rgba(37, 99, 235, 0.18);
+      transform: translateY(-1px) scale(0.985);
     }
 
     .pos-card-footer {
@@ -1362,16 +1393,10 @@
       justify-content: space-between;
       gap: 0.4rem;
     }
-    .pos-tap-shell.tap-feedback .pos-card-category,
-    .pos-tap-shell.tap-feedback .pos-selling-price-value,
-    .pos-tap-shell.tap-feedback .pos-quick-add-note,
     .pos-tap-shell.tap-feedback .pos-cart-count.compact {
-      color: #0f172a;
-    }
-
-    .pos-tap-shell.tap-feedback .pos-cart-count.compact {
-      background: rgba(255, 255, 255, 0.78);
-      border-color: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.88);
+      border-color: rgba(191, 219, 254, 0.95);
+      color: #1e3a8a;
     }
 
     .pos-live-note {
@@ -1581,7 +1606,6 @@
 
       .pos-stock-pill,
       .pos-card-category,
-      .pos-quick-add-note,
       .pos-cart-count {
         font-size: 0.58rem;
       }
@@ -1681,7 +1705,6 @@
       }
     }
 
-
     @media (min-width: 1367px) {
       .pos-product-grid {
         grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
@@ -1697,7 +1720,7 @@
       .pos-tap-shell:hover,
       .pos-tap-shell:focus-visible {
         border-color: #2563eb;
-        box-shadow: 0 14px 24px rgba(37, 99, 235, 0.18);
+        box-shadow: 0 16px 28px rgba(37, 99, 235, 0.18);
       }
 
       .rice-name-badge {
@@ -1719,17 +1742,18 @@
       }
 
       .rice-name-badge.category-perkilo {
-        color: #334155;
+        color: #111827;
       }
 
       .pos-card-category {
-        color: #475569;
-        font-weight: 800;
+        color: #334155;
+        font-weight: 900;
       }
 
       .pos-stock-pill {
         background: #dbeafe;
         color: #1e40af;
+        font-weight: 900;
       }
 
       .pos-selling-price-label {
@@ -1742,18 +1766,15 @@
         text-shadow: none;
       }
 
-      .pos-quick-add-note {
-        color: #166534;
-        font-weight: 800;
-      }
-
       .pos-cart-count.compact {
-        background: #dbeafe;
+        background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
         border-color: #60a5fa;
         color: #1e40af;
-        font-weight: 900;
+        font-weight: 950;
       }
-    }    @media (min-width: 900px) and (orientation: landscape) {
+    }
+
+    @media (min-width: 900px) and (orientation: landscape) {
       body.pos-focus-mode #dashboard-view .pos-layout {
         grid-template-columns: minmax(0, 1fr) 320px;
         gap: 1rem;
@@ -1818,7 +1839,6 @@
 
       body.pos-focus-mode #dashboard-view .pos-stock-pill,
       body.pos-focus-mode #dashboard-view .pos-card-category,
-      body.pos-focus-mode #dashboard-view .pos-quick-add-note,
       body.pos-focus-mode #dashboard-view .pos-cart-count {
         font-size: 0.68rem;
       }
@@ -2196,9 +2216,9 @@
               <th>OPEN SACKS</th>
               <th>ENDING</th>
               <th>SOLD</th>
-              <th>SELLING PRICE (â‚±) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
-              <th>TOTAL SALES (â‚±)</th>
-              <th>PROFIT (â‚±)</th>
+              <th>SELLING PRICE (&#8369;) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
+              <th>TOTAL SALES (&#8369;)</th>
+              <th>PROFIT (&#8369;)</th>
             </tr>
           </thead>
           <tbody id="inventory-tbody">
@@ -3206,6 +3226,20 @@
             maximumFractionDigits: 2
         });
     }
+
+    const PESO_SIGN = String.fromCharCode(8369);
+
+    function formatPeso(amount) {
+        return `${PESO_SIGN}${formatCurrency(amount)}`;
+    }
+
+    function formatPesoHtml(amount) {
+        return `&#8369;${formatCurrency(amount)}`;
+    }
+
+    function parseMoneyValue(value) {
+        return parseFloat(String(value ?? '').replace(/[^0-9.-]/g, '')) || 0;
+    }
     
     /**
      * Formats a number for use in an <input type="number"> field.
@@ -3229,6 +3263,23 @@
     function formatQuantity(value) {
         const num = parseFloat(value) || 0;
         return Number.isInteger(num) ? String(num) : num.toFixed(2);
+    }
+
+    function normalizeProductText(value) {
+        return String(value ?? '')
+            .normalize('NFKC')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toUpperCase();
+    }
+
+    function findMatchingPerKiloProduct(sourceProduct) {
+        if (!sourceProduct) return null;
+        const sourceName = normalizeProductText(sourceProduct.name);
+        return shopProducts.find(product => (
+            normalizeProductText(product.category) === 'PER KILO' &&
+            normalizeProductText(product.name) === sourceName
+        )) || null;
     }
 
 
@@ -3407,7 +3458,7 @@
             const categoryColorClass = getCategoryColorClass(product.category);
             return `
                 <div class="pos-product-card ${isOutOfStock ? 'out-of-stock' : ''}">
-                    <div class="pos-tap-shell" role="button" tabindex="0" onclick="quickAddPosProduct('${product.id}', this)" onkeydown="handlePosProductCardKey(event, '${product.id}', this)">
+                    <div class="pos-tap-shell ${categoryColorClass}" role="button" tabindex="0" onclick="quickAddPosProduct('${product.id}', this)" onkeydown="handlePosProductCardKey(event, '${product.id}', this)">
                         <div class="flex items-start justify-between gap-2 mb-2">
                             <div>
                                 <div class="rice-name-badge ${categoryColorClass}">${escapeHtml(product.name)}</div>
@@ -3417,7 +3468,6 @@
                         </div>
                         <p class="pos-selling-price-value">&#8369;${formatCurrency(price)}</p>
                         <div class="pos-tap-actions">
-                            <div class="pos-quick-add-note">Tap rice to add</div>
                             <div class="pos-cart-count compact">In cart: ${formatQuantity(reservedQuantity)}</div>
                         </div>
                     </div>
@@ -5367,9 +5417,9 @@
                         <th>OPEN SACKS</th>
                         <th>ENDING</th>
                         <th>SOLD</th>
-                        <th>SELLING PRICE (â‚±) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
-                        <th>TOTAL SALES (â‚±)</th>
-                        <th>PROFIT (â‚±)</th>
+                        <th>SELLING PRICE (&#8369;) <br><button class="small-edit-btn mt-1 no-print" onclick="promptForCategoryThenEdit('price')" aria-label="Edit all prices">EDIT ALL</button></th>
+                        <th>TOTAL SALES (&#8369;)</th>
+                        <th>PROFIT (&#8369;)</th>
                     </tr>`;
                 }
 
@@ -5389,8 +5439,7 @@
                         </td>
                         <td><input type="number" class="end-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="sold-val" disabled /></td>
-                        <td class="selling-price-display font-medium">â‚±${formatCurrency(calculatedSellingPrice)}</td> 
-                        <td class="total-sales-val font-semibold" aria-live="polite"></td>
+                        <td class="selling-price-display font-medium">${formatPeso(calculatedSellingPrice)}</td> <td class="total-sales-val font-semibold" aria-live="polite"></td>
                         <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
                     </tr>`;
                 });
@@ -5478,15 +5527,15 @@
             
             updateInputValue(row, '.end-input', data.end);
             
-            updateTextContent(row, '.selling-price-display', `â‚±${formatCurrency(calculatedSellingPrice)}`);
+            updateTextContent(row, '.selling-price-display', formatPeso(calculatedSellingPrice));
 
             const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - (data.returns || 0) - data.end;
             const totalSales = Math.max(0, sold) * calculatedSellingPrice; 
             const profit = totalSales - (Math.max(0, sold) * effectiveCost); 
 
             updateInputValue(row, '.sold-val', sold);
-            updateTextContent(row, '.total-sales-val', `â‚±${formatCurrency(totalSales)}`);
-            updateTextContent(row, '.profit-val', `â‚±${formatCurrency(profit)}`);
+            updateTextContent(row, '.total-sales-val', formatPeso(totalSales));
+            updateTextContent(row, '.profit-val', formatPeso(profit));
             row.classList.toggle('row-has-sales', sold > 0);
             row.classList.toggle('row-logic-error', sold < 0);
             row.classList.toggle('row-negative-stock', data.end < 0);
@@ -5561,7 +5610,7 @@
 
             container.innerHTML = twentyFiveProducts.map(product => {
                 const productReport = report.data?.[product.id] || { end: 0, openedSacks: 0 };
-                const matchingPerKilo = shopProducts.find(item => item.name === product.name && item.category === 'Per Kilo');
+                const matchingPerKilo = findMatchingPerKiloProduct(product);
                 const perKiloReport = matchingPerKilo ? (report.data?.[matchingPerKilo.id] || { end: 0 }) : null;
                 return `
                     <div class="card open-sacks-card">
@@ -5570,14 +5619,14 @@
                                 <div class="rice-name-badge category-25kg open-sacks-title">${escapeHtml(product.name)}</div>
                                 <div class="text-[11px] uppercase tracking-wide text-slate-500 mt-1">25 KG Sack</div>
                             </div>
-                            <div class="text-right text-slate-500 open-sacks-meta">
-                                <div>Available sacks: <span class="font-bold text-slate-800">${formatQuantity(productReport.end || 0)}</span></div>
-                                <div>Opened today: <span class="font-bold text-blue-700">${formatQuantity(productReport.openedSacks || 0)}</span></div>
+                            <div class="text-right open-sacks-meta">
+                                <div>Available sacks: <span class="open-sacks-available-value">${formatQuantity(productReport.end || 0)}</span></div>
+                                <div>Opened today: <span class="open-sacks-opened-value">${formatQuantity(productReport.openedSacks || 0)}</span></div>
                             </div>
                         </div>
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 open-sacks-kilo-box">
                             ${matchingPerKilo
-                                ? `Matching Per Kilo stock: <span class="font-bold text-slate-800">${formatQuantity(perKiloReport?.end || 0)} kg</span>`
+                                ? `Matching Per Kilo stock: <span class="font-bold text-slate-900">${formatQuantity(perKiloReport?.end || 0)} kg</span>`
                                 : '<span class="text-red-600 font-semibold">No matching Per Kilo product found yet.</span>'}
                         </div>
                         <div class="open-sacks-form">
@@ -5612,7 +5661,7 @@
             return false;
         }
 
-        const targetProduct = shopProducts.find(item => item.name === sourceProduct.name && item.category === 'Per Kilo');
+        const targetProduct = findMatchingPerKiloProduct(sourceProduct);
         if (!targetProduct) {
             Toast.fire({ icon: 'error', title: `No matching Per Kilo product found for ${sourceProduct.name}.` });
             return false;
@@ -5773,8 +5822,8 @@
         document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
             const category = row.dataset.category;
             const sold = parseFloat(row.querySelector('.sold-val')?.value) || 0;
-            const sales = parseFloat(row.querySelector('.total-sales-val')?.textContent.replace(/[â‚±,]/g, '')) || 0;
-            const profit = parseFloat(row.querySelector('.profit-val')?.textContent.replace(/[â‚±,]/g, '')) || 0;
+            const sales = parseMoneyValue(row.querySelector('.total-sales-val')?.textContent);
+            const profit = parseMoneyValue(row.querySelector('.profit-val')?.textContent);
 
             if (categoryTotals[category]) {
                 categoryTotals[category].sold += sold > 0 ? sold : 0;
@@ -5796,8 +5845,8 @@
                 // Colspan is 6 for the columns up to "ENDING"
                 totalRow.querySelector('td:first-child').setAttribute('colspan', 6);
                 updateTextContent(totalRow, '.category-total-sold', totals.sold);
-                updateTextContent(totalRow, '.category-total-sales', `â‚±${formatCurrency(totals.sales)}`);
-                updateTextContent(totalRow, '.category-total-profit', `â‚±${formatCurrency(totals.profit)}`);
+                updateTextContent(totalRow, '.category-total-sales', formatPeso(totals.sales));
+                updateTextContent(totalRow, '.category-total-profit', formatPeso(totals.profit));
             }
             overallTotalSold += totals.sold;
             overallTotalSales += totals.sales;
@@ -5812,8 +5861,8 @@
 
 
         updateTextContent(document, '#overall-total-sold', overallTotalSold);
-        updateTextContent(document, '#overall-total-sales', `â‚±${formatCurrency(overallTotalSales)}`);
-        updateTextContent(document, '#overall-total-profit', `â‚±${formatCurrency(overallTotalProfit)}`);
+        updateTextContent(document, '#overall-total-sales', formatPeso(overallTotalSales));
+        updateTextContent(document, '#overall-total-profit', formatPeso(overallTotalProfit));
         calculateCashDifference();
     }
 
@@ -5827,11 +5876,11 @@
         
         if (!totalSalesEl || !cashInput || !discountInput || !gcashInput || !differenceDisplay || !expectedCashEl) return;
 
-        const totalSales = parseFloat(totalSalesEl.textContent.replace(/[â‚±,]/g, '')) || 0;
+        const totalSales = parseMoneyValue(totalSalesEl.textContent);
         const discountAmount = parseFloat(discountInput.value) || 0;
         const adjustedTotalSales = totalSales - discountAmount; 
         
-        expectedCashEl.textContent = `â‚±${formatCurrency(adjustedTotalSales)}`;
+        expectedCashEl.textContent = formatPeso(adjustedTotalSales);
         
         if (cashInput.value.trim() === '' && discountInput.value.trim() === '' && gcashInput.value.trim() === '') {
             differenceDisplay.textContent = '-';
@@ -5846,10 +5895,10 @@
         differenceDisplay.className = 'font-bold text-xl';
         
         if (difference < 0) {
-            differenceDisplay.textContent = `(â‚±${formatCurrency(Math.abs(difference))})`;
+            differenceDisplay.textContent = `(${formatPeso(Math.abs(difference))})`;
             differenceDisplay.classList.add('cash-short');
         } else if (difference > 0) {
-            differenceDisplay.textContent = `+â‚±${formatCurrency(difference)}`;
+            differenceDisplay.textContent = `+${formatPeso(difference)}`;
             differenceDisplay.classList.add('cash-over');
         } else {
             differenceDisplay.textContent = 'Balanced';
@@ -5913,7 +5962,7 @@
         const sourceProduct = getProductById(productId);
         if (!sourceProduct || sourceProduct.category !== '25 KG') return false;
 
-        const targetProduct = shopProducts.find(p => p.name === sourceProduct.name && p.category === 'Per Kilo');
+        const targetProduct = findMatchingPerKiloProduct(sourceProduct);
         if (!targetProduct) {
             await Swal.fire('Error', `No corresponding "Per Kilo" product found for ${sourceProduct.name}. Please add it in Settings.`, 'error');
             return false;
@@ -6719,7 +6768,7 @@
         moneyFlowChartInstance = new Chart(ctx, config);
     }
     
-    async function renderExpensesView(dateString) { currentExpenseDate = dateString; document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200"><div><p class="font-medium">${escapeHtml(expense.description)}</p><p class="text-sm text-slate-500">â‚±${formatCurrency(expense.amount)}</p></div><div class="no-print"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = `â‚±${formatCurrency(totalExpenses)}`; }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
+    async function renderExpensesView(dateString) { currentExpenseDate = dateString; document.getElementById('expenses-title').textContent = `Expenses for ${dayjs(dateString).format('MMMM D, YYYY')}`; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; clearExpenseForm(); const container = document.getElementById('expense-list-container'); container.innerHTML = '<div class="loader"></div>'; const query = db.collection('expenses').where('date', '==', dateString); if (typeof expensesListener === 'function') expensesListener(); expensesListener = query.onSnapshot(snapshot => { const expenses = snapshot.docs.map(doc => doc.data()); if (expenses.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-8">No expenses recorded for today.</p>'; } else { container.innerHTML = expenses.map(expense => `<div class="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200 gap-3"><div><p class="font-medium">${escapeHtml(expense.description)}</p><p class="text-sm text-slate-500">${formatPesoHtml(expense.amount)}</p></div><div class="no-print flex items-center gap-3 shrink-0"><button onclick="editExpense('${expense.id}')" class="text-xs text-blue-600 hover:underline">Edit</button><button onclick="deleteExpense('${expense.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`).join(''); } const totalExpenses = expenses.reduce((acc, expense) => acc + expense.amount, 0); document.getElementById('total-expenses-display').textContent = formatPeso(totalExpenses); }, error => { console.error("Error fetching expenses: ", error); container.innerHTML = `<p class="text-center text-red-500 py-8">${handleFirestoreError(error)}</p>`; }); }
     async function saveExpense() { const saveBtn = document.getElementById('save-expense-btn'); const descriptionInput = document.getElementById('expense-description'); const amountInput = document.getElementById('expense-amount'); const expenseId = document.getElementById('expense-id').value; const description = descriptionInput.value.trim(); const amount = parseFloat(amountInput.value); if (!description || isNaN(amount) || amount <= 0) { Toast.fire({ icon: 'error', title: 'Invalid description or amount.' }); return; } toggleButtonLoading(saveBtn, true); try { const docId = expenseId || 'exp_' + Date.now(); const expenseData = { id: docId, description, amount, date: currentExpenseDate || todayDateString }; await db.collection('expenses').doc(docId).set(expenseData); Toast.fire({ icon: 'success', title: expenseId ? 'Expense updated!' : 'Expense added!' }); clearExpenseForm(); } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } finally { toggleButtonLoading(saveBtn, false); } }
     function clearExpenseForm() { document.getElementById('expense-id').value = ''; document.getElementById('expense-description').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-form-title').textContent = `Add Expense for Today`; document.getElementById('save-expense-btn').textContent = 'Save Expense'; }
     async function editExpense(id) { try { const expense = (await db.collection('expenses').doc(id).get()).data(); if (expense) { document.getElementById('expense-id').value = expense.id; document.getElementById('expense-description').value = expense.description; document.getElementById('expense-amount').value = expense.amount; document.getElementById('expense-form-title').textContent = 'Edit Expense'; document.getElementById('save-expense-btn').textContent = 'Update Expense'; } } catch (error) { Toast.fire({ icon: 'error', title: handleFirestoreError(error) }); } }
@@ -6863,7 +6912,7 @@
 
         let autoCreatedPerKiloProduct = null;
         if (allowAutoPerKilo && productData.category === '25 KG') {
-            const existingPerKilo = shopProducts.find(product => product.name === productData.name && product.category === 'Per Kilo');
+            const existingPerKilo = findMatchingPerKiloProduct(productData);
             if (!existingPerKilo) {
                 autoCreatedPerKiloProduct = buildMatchingPerKiloProduct(productData);
                 const perKiloRef = db.collection('products').doc(autoCreatedPerKiloProduct.id);
@@ -7331,7 +7380,7 @@
         } 
         container.innerHTML = shopProducts.map(p => {
             const calculatedSellingPrice = (p.cost || 0) + (p.profitMargin || 0);
-            return `<div class="flex justify-between items-center p-2 bg-slate-100 rounded"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Cost: â‚±${formatCurrency(p.cost || 0)}</span> <span class="text-xs text-slate-400">Profit: â‚±${formatCurrency(p.profitMargin || 0)}</span> <span class="text-xs font-semibold text-blue-600">Sell: â‚±${formatCurrency(calculatedSellingPrice)}</span></div><div><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 mr-2 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`
+            return `<div class="flex justify-between items-center p-2 bg-slate-100 rounded gap-3"><div><span class="font-medium">${p.name}</span> <span class="text-xs text-slate-500">(${p.category})</span> <span class="text-xs text-slate-400">Cost: ${formatPesoHtml(p.cost || 0)}</span> <span class="text-xs text-slate-400">Profit: ${formatPesoHtml(p.profitMargin || 0)}</span> <span class="text-xs font-semibold text-blue-600">Sell: ${formatPesoHtml(calculatedSellingPrice)}</span></div><div class="flex items-center gap-3 shrink-0"><button onclick="editProduct('${p.id}')" class="text-xs text-blue-600 hover:underline">Edit</button><button onclick="deleteProduct('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button></div></div>`
         }).join(''); 
     }
 
@@ -8063,5 +8112,7 @@
 </body>
 </html>
 ```
+
+
 
 
