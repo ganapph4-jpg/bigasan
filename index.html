@@ -2201,7 +2201,7 @@
     
     <div id="editing-past-banner" class="hidden max-w-7xl mx-auto mb-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md no-print">
         <p class="font-bold">You are editing a past report.</p>
-        <p class="text-sm">Changes saved here will NOT automatically update the beginning stock for subsequent days. Please review future reports if you change an "Ending" value.</p>
+        <p class="text-sm">Owner corrections saved here will automatically update the next saved day so the following beginning stock stays aligned.</p>
     </div>
     
     <div class="overflow-hidden">
@@ -2439,11 +2439,11 @@
                                 <input id="product-name" type="text" placeholder="e.g., Kylo" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
                             </div>
                             <div>
-                                <label for="product-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (â‚±)</label>
+                                <label for="product-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (&#8369;)</label>
                                 <input id="product-cost" type="number" step="0.01" placeholder="e.g., 1150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
                             </div>
                             <div>
-                                <label for="product-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (â‚±)</label>
+                                <label for="product-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (&#8369;)</label>
                                 <input id="product-profit-margin" type="number" step="0.01" placeholder="e.g., 50.00" class="border border-slate-300 p-2 w-full rounded-md profit-margin-input" oninput="validateNumberInput(this)" aria-required="true">
                             </div>
                             <div>
@@ -2496,8 +2496,8 @@
                                     <th scope="col" class="py-3 px-3">Product Name</th>
                                     <th scope="col" class="py-3 px-3 text-right">Category</th>
                                     <th scope="col" class="py-3 px-3 text-right">End Stock (Qty)</th>
-                                    <th scope="col" class="py-3 px-3 text-right">Cost Price (â‚±)</th>
-                                    <th scope="col" class="py-3 px-3 text-right">Total Worth (Capital â‚±)</th>
+                                    <th scope="col" class="py-3 px-3 text-right">Cost Price (&#8369;)</th>
+                                    <th scope="col" class="py-3 px-3 text-right">Total Worth (Capital &#8369;)</th>
                                 </tr>
                             </thead>
                             <tbody id="inventory-stock-tbody">
@@ -2608,15 +2608,15 @@
                                 <div class="space-y-3">
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Total Sales</span>
-                                    <span id="analytics-total-sales" class="font-semibold">â‚±0.00</span>
+                                    <span id="analytics-total-sales" class="font-semibold">&#8369;0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Total Profit</span>
-                                    <span id="analytics-total-profit" class="font-semibold">â‚±0.00</span>
+                                    <span id="analytics-total-profit" class="font-semibold">&#8369;0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Average Daily Sales</span>
-                                    <span id="analytics-avg-sales" class="font-semibold">â‚±0.00</span>
+                                    <span id="analytics-avg-sales" class="font-semibold">&#8369;0.00</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-slate-600">Average Profit Margin</span>
@@ -2788,11 +2788,11 @@
               <input id="quick-prod-name" type="text" placeholder="e.g., Kylo" class="border border-slate-300 p-2 w-full rounded-md" aria-required="true">
           </div>
           <div>
-              <label for="quick-prod-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (â‚±)</label>
+              <label for="quick-prod-cost" class="block text-sm font-medium text-slate-700 mb-1">Cost Price / Capital (&#8369;)</label>
               <input id="quick-prod-cost" type="number" step="0.01" placeholder="e.g., 1150.00" class="border border-slate-300 p-2 w-full rounded-md" oninput="validateNumberInput(this)" aria-required="true">
           </div>
           <div>
-              <label for="quick-prod-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (â‚±)</label>
+              <label for="quick-prod-profit-margin" class="block text-sm font-medium text-slate-700 mb-1">Profit Margin (&#8369;)</label>
               <input id="quick-prod-profit-margin" type="number" step="0.01" placeholder="e.g., 50.00" class="border border-slate-300 p-2 w-full rounded-md profit-margin-input" oninput="validateNumberInput(this)" aria-required="true">
           </div>
           <div>
@@ -3024,6 +3024,9 @@
     let currentDashboardReport = null;
     let selectedOrderLogsDate = '';
     let activeInventoryDateString = '';
+    let activeInventoryReportData = null;
+    let futureReportSyncTimeout = null;
+    let inventoryDraftValues = {};
     let currentDailyGuideReportData = null;
     let currentDailyGuideReportDate = '';
     let currentDailyGuideCategory = '25 KG';
@@ -4942,14 +4945,159 @@
             for (const key in data) {
                 updatePayload[`data.${productId}.${key}`] = data[key];
             }
-            await reportRef.set(updatePayload, { merge: true });
+            await reportRef.update(updatePayload);
             if (dateString === todayDateString && currentDashboardReport?.data?.[productId]) {
                 Object.assign(currentDashboardReport.data[productId], data);
+            }
+            if (dateString === activeInventoryDateString) {
+                if (!activeInventoryReportData) {
+                    activeInventoryReportData = { date: dateString, data: {} };
+                }
+                if (!activeInventoryReportData.data) {
+                    activeInventoryReportData.data = {};
+                }
+                const currentItem = activeInventoryReportData.data[productId] || {};
+                activeInventoryReportData.data[productId] = { ...currentItem, ...data };
+                updateInventoryTable(activeInventoryReportData);
+            }
+            clearInventoryDrafts(dateString, productId, Object.keys(data));
+            if (dateString !== todayDateString) {
+                queueFutureReportSync(dateString);
             }
             recalculateAndRenderAllTotals();
         } catch (error) {
             Toast.fire({ icon: 'error', title: handleFirestoreError(error) });
         }
+    }
+
+    function clearFutureReportSyncQueue() {
+        if (futureReportSyncTimeout) {
+            clearTimeout(futureReportSyncTimeout);
+            futureReportSyncTimeout = null;
+        }
+    }
+
+    function buildInventoryDraftKey(dateString, productId, field) {
+        return `${dateString}::${productId}::${field}`;
+    }
+
+    function trackInventoryDraft(inputElement, dateString, field) {
+        const row = inputElement?.closest('tr');
+        const productId = row?.dataset?.id;
+        if (!dateString || !productId || !field) return;
+        inventoryDraftValues[buildInventoryDraftKey(dateString, productId, field)] = inputElement.value;
+    }
+
+    function getInventoryDraftValue(dateString, productId, field) {
+        const key = buildInventoryDraftKey(dateString, productId, field);
+        return Object.prototype.hasOwnProperty.call(inventoryDraftValues, key) ? inventoryDraftValues[key] : null;
+    }
+
+    function clearInventoryDrafts(dateString = null, productId = null, fields = null) {
+        const fieldList = Array.isArray(fields) ? fields : null;
+        Object.keys(inventoryDraftValues).forEach(key => {
+            const [keyDate, keyProductId, keyField] = key.split('::');
+            if (dateString && keyDate !== dateString) return;
+            if (productId && keyProductId !== productId) return;
+            if (fieldList && !fieldList.includes(keyField)) return;
+            delete inventoryDraftValues[key];
+        });
+    }
+
+    function getInventoryInputDisplayValue(dateString, productId, field, fallbackValue) {
+        const draftValue = getInventoryDraftValue(dateString, productId, field);
+        return draftValue !== null ? draftValue : fallbackValue;
+    }
+
+    function queueFutureReportSync(dateString) {
+        if (!dateString || dateString === todayDateString) return;
+        clearFutureReportSyncQueue();
+        futureReportSyncTimeout = setTimeout(async () => {
+            futureReportSyncTimeout = null;
+            try {
+                await syncFutureReportsFromDate(dateString);
+            } catch (error) {
+                console.error('Automatic future report sync failed:', error);
+            }
+        }, 900);
+    }
+
+    async function syncFutureReportsFromDate(dateString) {
+        if (!dateString || dateString === todayDateString) {
+            return { daysUpdated: 0, rowsUpdated: 0 };
+        }
+
+        await loadProducts();
+
+        const currentReportDoc = await db.collection('reports').doc(dateString).get();
+        if (!currentReportDoc.exists) {
+            return { daysUpdated: 0, rowsUpdated: 0 };
+        }
+
+        let currentReport = currentReportDoc.data();
+        let daysUpdated = 0;
+        let rowsUpdated = 0;
+        const futureReportsSnapshot = await db.collection('reports')
+            .where('date', '>', dateString)
+            .orderBy('date', 'asc')
+            .get();
+
+        for (const nextReportDoc of futureReportsSnapshot.docs) {
+            const nextReportRef = nextReportDoc.ref;
+            const nextReport = nextReportDoc.data();
+            const updatePayload = {};
+            let rowChangesForDay = 0;
+
+            shopProducts.forEach(product => {
+                const currentItem = currentReport?.data?.[product.id] || {};
+                const nextItem = nextReport?.data?.[product.id] || {};
+
+                const desiredBegin = parseFloat(currentItem.end) || 0;
+                const currentBegin = parseFloat(nextItem.begin) || 0;
+                const currentEnd = parseFloat(nextItem.end) || 0;
+                const currentNewStock = parseFloat(nextItem.newStock) || 0;
+                const currentOpenedSacks = parseFloat(nextItem.openedSacks) || 0;
+                const currentReturns = parseFloat(nextItem.returns) || 0;
+                const isCarryForwardOnly =
+                    currentNewStock === 0 &&
+                    currentOpenedSacks === 0 &&
+                    currentReturns === 0 &&
+                    Math.abs(currentEnd - currentBegin) < 0.0001;
+
+                if (Math.abs(currentBegin - desiredBegin) < 0.0001) {
+                    return;
+                }
+
+                updatePayload[`data.${product.id}.begin`] = desiredBegin;
+                if (isCarryForwardOnly) {
+                    updatePayload[`data.${product.id}.end`] = desiredBegin;
+                }
+                rowChangesForDay += 1;
+            });
+
+            if (Object.keys(updatePayload).length > 0) {
+                await nextReportRef.update(updatePayload);
+                daysUpdated += 1;
+                rowsUpdated += rowChangesForDay;
+
+                const mergedData = { ...(nextReport.data || {}) };
+                shopProducts.forEach(product => {
+                    const productData = { ...(mergedData[product.id] || {}) };
+                    if (Object.prototype.hasOwnProperty.call(updatePayload, `data.${product.id}.begin`)) {
+                        productData.begin = updatePayload[`data.${product.id}.begin`];
+                    }
+                    if (Object.prototype.hasOwnProperty.call(updatePayload, `data.${product.id}.end`)) {
+                        productData.end = updatePayload[`data.${product.id}.end`];
+                    }
+                    mergedData[product.id] = productData;
+                });
+                currentReport = { ...nextReport, data: mergedData };
+            } else {
+                currentReport = nextReport;
+            }
+        }
+
+        return { daysUpdated, rowsUpdated };
     }
 
     async function toggleInventoryManualLock() {
@@ -5316,6 +5464,8 @@
     async function showInventory(dateString, options = {}) {
         showView('daily-report-view');
         activeInventoryDateString = dateString;
+        activeInventoryReportData = null;
+        clearInventoryDrafts();
         try {
             await startDay(dateString);
 
@@ -5324,13 +5474,31 @@
 
             const reportRef = db.collection('reports').doc(dateString);
             if (reportListener) reportListener();
-            
+
+            if (isEditingPast) {
+                const doc = await reportRef.get();
+                if (doc.exists) {
+                    const reportData = doc.data();
+                    activeInventoryReportData = reportData;
+                    const isFinalized = reportData.isFinalized || false;
+                    const isToday = dateString === todayDateString;
+                    const isEditable = true;
+                    const inventoryLocked = false;
+                    renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked });
+                    updateInventoryTable(reportData);
+                } else {
+                    document.getElementById('inventory-tbody').innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-600">Report not found!</td></tr>`;
+                }
+                return;
+            }
+
             reportListener = reportRef.onSnapshot((doc) => {
                 if (doc.exists) {
                     const reportData = doc.data();
+                    activeInventoryReportData = reportData;
                     const isFinalized = reportData.isFinalized || false;
                     const isToday = dateString === todayDateString;
-                    const isEditable = (isToday && !isFinalized) || isEditingPast;
+                    const isEditable = isToday && !isFinalized;
                     const inventoryLocked = reportData.inventoryLocked !== false;
 
                     renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked });
@@ -5372,7 +5540,7 @@
 
         if (lockStatus) {
             if (isEditingPast) {
-                lockStatus.textContent = 'Past report editing is manual. Changes here do not automatically flow into future days.';
+                lockStatus.textContent = 'Past report editing is owner override mode. Saved ending-stock corrections flow into the next saved day automatically.';
                 lockStatus.className = 'mb-4 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 no-print';
             } else if (inventoryLocked) {
                 lockStatus.textContent = 'Locked: inventory follows POS sales automatically. Unlock only when you need manual stock correction.';
@@ -5432,12 +5600,12 @@
                     tableHtml += `<tr data-id="${product.id}" data-category="${product.category}" data-category-child-of="${cat}">
                         <td class="font-bold product-name">${product.name}</td>
                         <td><input type="number" class="begin-val" disabled /></td>
-                        <td><input type="number" class="new-stock-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
-                        <td><input type="number" class="returns-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
+                        <td><input type="number" class="new-stock-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="trackInventoryDraft(this, '${dateString}', 'newStock'); validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
+                        <td><input type="number" class="returns-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="trackInventoryDraft(this, '${dateString}', 'returns'); validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
                         <td class="!p-1">
                             ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!manualInputsEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">âž”</button></div>` : `<span class="text-slate-400">-</span>`}
                         </td>
-                        <td><input type="number" class="end-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
+                        <td><input type="number" class="end-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="trackInventoryDraft(this, '${dateString}', 'end'); validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="sold-val" disabled /></td>
                         <td class="selling-price-display font-medium">${formatPeso(calculatedSellingPrice)}</td> <td class="total-sales-val font-semibold" aria-live="polite"></td>
                         <td class="profit-val font-semibold text-green-600" aria-live="polite"></td>
@@ -5469,15 +5637,15 @@
 
                 <div class="space-y-3 mb-6">
                     <div class="flex justify-between items-center">
-                        <label for="discount-given" class="text-sm font-medium text-slate-600">Discount Given (â‚±)</label>
+                        <label for="discount-given" class="text-sm font-medium text-slate-600">Discount Given (&#8369;)</label>
                         <input type="number" id="discount-given" placeholder="0.00" class="w-28 text-right font-semibold p-1 rounded discount-input" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label for="gcash-payment" class="text-sm font-medium text-slate-600">GCash Received (â‚±)</label>
+                        <label for="gcash-payment" class="text-sm font-medium text-slate-600">GCash Received (&#8369;)</label>
                         <input type="number" id="gcash-payment" placeholder="0.00" class="w-28 text-right font-semibold p-1 rounded gcash-input" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} />
                     </div>
                     <div class="flex justify-between items-center">
-                        <label for="cash-on-hand" class="text-sm font-medium text-slate-600">Cash on Hand (â‚±)</label>
+                        <label for="cash-on-hand" class="text-sm font-medium text-slate-600">Cash on Hand (&#8369;)</label>
                         <input type="number" id="cash-on-hand" placeholder="0.00" class="w-28 text-right font-semibold p-1 rounded" oninput="validateNumberInput(this); calculateCashDifference();" ${!isEditable ? 'disabled' : ''} />
                     </div>
                 </div>
@@ -5485,7 +5653,11 @@
                 <div class="mt-6 text-center">`;
 
         if(isEditingPast) {
-            reconciliationHtml += `<button onclick="savePastReportChanges('${dateString}')" class="btn-primary w-full sm:w-auto">Save Past Report Changes</button>`;
+            reconciliationHtml += `
+                <div class="flex gap-2 flex-wrap justify-center">
+                    <button onclick="savePastReportChanges('${dateString}')" class="btn-primary w-full sm:w-auto">Save Corrections</button>
+                    <button onclick="savePastReportChanges('${dateString}', true)" class="btn-success w-full sm:w-auto">Save And Finalize</button>
+                </div>`;
         } else if (isToday && !isFinalized) {
             reconciliationHtml += `<button onclick="showFinalizeModal()" class="btn-success w-full sm:w-auto px-6 py-2">Finalize & Submit</button>`;
         } else {
@@ -5512,8 +5684,8 @@
             const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
             
             updateInputValue(row, '.begin-val', data.begin);
-            updateInputValue(row, '.new-stock-input', data.newStock);
-            updateInputValue(row, '.returns-input', data.returns || 0);
+            updateInputValue(row, '.new-stock-input', getInventoryInputDisplayValue(activeInventoryDateString, product.id, 'newStock', data.newStock));
+            updateInputValue(row, '.returns-input', getInventoryInputDisplayValue(activeInventoryDateString, product.id, 'returns', data.returns || 0));
             
             // Update Open Sacks input for display (if available)
             const openSacksInput = row.querySelector('.open-sacks-add-input');
@@ -5525,7 +5697,7 @@
                 }
             }
             
-            updateInputValue(row, '.end-input', data.end);
+            updateInputValue(row, '.end-input', getInventoryInputDisplayValue(activeInventoryDateString, product.id, 'end', data.end));
             
             updateTextContent(row, '.selling-price-display', formatPeso(calculatedSellingPrice));
 
@@ -5928,9 +6100,9 @@
         const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
         const end = parseFloat(row.querySelector('.end-input').value) || 0;
 
-        // Re-added logic to retrieve openedSacks from the report
-        const currentReportDoc = await db.collection('reports').doc(dateString).get();
-        const currentOpenedSacks = currentReportDoc.data().data[productId]?.openedSacks || 0;
+        const currentOpenedSacks = activeInventoryDateString === dateString
+            ? (activeInventoryReportData?.data?.[productId]?.openedSacks || 0)
+            : ((await db.collection('reports').doc(dateString).get()).data()?.data?.[productId]?.openedSacks || 0);
 
 
         const availableStockIncludingNew = begin + newStock - currentOpenedSacks - returns;
@@ -6130,7 +6302,7 @@
 
         const { isConfirmed } = await Swal.fire({
             title: 'Warning: Editing Past Report',
-            html: `You are about to edit the report for <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>. <br><br>Changes to "Ending" stock will <strong>NOT</strong> automatically update the "Beginning" stock of future days.`,
+            html: `You are about to edit the report for <strong>${dayjs(dateString).format('MMMM D, YYYY')}</strong>. <br><br>Owner corrections will overwrite the next saved day so the following beginning stock stays correct automatically.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#f59e0b',
@@ -6142,15 +6314,105 @@
         }
     }
 
-    async function savePastReportChanges(dateString) {
+    function collectInventoryLogicErrors() {
+        let hasLogicErrors = false;
+        const errorMessages = [];
+
+        document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
+            const productName = row.querySelector('.product-name').textContent;
+            const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
+            const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
+            const end = parseFloat(row.querySelector('.end-input').value) || 0;
+            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
+            const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
+            const availableStockIncludingNew = begin + newStock - openedSacks - returns;
+
+            if (end > availableStockIncludingNew) {
+                hasLogicErrors = true;
+                row.querySelector('.end-input').classList.add('invalid');
+                errorMessages.push(`Ending stock for "${productName}" (${end}) is greater than available stock (${availableStockIncludingNew}).`);
+            } else {
+                row.querySelector('.end-input').classList.remove('invalid');
+            }
+        });
+
+        return { hasLogicErrors, errorMessages };
+    }
+
+    function collectInventoryRowSavePayload() {
+        const payload = {};
+        document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
+            const productId = row.dataset.id;
+            if (!productId) return;
+            payload[`data.${productId}.newStock`] = parseFloat(row.querySelector('.new-stock-input')?.value) || 0;
+            payload[`data.${productId}.returns`] = parseFloat(row.querySelector('.returns-input')?.value) || 0;
+            payload[`data.${productId}.end`] = parseFloat(row.querySelector('.end-input')?.value) || 0;
+        });
+        return payload;
+    }
+
+    async function savePastReportChanges(dateString, finalizeAfterSave = false) {
         const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
         const discountAmount = parseFloat(document.getElementById('discount-given')?.value) || 0;
         const gcashPayment = parseFloat(document.getElementById('gcash-payment')?.value) || 0;
+        const { hasLogicErrors, errorMessages } = collectInventoryLogicErrors();
+
+        if (hasLogicErrors) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Inventory Logic Errors Found!',
+                html: `Please correct the following errors before saving this report:<br><ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`,
+                confirmButtonText: 'Understood'
+            });
+            return;
+        }
+
         try {
-            await db.collection('reports').doc(dateString).update({ cashOnHand, discountAmount, gcashPayment });
-            Toast.fire({ icon: 'success', title: 'Changes saved successfully!' });
+            clearFutureReportSyncQueue();
+            Swal.fire({
+                title: finalizeAfterSave ? 'Saving And Finalizing...' : 'Saving Corrections...',
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+
+            const updatePayload = {
+                cashOnHand,
+                discountAmount,
+                gcashPayment,
+                lastOwnerCorrectionAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastOwnerCorrectionMode: finalizeAfterSave ? 'finalized' : 'saved'
+            };
+            Object.assign(updatePayload, collectInventoryRowSavePayload());
+            if (finalizeAfterSave) {
+                updatePayload.isFinalized = true;
+            }
+
+            await db.collection('reports').doc(dateString).update(updatePayload);
+            if (dateString === activeInventoryDateString && activeInventoryReportData?.data) {
+                document.querySelectorAll('#inventory-tbody tr[data-id]').forEach(row => {
+                    const productId = row.dataset.id;
+                    if (!productId) return;
+                    const currentItem = activeInventoryReportData.data[productId] || {};
+                    activeInventoryReportData.data[productId] = {
+                        ...currentItem,
+                        newStock: parseFloat(row.querySelector('.new-stock-input')?.value) || 0,
+                        returns: parseFloat(row.querySelector('.returns-input')?.value) || 0,
+                        end: parseFloat(row.querySelector('.end-input')?.value) || 0
+                    };
+                });
+            }
+            const syncResult = await syncFutureReportsFromDate(dateString);
+            Swal.close();
+            const syncNote = syncResult.daysUpdated > 0 ? ` ${syncResult.daysUpdated} future report(s) synced.` : '';
+            const successTitle = finalizeAfterSave
+                ? `Corrections saved and finalized.${syncNote}`
+                : `Corrections saved successfully.${syncNote}`;
+            Toast.fire({ icon: 'success', title: successTitle.trim() });
             showHistory();
         } catch (error) {
+            Swal.close();
             Swal.fire('Error', handleFirestoreError(error), 'error');
         }
     }
@@ -6395,6 +6657,7 @@
             const report = doc.data();
             const dateString = report.date;
             const isFinalized = report.isFinalized;
+            const correctionDate = report.lastOwnerCorrectionAt?.toDate ? dayjs(report.lastOwnerCorrectionAt.toDate()).format('MMM D, YYYY h:mm A') : '';
             return `
             <div class="p-4 hover:bg-slate-50 transition-colors history-item" data-date="${dateString}">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -6403,11 +6666,12 @@
                         <div>
                             <div class="font-medium">${dayjs(dateString).format('dddd, MMMM D, YYYY')}</div>
                             <div class="text-sm text-slate-500">${isFinalized ? 'Finalized' : 'In Progress'}</div>
+                            ${correctionDate ? `<div class="text-xs text-amber-600">Owner corrected ${correctionDate}</div>` : ''}
                         </div>
                     </div>
                     <div class="flex gap-4 mt-2 sm:mt-0">
                         <button onclick="showInventory('${dateString}')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</button>
-                        <button onclick="editPastReport('${dateString}')" class="text-amber-600 hover:text-amber-800 text-sm font-medium">Edit</button>
+                        <button onclick="editPastReport('${dateString}')" class="text-amber-600 hover:text-amber-800 text-sm font-medium">Owner Edit</button>
                         <button onclick="deleteReport('${dateString}')" class="text-red-600 hover:text-red-800 text-sm font-medium no-print">Delete</button>
                     </div>
                 </div>
@@ -6582,7 +6846,7 @@
         const { monthlyNetProfit } = await getMonthlySummary(todayDateString);
         const monthlyProfitEl = document.getElementById('settings-monthly-net-profit');
         if(monthlyProfitEl) {
-             monthlyProfitEl.textContent = `â‚±${formatCurrency(monthlyNetProfit)}`;
+             monthlyProfitEl.textContent = formatPeso(monthlyNetProfit);
         }
     }
     
@@ -6626,13 +6890,13 @@
             totalProfit -= discount; 
         }); 
         numDays = numDays || 1; 
-        document.getElementById('analytics-total-sales').textContent = `â‚±${formatCurrency(totalSales)}`; 
-        document.getElementById('analytics-total-profit').textContent = `â‚±${formatCurrency(totalProfit)}`; 
-        document.getElementById('analytics-avg-sales').textContent = `â‚±${formatCurrency(totalSales / numDays)}`; 
+        document.getElementById('analytics-total-sales').textContent = formatPeso(totalSales); 
+        document.getElementById('analytics-total-profit').textContent = formatPeso(totalProfit); 
+        document.getElementById('analytics-avg-sales').textContent = formatPeso(totalSales / numDays); 
         document.getElementById('analytics-avg-margin').textContent = `${formatForInput((totalSales > 0 ? (totalProfit / totalSales) * 100 : 0))}%`; 
         renderTopPerformingProducts(productPerformance); 
     }
-    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div><div class="text-right"><div class="font-semibold">â‚±${formatCurrency(p.sales)}</div><div class="text-sm text-green-600">â‚±${formatCurrency(p.profit)} profit</div></div></div>`).join(''); }
+    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div><div class="text-right"><div class="font-semibold">${formatPeso(p.sales)}</div><div class="text-sm text-green-600">${formatPeso(p.profit)} profit</div></div></div>`).join(''); }
     
     // UPDATED to support new chart
     async function loadFinancialSummary() { 
@@ -6686,12 +6950,12 @@
         }); 
         const grossProfit = totalSales - totalCOGS; 
         const netProfit = grossProfit - totalExpenses; 
-        document.getElementById('fs-total-sales').textContent = `â‚±${formatCurrency(totalSales)}`; 
-        document.getElementById('fs-total-cogs').textContent = `â‚±${formatCurrency(totalCOGS)}`; 
-        document.getElementById('fs-gross-profit').textContent = `â‚±${formatCurrency(grossProfit)}`; 
-        document.getElementById('fs-total-expenses').textContent = `â‚±${formatCurrency(totalExpenses)}`; 
-        document.getElementById('fs-new-stock-cost').textContent = `â‚±${formatCurrency(totalNewStockCost)}`; 
-        document.getElementById('fs-net-profit').textContent = `â‚±${formatCurrency(netProfit)}`; 
+        document.getElementById('fs-total-sales').textContent = formatPeso(totalSales); 
+        document.getElementById('fs-total-cogs').textContent = formatPeso(totalCOGS); 
+        document.getElementById('fs-gross-profit').textContent = formatPeso(grossProfit); 
+        document.getElementById('fs-total-expenses').textContent = formatPeso(totalExpenses); 
+        document.getElementById('fs-new-stock-cost').textContent = formatPeso(totalNewStockCost); 
+        document.getElementById('fs-net-profit').textContent = formatPeso(netProfit); 
         renderMoneyFlowChart(dailyFlow); 
     }
 
@@ -6746,7 +7010,7 @@
               },
               tooltip: {
                 callbacks: {
-                  label: (context) => `${context.dataset.label}: â‚±${formatCurrency(context.raw)}`
+                  label: (context) => `${context.dataset.label}: ${formatPeso(context.raw)}`
                 }
               }
             },
@@ -6758,7 +7022,7 @@
                 beginAtZero: true,
                 grid: { drawBorder: false },
                 ticks: {
-                  callback: (value) => `â‚±${value.toLocaleString()}`
+                  callback: (value) => `${PESO_SIGN}${value.toLocaleString()}`
                 }
               },
             },
@@ -7594,9 +7858,9 @@
                 if (!report.isFinalized && summary.totalSales === 0 && report.discountAmount === 0) { 
                     differenceHtml = '<span>-</span>';
                 } else if (difference < 0) {
-                    differenceHtml = `<span class="cash-short font-semibold">(â‚±${formatCurrency(Math.abs(difference))})</span>`;
+                    differenceHtml = `<span class="cash-short font-semibold">(${formatPeso(Math.abs(difference))})</span>`;
                 } else if (difference > 0) {
-                    differenceHtml = `<span class="cash-over font-semibold">+â‚±${formatCurrency(difference)}</span>`;
+                    differenceHtml = `<span class="cash-over font-semibold">+${formatPeso(difference)}</span>`;
                 } else {
                     differenceHtml = `<span class="cash-balanced font-semibold">Balanced</span>`;
                 }
@@ -7604,9 +7868,9 @@
                 tableHtml += `
                 <tr class="bg-white border-b"> 
                     <td class="py-4 px-6 font-medium text-slate-900">${dayjs(report.date).format('MMM D, YYYY')}</td> 
-                    <td class="py-4 px-6 text-right">â‚±${formatCurrency(summary.totalSales)}</td> 
-                    <td class="py-4 px-6 text-right text-green-600">â‚±${formatCurrency(summary.totalProfit)}</td> 
-                    <td class="py-4 px-6 text-right">â‚±${formatCurrency(cashOnHand)}</td> 
+                    <td class="py-4 px-6 text-right">${formatPeso(summary.totalSales)}</td> 
+                    <td class="py-4 px-6 text-right text-green-600">${formatPeso(summary.totalProfit)}</td> 
+                    <td class="py-4 px-6 text-right">${formatPeso(cashOnHand)}</td> 
                     <td class="py-4 px-6 text-right">${differenceHtml}</td>
                 </tr>`; 
             } 
@@ -7631,15 +7895,15 @@
 
             if (!report) {
                 stockTbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-slate-500">No report data found for today.</td></tr>';
-                document.getElementById('inv-rice-worth').textContent = 'â‚±0.00';
-                document.getElementById('inv-all-stock-worth').textContent = 'â‚±0.00';
+                document.getElementById('inv-rice-worth').textContent = formatPeso(0);
+                document.getElementById('inv-all-stock-worth').textContent = formatPeso(0);
                 return;
             }
 
             const { totalRiceWorth, totalAllStockWorth, breakdown } = calculateStockWorth(report);
             
-            document.getElementById('inv-rice-worth').textContent = `â‚±${formatCurrency(totalRiceWorth)}`;
-            document.getElementById('inv-all-stock-worth').textContent = `â‚±${formatCurrency(totalAllStockWorth)}`;
+            document.getElementById('inv-rice-worth').textContent = formatPeso(totalRiceWorth);
+            document.getElementById('inv-all-stock-worth').textContent = formatPeso(totalAllStockWorth);
 
             let tableHtml = '';
             if (breakdown.length === 0) {
@@ -7665,7 +7929,7 @@
                                 <td class="py-2 px-3 text-right">Total:</td>
                                 <td class="py-2 px-3 text-right">${categoryQty}</td>
                                 <td class="py-2 px-3 text-right">-</td>
-                                <td class="py-2 px-3 text-right">â‚±${formatCurrency(categoryWorth)}</td>
+                                <td class="py-2 px-3 text-right">${formatPeso(categoryWorth)}</td>
                             </tr>
                         `;
 
@@ -7676,8 +7940,8 @@
                                     <td class="py-2 px-3">${p.name}</td>
                                     <td class="py-2 px-3 text-right text-xs text-slate-400">${p.category}</td>
                                     <td class="py-2 px-3 text-right font-medium">${p.endStock}</td>
-                                    <td class="py-2 px-3 text-right">â‚±${formatCurrency(p.costPrice)}</td>
-                                    <td class="py-2 px-3 text-right text-red-600 font-semibold">â‚±${formatCurrency(p.worth)}</td>
+                                    <td class="py-2 px-3 text-right">${formatPeso(p.costPrice)}</td>
+                                    <td class="py-2 px-3 text-right text-red-600 font-semibold">${formatPeso(p.worth)}</td>
                                 </tr>
                             `;
                         });
@@ -7789,7 +8053,7 @@
         }
         container.innerHTML = products.map(product => {
             const sellingPrice = (product.cost || 0) + (product.profitMargin || 0);
-            return `<div class="price-manager-row"><div><div class="font-semibold text-slate-800">${escapeHtml(product.name)}</div><div class="text-xs text-slate-500">${escapeHtml(product.category)}</div></div><input id="settings-cost-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.cost || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><input id="settings-profit-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.profitMargin || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><div class="font-bold text-blue-700">â‚±<span id="settings-sell-${product.id}">${formatCurrency(sellingPrice)}</span></div></div>`;
+            return `<div class="price-manager-row"><div><div class="font-semibold text-slate-800">${escapeHtml(product.name)}</div><div class="text-xs text-slate-500">${escapeHtml(product.category)}</div></div><input id="settings-cost-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.cost || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><input id="settings-profit-${product.id}" data-product-id="${product.id}" type="number" step="0.01" value="${formatForInput(product.profitMargin || 0)}" oninput="validateNumberInput(this); updateSettingsPricePreview('${product.id}')"><div class="font-bold text-blue-700">${PESO_SIGN}<span id="settings-sell-${product.id}">${formatCurrency(sellingPrice)}</span></div></div>`;
         }).join('');
     }
 
@@ -7925,18 +8189,18 @@
             const monthlyNetProfit = monthlyData.monthlyNetProfit;
 
             // 4. Update UI
-            document.getElementById('settings-today-sales').textContent = `â‚±${formatCurrency(todaySummary.totalSales)}`;
-            document.getElementById('settings-today-profit').textContent = `â‚±${formatCurrency(todayNetProfit)}`;
-            document.getElementById('settings-yesterday-profit').textContent = `â‚±${formatCurrency(yesterdayNetProfit)}`;
-            document.getElementById('settings-monthly-net-profit').textContent = `â‚±${formatCurrency(monthlyNetProfit)}`;
+            document.getElementById('settings-today-sales').textContent = formatPeso(todaySummary.totalSales);
+            document.getElementById('settings-today-profit').textContent = formatPeso(todayNetProfit);
+            document.getElementById('settings-yesterday-profit').textContent = formatPeso(yesterdayNetProfit);
+            document.getElementById('settings-monthly-net-profit').textContent = formatPeso(monthlyNetProfit);
 
         } catch (error) {
             console.error("Error loading profit details:", error);
             // Fallback to safe defaults if there's an issue
-            document.getElementById('settings-today-sales').textContent = `â‚±${formatCurrency(0)}`;
-            document.getElementById('settings-today-profit').textContent = `â‚±${formatCurrency(0)}`;
-            document.getElementById('settings-yesterday-profit').textContent = `â‚±${formatCurrency(0)}`;
-            document.getElementById('settings-monthly-net-profit').textContent = `â‚±${formatCurrency(0)}`;
+            document.getElementById('settings-today-sales').textContent = formatPeso(0);
+            document.getElementById('settings-today-profit').textContent = formatPeso(0);
+            document.getElementById('settings-yesterday-profit').textContent = formatPeso(0);
+            document.getElementById('settings-monthly-net-profit').textContent = formatPeso(0);
         }
     }
     
@@ -8112,7 +8376,3 @@
 </body>
 </html>
 ```
-
-
-
-
