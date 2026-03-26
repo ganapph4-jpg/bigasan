@@ -7394,21 +7394,47 @@
 
         let modalHtml = '<div class="space-y-2">';
         products.forEach(product => {
-            const reportItem = addStockReportData.data?.[product.id] || { begin: 0, newStock: 0, end: 0 };
+            const reportItem = addStockReportData.data?.[product.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
             const draftQty = addStockDraftValues[product.id] || 0;
             const displayQty = draftQty > 0 ? formatBeginStockInputValue(draftQty) : '';
+            const editableSavedQty = getEditableAddedStockValue(reportItem);
             modalHtml += `
-            <div class="grid grid-cols-[minmax(0,1.2fr)_auto_minmax(0,120px)] gap-x-4 items-center rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1.35fr)_auto_minmax(0,120px)_auto] gap-3 items-center rounded-lg border border-slate-200 bg-white px-3 py-2">
                 <div>
                     <label for="add-stock-${product.id}" class="font-medium text-sm text-slate-800">${escapeHtml(product.name)}</label>
-                    <div class="text-xs text-slate-500">Begin: ${formatQuantity(reportItem.begin || 0)} | New Stock: ${formatQuantity(reportItem.newStock || 0)} | Available: ${formatQuantity(reportItem.end || 0)}</div>
+                    <div class="text-xs text-slate-500">Begin: ${formatQuantity(reportItem.begin || 0)} | New Stock: ${formatQuantity(reportItem.newStock || 0)} | Available: ${formatQuantity(reportItem.end || 0)} | Editable saved: ${formatQuantity(editableSavedQty)}</div>
                 </div>
                 <div class="text-xs text-slate-500">Add</div>
                 <input type="number" id="add-stock-${product.id}" data-product-id="${product.id}" value="${displayQty}" placeholder="0" class="border p-2 w-full rounded text-sm text-right" step="${categoryFilter === 'Per Kilo' ? '0.25' : '1'}" oninput="validateNumberInput(this)">
+                <button type="button" class="small-edit-btn justify-self-start md:justify-self-end" onclick="editAddedStockEntry('${product.id}')">Edit</button>
             </div>`;
         });
         modalHtml += '</div>';
         container.innerHTML = modalHtml;
+    }
+
+    function getEditableAddedStockTarget(reportItem = {}) {
+        const begin = parseFloat(reportItem.begin) || 0;
+        const newStock = parseFloat(reportItem.newStock) || 0;
+        const openedSacks = parseFloat(reportItem.openedSacks) || 0;
+        const returns = parseFloat(reportItem.returns) || 0;
+        const end = parseFloat(reportItem.end) || 0;
+
+        if (newStock > 0) {
+            return 'newStock';
+        }
+
+        const looksLikeQuickAddedToBegin = begin > 0 && openedSacks === 0 && returns === 0 && Math.abs(end - begin) < 0.0001;
+        if (looksLikeQuickAddedToBegin) {
+            return 'begin';
+        }
+
+        return 'newStock';
+    }
+
+    function getEditableAddedStockValue(reportItem = {}) {
+        const target = getEditableAddedStockTarget(reportItem);
+        return parseFloat(reportItem?.[target]) || 0;
     }
 
     function switchAddNewStockCategory(categoryFilter) {
@@ -7467,12 +7493,82 @@
             }
 
             await db.collection('reports').doc(todayDateString).update(updatePayload);
+            const refreshedReportDoc = await db.collection('reports').doc(todayDateString).get();
+            addStockReportData = refreshedReportDoc.exists ? refreshedReportDoc.data() : addStockReportData;
             Toast.fire({ icon: 'success', title: 'New stocks added successfully!' });
             closeAddNewStockModal();
         } catch (error) {
             Swal.fire('Error', handleFirestoreError(error), 'error');
         } finally {
             toggleButtonLoading(saveBtn, false);
+        }
+    }
+
+    async function editAddedStockEntry(productId) {
+        try {
+            await startDay(todayDateString);
+            const reportDoc = await db.collection('reports').doc(todayDateString).get();
+            if (!reportDoc.exists) {
+                Toast.fire({ icon: 'error', title: 'Today report not found.' });
+                return;
+            }
+
+            addStockReportData = reportDoc.data();
+            const product = getProductById(productId);
+            const reportItem = addStockReportData?.data?.[productId] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
+            const targetField = getEditableAddedStockTarget(reportItem);
+            const currentValue = getEditableAddedStockValue(reportItem);
+            const stepValue = product?.category === 'Per Kilo' ? '0.25' : '1';
+            const label = targetField === 'begin' ? 'Beginning Stock' : 'New Stock';
+
+            const { value: editedValue } = await Swal.fire({
+                title: `Edit ${label}`,
+                html: `<div class="text-sm text-slate-600">${escapeHtml(product?.name || 'Product')}<br>Current saved ${label.toLowerCase()}: <strong>${formatQuantity(currentValue)}</strong></div>`,
+                input: 'number',
+                inputValue: formatBeginStockInputValue(currentValue),
+                inputAttributes: {
+                    min: '0',
+                    step: stepValue
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Save Edit',
+                inputValidator: value => {
+                    if (value === '' || value === null) return 'Enter the correct value.';
+                    const parsed = parseFloat(value);
+                    if (!Number.isFinite(parsed) || parsed < 0) return 'Enter a valid non-negative number.';
+                    return null;
+                }
+            });
+
+            if (editedValue === undefined) {
+                return;
+            }
+
+            const nextValue = parseFloat(editedValue) || 0;
+            const delta = parseFloat((nextValue - currentValue).toFixed(2));
+            if (Math.abs(delta) < 0.0001) {
+                Toast.fire({ icon: 'info', title: 'No changes were made.' });
+                return;
+            }
+
+            const currentEnd = parseFloat(reportItem.end) || 0;
+            const nextEnd = parseFloat((currentEnd + delta).toFixed(2));
+            if (nextEnd < 0) {
+                Swal.fire('Invalid Edit', 'This change would make available stock negative.', 'error');
+                return;
+            }
+
+            await db.collection('reports').doc(todayDateString).update({
+                [`data.${productId}.${targetField}`]: nextValue,
+                [`data.${productId}.end`]: nextEnd
+            });
+
+            const refreshedReportDoc = await db.collection('reports').doc(todayDateString).get();
+            addStockReportData = refreshedReportDoc.exists ? refreshedReportDoc.data() : addStockReportData;
+            renderAddNewStockCategory(currentAddStockCategory || product?.category || '25 KG');
+            Toast.fire({ icon: 'success', title: `${product?.name || 'Product'} updated.` });
+        } catch (error) {
+            Swal.fire('Error', handleFirestoreError(error), 'error');
         }
     }
 
