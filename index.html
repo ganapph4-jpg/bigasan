@@ -2333,6 +2333,37 @@
         <div class="night-card"><div class="text-sm text-slate-500">Total Profit Today</div><div id="night-profit-total" class="text-3xl font-bold text-emerald-800">Loading...</div></div>
       </div>
     </div>
+    <div class="card p-5 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800">Monthly Over / Short</h3>
+          <p class="text-sm text-slate-500">Daily closing from the 1st to the last day of the selected month.</p>
+        </div>
+        <input type="month" id="night-month-select" class="border border-slate-300 rounded-md py-2 px-3" onchange="renderNightMonthlySummary()">
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div class="night-card"><div class="text-sm text-slate-500">Month Sales</div><div id="night-month-sales" class="text-2xl font-bold text-emerald-700">Loading...</div></div>
+        <div class="night-card"><div class="text-sm text-slate-500">Month Cash + GCash</div><div id="night-month-collected" class="text-2xl font-bold text-slate-800">Loading...</div></div>
+        <div class="night-card"><div class="text-sm text-slate-500">Month Over / Short</div><div id="night-month-difference" class="text-2xl font-bold">Loading...</div></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm night-table">
+          <thead class="text-left text-slate-500 uppercase text-xs">
+            <tr>
+              <th>Date</th>
+              <th>Status</th>
+              <th class="text-right">Expected Sales</th>
+              <th class="text-right">Cash</th>
+              <th class="text-right">GCash</th>
+              <th class="text-right">Over / Short</th>
+            </tr>
+          </thead>
+          <tbody id="night-monthly-tbody">
+            <tr><td colspan="6" class="text-center p-4"><div class="loader"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_340px] gap-6">
       <div class="card p-6">
         <h3 class="text-lg font-bold text-slate-800 mb-4">Remaining Rice by Product</h3>
@@ -3025,6 +3056,7 @@
     let selectedOrderLogsDate = '';
     let activeInventoryDateString = '';
     let activeInventoryReportData = null;
+    let activeInventoryRenderOptions = null;
     let futureReportSyncTimeout = null;
     let inventoryDraftValues = {};
     let currentDailyGuideReportData = null;
@@ -3099,6 +3131,19 @@
                 return 'An unexpected error occurred. Please try again.';
         }
     }
+
+    function withStartupTimeout(promise, label, timeoutMs = 15000) {
+        let timeoutId;
+        const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => {
+                const error = new Error(`${label} timed out. Please check your internet connection and try again.`);
+                error.code = 'unavailable';
+                reject(error);
+            }, timeoutMs);
+        });
+
+        return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+    }
     
     // New function to initialize listeners and state for a given date
     async function initializeListeners(dateString) {
@@ -3133,6 +3178,10 @@
         document.getElementById('analytics-from-date').value = dayjs(todayDateString).subtract(7, 'day').format('YYYY-MM-DD');
         document.getElementById('analytics-to-date').value = todayDateString;
         document.getElementById('financial-month-select').value = dayjs(todayDateString).format('YYYY-MM');
+        const nightMonthSelect = document.getElementById('night-month-select');
+        if (nightMonthSelect && !nightMonthSelect.value) {
+            nightMonthSelect.value = dayjs(todayDateString).format('YYYY-MM');
+        }
         
         // 4. Update current view if it was Daily Report or Expenses
         if (activeView && activeView.id === 'daily-report-view') {
@@ -3299,6 +3348,33 @@
         return productsById.get(productId) || null;
     }
 
+    function buildReportProductFallback(productId, item = {}) {
+        const category = RICE_CATEGORIES.includes(item.category) ? item.category : 'Unlisted';
+        return {
+            id: productId,
+            name: item.name || item.productName || `Missing Product ${String(productId).slice(-6)}`,
+            category,
+            cost: toNumber(item.cost),
+            profitMargin: toNumber(item.profitMargin),
+            minStock: 0,
+            isReportOnly: true
+        };
+    }
+
+    function getProductsForReport(report) {
+        const products = [...shopProducts];
+        const seen = new Set(products.map(product => product.id));
+        const reportData = report?.data || {};
+
+        Object.entries(reportData).forEach(([productId, item]) => {
+            if (seen.has(productId)) return;
+            products.push(buildReportProductFallback(productId, item));
+            seen.add(productId);
+        });
+
+        return products;
+    }
+
     function toNumber(value, fallback = 0) {
         const parsed = Number(value);
         return Number.isFinite(parsed) ? parsed : fallback;
@@ -3410,6 +3486,135 @@
 
     function calculateSoldQuantity(item) {
         return calculateInventorySalesMetrics(item).sold;
+    }
+
+    function isTodayReportFinalized() {
+        return Boolean(currentDashboardReport?.isFinalized);
+    }
+
+    async function ensureTodayReportIsEditable(actionLabel = 'change today') {
+        const reportDoc = await db.collection('reports').doc(todayDateString).get();
+        if (reportDoc.exists && reportDoc.data()?.isFinalized) {
+            Toast.fire({ icon: 'info', title: `Today is finalized. Cannot ${actionLabel}.` });
+            return false;
+        }
+        return true;
+    }
+
+    function getOpenedSacksForInventoryRow(row) {
+        const productId = row?.dataset?.id;
+        if (!productId) return 0;
+        return toNumber(activeInventoryReportData?.data?.[productId]?.openedSacks, toNumber(row.dataset.openedSacks));
+    }
+
+    function ensureLocalTodayReportShell() {
+        if (!currentDashboardReport || currentDashboardReport.date !== todayDateString) {
+            currentDashboardReport = {
+                date: todayDateString,
+                data: {},
+                cashOnHand: 0,
+                discountAmount: 0,
+                gcashPayment: 0,
+                isFinalized: false,
+                inventoryLocked: true
+            };
+        }
+        if (!currentDashboardReport.data) {
+            currentDashboardReport.data = {};
+        }
+        return currentDashboardReport;
+    }
+
+    function mergeTodayReportItemsLocally(itemsById) {
+        if (!itemsById || Object.keys(itemsById).length === 0) return;
+        const report = ensureLocalTodayReportShell();
+        Object.entries(itemsById).forEach(([productId, item]) => {
+            report.data[productId] = {
+                ...(report.data[productId] || {}),
+                ...item
+            };
+        });
+
+        if (activeInventoryDateString === todayDateString) {
+            if (!activeInventoryReportData) {
+                activeInventoryReportData = report;
+            }
+            if (!activeInventoryReportData.data) {
+                activeInventoryReportData.data = {};
+            }
+            Object.entries(itemsById).forEach(([productId, item]) => {
+                activeInventoryReportData.data[productId] = {
+                    ...(activeInventoryReportData.data[productId] || {}),
+                    ...item
+                };
+            });
+        }
+    }
+
+    function applyTodayReportPricingLocally(productId, cost, profitMargin) {
+        if (!productId) return;
+        mergeTodayReportItemsLocally({
+            [productId]: {
+                cost: toNumber(cost),
+                profitMargin: toNumber(profitMargin)
+            }
+        });
+
+        const product = getProductById(productId);
+        if (product) {
+            product.cost = toNumber(cost);
+            product.profitMargin = toNumber(profitMargin);
+        }
+
+        refreshPosCartPricing([productId]);
+        renderDashboardPos(currentDashboardReport);
+        if (activeInventoryDateString === todayDateString && activeInventoryReportData) {
+            updateInventoryTable(activeInventoryReportData);
+        }
+    }
+
+    function applyTodayReportPricingPayloadLocally(updatePayload) {
+        const productUpdates = {};
+        Object.entries(updatePayload || {}).forEach(([path, value]) => {
+            const match = path.match(/^data\.([^.]+)\.(cost|profitMargin)$/);
+            if (!match) return;
+            const [, productId, field] = match;
+            if (!productUpdates[productId]) {
+                productUpdates[productId] = {};
+            }
+            productUpdates[productId][field] = toNumber(value);
+        });
+
+        if (Object.keys(productUpdates).length === 0) return;
+        mergeTodayReportItemsLocally(productUpdates);
+        Object.entries(productUpdates).forEach(([productId, update]) => {
+            const product = getProductById(productId);
+            if (!product) return;
+            if (Object.prototype.hasOwnProperty.call(update, 'cost')) {
+                product.cost = update.cost;
+            }
+            if (Object.prototype.hasOwnProperty.call(update, 'profitMargin')) {
+                product.profitMargin = update.profitMargin;
+            }
+        });
+
+        refreshPosCartPricing(Object.keys(productUpdates));
+        renderDashboardPos(currentDashboardReport);
+        if (activeInventoryDateString === todayDateString && activeInventoryReportData) {
+            updateInventoryTable(activeInventoryReportData);
+        }
+    }
+
+    function refreshPosCartPricing(productIds = null) {
+        const targetIds = Array.isArray(productIds) ? new Set(productIds) : null;
+        posCart.forEach(item => {
+            if (targetIds && !targetIds.has(item.productId)) return;
+            const product = getProductById(item.productId);
+            if (!product) return;
+            const price = getProductSellingPrice(product);
+            item.price = price;
+            item.total = parseFloat((item.quantity * price).toFixed(2));
+        });
     }
 
     function getPosCartTotals() {
@@ -3528,6 +3733,7 @@
         const cashDisplayEl = document.getElementById('pos-cash-display');
         const changeDisplayEl = document.getElementById('pos-change-display');
         const paymentNoteEl = document.getElementById('pos-payment-note');
+        const submitBtn = document.getElementById('submit-order-btn');
         if (!cartItemsEl || !totalCountEl || !totalAmountEl) return;
 
         if (posCart.length === 0) {
@@ -3567,7 +3773,10 @@
             changeDisplayEl.textContent = `${String.fromCharCode(8369)}${formatCurrency(summary.changeDue)}`;
         }
         if (paymentNoteEl) {
-            if (!summary.paymentEntered) {
+            if (isTodayReportFinalized()) {
+                paymentNoteEl.textContent = 'Today is finalized. Orders are locked for this report.';
+                paymentNoteEl.className = 'pos-payment-note text-xs font-semibold text-amber-700';
+            } else if (!summary.paymentEntered) {
                 paymentNoteEl.textContent = '';
                 paymentNoteEl.className = 'pos-payment-note hidden';
             } else if (summary.balanceDue > 0) {
@@ -3577,6 +3786,10 @@
                 paymentNoteEl.textContent = 'Payment is enough. Change is ready for the customer.';
                 paymentNoteEl.className = 'pos-payment-note text-xs text-emerald-600';
             }
+        }
+        if (submitBtn) {
+            submitBtn.disabled = isTodayReportFinalized();
+            submitBtn.textContent = isTodayReportFinalized() ? 'Report Finalized' : 'Submit Order & Print';
         }
     }
 
@@ -3618,6 +3831,11 @@
     }
 
     function addProductToPosCart(productId) {
+        if (isTodayReportFinalized()) {
+            Toast.fire({ icon: 'info', title: 'Today is finalized. Orders are locked.' });
+            return;
+        }
+
         const product = getProductById(productId);
         if (!product) return;
 
@@ -4695,6 +4913,10 @@
                 }
 
                 const report = reportDoc.data();
+                if (report.isFinalized) {
+                    throw new Error("Today's report is already finalized. Orders are locked for this day.");
+                }
+
                 const reportData = report.data || {};
                 const updatePayload = {};
                 const lastOrderNumber = orderCounterDoc.exists ? parseInt(orderCounterDoc.data()?.lastNumber, 10) || 0 : 0;
@@ -4707,6 +4929,15 @@
                     const currentStock = currentItem?.end || 0;
                     if (item.quantity > currentStock) {
                         throw new Error(`Not enough stock for ${item.name}. Available: ${formatQuantity(currentStock)}.`);
+                    }
+                    const beginStock = toNumber(currentItem?.begin);
+                    const newStock = toNumber(currentItem?.newStock);
+                    const openedSacks = toNumber(currentItem?.openedSacks);
+                    const returns = toNumber(currentItem?.returns);
+                    const availableBeforeSale = beginStock + newStock - openedSacks - returns;
+                    const missingAvailableStock = currentStock - availableBeforeSale;
+                    if (missingAvailableStock > 0) {
+                        updatePayload[`data.${item.productId}.begin`] = parseFloat((beginStock + missingAvailableStock).toFixed(2));
                     }
                     updatePayload[`data.${item.productId}.end`] = parseFloat((currentStock - item.quantity).toFixed(2));
                 });
@@ -4787,12 +5018,12 @@
         if (parseFloat(localVersion) !== APP_VERSION) {
             loaderStatus.textContent = 'Checking for updates...';
             const settingsRef = db.collection('settings').doc('app_version');
-            const doc = await settingsRef.get();
+            const doc = await withStartupTimeout(settingsRef.get(), 'Update check');
             const dbVersion = doc.exists ? doc.data().version : 0;
 
             if (dbVersion < APP_VERSION) {
                 // Migration logic for old products to add profitMargin if they only have price
-                const productsSnapshot = await db.collection('products').get();
+                const productsSnapshot = await withStartupTimeout(db.collection('products').get(), 'Product migration');
                 const batch = db.batch();
                 productsSnapshot.docs.forEach(doc => {
                     const productData = doc.data();
@@ -4803,9 +5034,9 @@
                         batch.update(doc.ref, { profitMargin: Math.max(0, calculatedProfitMargin) });
                     }
                 });
-                await batch.commit();
+                await withStartupTimeout(batch.commit(), 'Migration save');
 
-                await settingsRef.set({ version: APP_VERSION });
+                await withStartupTimeout(settingsRef.set({ version: APP_VERSION }), 'Version save');
                 Toast.fire({ icon: 'info', title: 'Application updated successfully!' });
             }
             localStorage.setItem('app_version', APP_VERSION);
@@ -4826,8 +5057,16 @@
         if (activeView?.id === 'night-inventory-view') {
             renderNightInventoryView();
         }
-        if (activeView?.id === 'daily-report-view' && currentDailyGuideReportData) {
-            renderDailyGuideCategory(currentDailyGuideCategory || '25 KG');
+        if (activeView?.id === 'daily-report-view' && activeInventoryReportData) {
+            const renderOptions = activeInventoryRenderOptions || {
+                isEditable: activeInventoryDateString === todayDateString && !activeInventoryReportData.isFinalized,
+                isFinalized: Boolean(activeInventoryReportData.isFinalized),
+                isEditingPast: false,
+                isToday: activeInventoryDateString === todayDateString,
+                inventoryLocked: activeInventoryReportData.inventoryLocked !== false
+            };
+            renderInventoryTable(activeInventoryDateString || todayDateString, activeInventoryReportData, renderOptions);
+            updateInventoryTable(activeInventoryReportData);
         }
 
         const settingsPanel = document.getElementById('settings-panel');
@@ -4926,6 +5165,8 @@
                 openedSacks: 0,
                 returns: 0, // Added for returns/damaged
                 end: lastEndStock, 
+                name: p.name,
+                category: p.category,
                 profitMargin: p.profitMargin !== undefined ? p.profitMargin : 0, 
                 cost: p.cost 
             };
@@ -4941,6 +5182,13 @@
         try {
             await startDay(dateString);
             const reportRef = db.collection('reports').doc(dateString);
+            if (dateString === todayDateString) {
+                const reportDoc = await reportRef.get();
+                if (reportDoc.exists && reportDoc.data()?.isFinalized) {
+                    Toast.fire({ icon: 'info', title: 'Today is finalized. Inventory is locked.' });
+                    return;
+                }
+            }
             const updatePayload = {};
             for (const key in data) {
                 updatePayload[`data.${productId}.${key}`] = data[key];
@@ -5168,7 +5416,7 @@
             const end = parseFloat(endInput.value) || 0;
             
             // Re-including openedSacks and returns for sold calculation
-            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
+            const openedSacks = getOpenedSacksForInventoryRow(row);
             const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
 
             const availableStockIncludingNew = begin + newStock - openedSacks - returns; // UPDATED
@@ -5198,12 +5446,26 @@
             const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
             const discountAmount = parseFloat(document.getElementById('discount-given')?.value) || 0; 
             const gcashPayment = parseFloat(document.getElementById('gcash-payment')?.value) || 0;
-            await reportRef.update({ 
+            const financialSnapshot = readDailyFinancialSnapshotFromScreen();
+            const updatePayload = { 
                 cashOnHand: cashOnHand, 
                 discountAmount: discountAmount, 
                 gcashPayment: gcashPayment,
-                isFinalized: true 
-            }); 
+                ...financialSnapshot,
+                isFinalized: true,
+                finalizedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            Object.assign(updatePayload, collectInventoryRowSavePayload());
+            await reportRef.update(updatePayload);
+            if (activeInventoryReportData) {
+                Object.assign(activeInventoryReportData, {
+                    cashOnHand,
+                    discountAmount,
+                    gcashPayment,
+                    ...financialSnapshot,
+                    isFinalized: true
+                });
+            }
 
             await Swal.fire({
                 title: 'Report Finalized!',
@@ -5228,7 +5490,7 @@
             const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
             const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
             const end = parseFloat(row.querySelector('.end-input').value) || 0;
-            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
+            const openedSacks = getOpenedSacksForInventoryRow(row);
             const returns = parseFloat(row.querySelector('.returns-input').value) || 0; 
             
             const availableStockIncludingNew = begin + newStock - openedSacks - returns; // UPDATED
@@ -5281,7 +5543,7 @@
         currentDailyGuideCategory = categoryFilter;
         updateDailyGuideCategoryButtons(categoryFilter);
 
-        const products = shopProducts
+        const products = getProductsForReport(currentDailyGuideReportData)
             .filter(product => product.category === categoryFilter)
             .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 
@@ -5465,6 +5727,7 @@
         showView('daily-report-view');
         activeInventoryDateString = dateString;
         activeInventoryReportData = null;
+        activeInventoryRenderOptions = null;
         clearInventoryDrafts();
         try {
             await startDay(dateString);
@@ -5484,6 +5747,7 @@
                     const isToday = dateString === todayDateString;
                     const isEditable = true;
                     const inventoryLocked = false;
+                    activeInventoryRenderOptions = { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked };
                     renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked });
                     updateInventoryTable(reportData);
                 } else {
@@ -5501,6 +5765,7 @@
                     const isEditable = isToday && !isFinalized;
                     const inventoryLocked = reportData.inventoryLocked !== false;
 
+                    activeInventoryRenderOptions = { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked };
                     renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked });
                     updateInventoryTable(reportData);
                 } else {
@@ -5522,7 +5787,7 @@
 
         const resetButton = document.getElementById('reset-today-btn');
         if (resetButton) {
-            resetButton.style.display = isToday ? 'inline-flex' : 'none';
+            resetButton.style.display = isToday && !isFinalized ? 'inline-flex' : 'none';
         }
 
         const lockBtn = document.getElementById('toggle-inventory-lock-btn');
@@ -5553,14 +5818,15 @@
             
         const groupedProducts = {};
         RICE_CATEGORIES.forEach(cat => groupedProducts[cat] = []);
-        shopProducts.forEach(p => {
+        getProductsForReport(report).forEach(p => {
             if (!groupedProducts[p.category]) groupedProducts[p.category] = [];
             groupedProducts[p.category].push(p)
         });
             
         let tableHtml = '';
         const colspan = 10; // Total number of columns: 10
-        RICE_CATEGORIES.forEach(cat => {
+        const categoriesToRender = Object.keys(groupedProducts).filter(cat => groupedProducts[cat]?.length > 0);
+        categoriesToRender.forEach(cat => {
             const productsInCategory = groupedProducts[cat]?.sort((a, b) => a.name.localeCompare(b.name));
             if (productsInCategory && productsInCategory.length > 0) {
                 const cleanCatClass = cat.replace(/\s+/g, '-');
@@ -5598,12 +5864,12 @@
                     const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
 
                     tableHtml += `<tr data-id="${product.id}" data-category="${product.category}" data-category-child-of="${cat}">
-                        <td class="font-bold product-name">${product.name}</td>
+                        <td class="font-bold product-name">${escapeHtml(product.name)}${product.isReportOnly ? '<div class="text-xs font-normal text-amber-600">Saved report item</div>' : ''}</td>
                         <td><input type="number" class="begin-val" disabled /></td>
                         <td><input type="number" class="new-stock-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="trackInventoryDraft(this, '${dateString}', 'newStock'); validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="returns-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="trackInventoryDraft(this, '${dateString}', 'returns'); validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
                         <td class="!p-1">
-                            ${product.category === '25 KG' ? `<div class="flex items-center gap-1"><input type="number" placeholder="Add" class="open-sacks-add-input flex-grow" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!manualInputsEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">âž”</button></div>` : `<span class="text-slate-400">-</span>`}
+                            ${product.category === '25 KG' ? `<div class="flex flex-col gap-1"><div class="flex items-center gap-1"><input type="number" min="0" step="1" placeholder="Add" class="open-sacks-add-input flex-grow" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!manualInputsEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">&rarr;</button></div><div class="text-[11px] text-slate-500">Opened: <span class="open-sacks-total">0</span></div></div>` : `<span class="text-slate-400">-</span>`}
                         </td>
                         <td><input type="number" class="end-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="trackInventoryDraft(this, '${dateString}', 'end'); validateNumberInput(this); debouncedCalculate(this, '${dateString}'); checkRowCompletion(this.closest('tr'));" onblur="triggerImmediateCalculate(this, '${dateString}')"/></td>
                         <td><input type="number" class="sold-val" disabled /></td>
@@ -5673,43 +5939,32 @@
 
     function updateInventoryTable(report) {
         const reportData = report.data;
-        shopProducts.forEach(product => {
+        getProductsForReport(report).forEach(product => {
             const row = document.querySelector(`#inventory-tbody tr[data-id="${product.id}"]`);
             if (!row) return;
             
             const data = reportData[product.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0, profitMargin: product.profitMargin, cost: product.cost };
-            
-            const effectiveProfitMargin = data.profitMargin !== undefined ? data.profitMargin : (product ? product.profitMargin : 0);
-            const effectiveCost = data.cost !== undefined ? data.cost : (product ? product.cost : 0);
-            const calculatedSellingPrice = effectiveCost + effectiveProfitMargin;
+            const metrics = calculateInventorySalesMetrics(data, product);
+            row.dataset.openedSacks = String(toNumber(data.openedSacks));
             
             updateInputValue(row, '.begin-val', data.begin);
             updateInputValue(row, '.new-stock-input', getInventoryInputDisplayValue(activeInventoryDateString, product.id, 'newStock', data.newStock));
             updateInputValue(row, '.returns-input', getInventoryInputDisplayValue(activeInventoryDateString, product.id, 'returns', data.returns || 0));
             
-            // Update Open Sacks input for display (if available)
-            const openSacksInput = row.querySelector('.open-sacks-add-input');
-            if (openSacksInput) {
-                // Note: The input field is only for adding, the display value is the total 'openedSacks'
-                if (openSacksInput.value != data.openedSacks && document.activeElement !== openSacksInput) {
-                    // For simplicity, let's keep this as the running total of opened sacks for visualization, even if it's an "Add" input.
-                    openSacksInput.value = data.openedSacks || 0;
-                }
+            const openSacksTotal = row.querySelector('.open-sacks-total');
+            if (openSacksTotal) {
+                openSacksTotal.textContent = formatQuantity(data.openedSacks || 0);
             }
             
             updateInputValue(row, '.end-input', getInventoryInputDisplayValue(activeInventoryDateString, product.id, 'end', data.end));
             
-            updateTextContent(row, '.selling-price-display', formatPeso(calculatedSellingPrice));
+            updateTextContent(row, '.selling-price-display', formatPeso(metrics.sellingPrice));
 
-            const sold = (data.begin + data.newStock) - (data.openedSacks || 0) - (data.returns || 0) - data.end;
-            const totalSales = Math.max(0, sold) * calculatedSellingPrice; 
-            const profit = totalSales - (Math.max(0, sold) * effectiveCost); 
-
-            updateInputValue(row, '.sold-val', sold);
-            updateTextContent(row, '.total-sales-val', formatPeso(totalSales));
-            updateTextContent(row, '.profit-val', formatPeso(profit));
-            row.classList.toggle('row-has-sales', sold > 0);
-            row.classList.toggle('row-logic-error', sold < 0);
+            updateInputValue(row, '.sold-val', metrics.sold);
+            updateTextContent(row, '.total-sales-val', formatPeso(metrics.sales));
+            updateTextContent(row, '.profit-val', formatPeso(metrics.profit));
+            row.classList.toggle('row-has-sales', metrics.sold > 0);
+            row.classList.toggle('row-logic-error', metrics.sold < 0);
             row.classList.toggle('row-negative-stock', data.end < 0);
             row.classList.toggle('row-low-stock', (product.minStock || 0) > 0 && data.end >= 0 && data.end <= product.minStock);
             
@@ -5827,6 +6082,10 @@
     }
 
     async function saveOpenSacksCorrection(productId, desiredOpenedSacks, dateString = todayDateString) {
+        if (dateString === todayDateString && !(await ensureTodayReportIsEditable('edit opened sacks'))) {
+            return false;
+        }
+
         const sourceProduct = getProductById(productId);
         if (!sourceProduct || sourceProduct.category !== '25 KG') {
             Toast.fire({ icon: 'error', title: '25 KG product not found.' });
@@ -5862,6 +6121,9 @@
                 }
 
                 const latestReport = latestReportDoc.data();
+                if (dateString === todayDateString && latestReport.isFinalized) {
+                    throw 'Today is finalized. Open sacks are locked.';
+                }
                 const latestSourceData = latestReport.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
                 const latestTargetData = latestReport.data[targetProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
                 const latestOpenedSacks = parseFloat(latestSourceData.openedSacks) || 0;
@@ -5997,11 +6259,12 @@
             const sales = parseMoneyValue(row.querySelector('.total-sales-val')?.textContent);
             const profit = parseMoneyValue(row.querySelector('.profit-val')?.textContent);
 
-            if (categoryTotals[category]) {
-                categoryTotals[category].sold += sold > 0 ? sold : 0;
-                categoryTotals[category].sales += sales;
-                categoryTotals[category].profit += profit;
+            if (!categoryTotals[category]) {
+                categoryTotals[category] = { sold: 0, sales: 0, profit: 0 };
             }
+            categoryTotals[category].sold += sold > 0 ? sold : 0;
+            categoryTotals[category].sales += sales;
+            categoryTotals[category].profit += profit;
         });
 
         updateTotalsFromData(categoryTotals);
@@ -6038,6 +6301,38 @@
         calculateCashDifference();
     }
 
+    function readDailyFinancialSnapshotFromScreen() {
+        const totalSales = parseMoneyValue(document.getElementById('overall-total-sales')?.textContent);
+        const totalProfit = parseMoneyValue(document.getElementById('overall-total-profit')?.textContent);
+        const discountAmount = parseFloat(document.getElementById('discount-given')?.value) || 0;
+        const cashOnHand = parseFloat(document.getElementById('cash-on-hand')?.value) || 0;
+        const gcashPayment = parseFloat(document.getElementById('gcash-payment')?.value) || 0;
+        const expectedCash = totalSales - discountAmount;
+        const cashDifference = (cashOnHand + gcashPayment) - expectedCash;
+
+        return {
+            finalGrossSales: totalSales,
+            finalTotalProfit: totalProfit - discountAmount,
+            finalExpectedCash: expectedCash,
+            finalCashDifference: cashDifference
+        };
+    }
+
+    function renderCashDifferenceValue(differenceDisplay, difference) {
+        differenceDisplay.className = 'font-bold text-xl';
+
+        if (difference < 0) {
+            differenceDisplay.textContent = `(${formatPeso(Math.abs(difference))})`;
+            differenceDisplay.classList.add('cash-short');
+        } else if (difference > 0) {
+            differenceDisplay.textContent = `+${formatPeso(difference)}`;
+            differenceDisplay.classList.add('cash-over');
+        } else {
+            differenceDisplay.textContent = 'Balanced';
+            differenceDisplay.classList.add('cash-balanced');
+        }
+    }
+
     function calculateCashDifference() {
         const totalSalesEl = document.getElementById('overall-total-sales');
         const cashInput = document.getElementById('cash-on-hand');
@@ -6047,6 +6342,15 @@
         const expectedCashEl = document.getElementById('expected-cash');
         
         if (!totalSalesEl || !cashInput || !discountInput || !gcashInput || !differenceDisplay || !expectedCashEl) return;
+
+        const lockedExpectedCash = Number(activeInventoryReportData?.finalExpectedCash);
+        const lockedCashDifference = Number(activeInventoryReportData?.finalCashDifference);
+        const isLockedFinalizedReport = activeInventoryReportData?.isFinalized && !activeInventoryRenderOptions?.isEditingPast;
+        if (isLockedFinalizedReport && Number.isFinite(lockedExpectedCash) && Number.isFinite(lockedCashDifference)) {
+            expectedCashEl.textContent = formatPeso(lockedExpectedCash);
+            renderCashDifferenceValue(differenceDisplay, lockedCashDifference);
+            return;
+        }
 
         const totalSales = parseMoneyValue(totalSalesEl.textContent);
         const discountAmount = parseFloat(discountInput.value) || 0;
@@ -6063,19 +6367,7 @@
         const cashOnHand = parseFloat(cashInput.value) || 0;
         const gcashPayment = parseFloat(gcashInput.value) || 0;
         const difference = (cashOnHand + gcashPayment) - adjustedTotalSales;
-
-        differenceDisplay.className = 'font-bold text-xl';
-        
-        if (difference < 0) {
-            differenceDisplay.textContent = `(${formatPeso(Math.abs(difference))})`;
-            differenceDisplay.classList.add('cash-short');
-        } else if (difference > 0) {
-            differenceDisplay.textContent = `+${formatPeso(difference)}`;
-            differenceDisplay.classList.add('cash-over');
-        } else {
-            differenceDisplay.textContent = 'Balanced';
-            differenceDisplay.classList.add('cash-balanced');
-        }
+        renderCashDifferenceValue(differenceDisplay, difference);
     }
 
     function debouncedCalculate(inputElement, dateString) {
@@ -6126,6 +6418,10 @@
     }
     
     async function transferOpenSacks(productId, sacksToAdd, dateString = todayDateString) {
+        if (dateString === todayDateString && !(await ensureTodayReportIsEditable('open sacks'))) {
+            return false;
+        }
+
         if (sacksToAdd <= 0) {
             Toast.fire({ icon: 'info', title: 'Enter a positive number.' });
             return false;
@@ -6158,6 +6454,9 @@
                 if (!reportDoc.exists) throw 'Report not found!';
 
                 const report = reportDoc.data();
+                if (dateString === todayDateString && report.isFinalized) {
+                    throw 'Today is finalized. Open sacks are locked.';
+                }
                 const sourceData = report.data[sourceProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
                 const targetData = report.data[targetProduct.id] || { begin: 0, newStock: 0, openedSacks: 0, returns: 0, end: 0 };
                 const availableStock = parseFloat(sourceData.end) || 0;
@@ -6323,7 +6622,7 @@
             const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
             const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
             const end = parseFloat(row.querySelector('.end-input').value) || 0;
-            const openedSacks = parseFloat(row.querySelector('.open-sacks-add-input')?.value) || 0;
+            const openedSacks = getOpenedSacksForInventoryRow(row);
             const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
             const availableStockIncludingNew = begin + newStock - openedSacks - returns;
 
@@ -6386,7 +6685,9 @@
             };
             Object.assign(updatePayload, collectInventoryRowSavePayload());
             if (finalizeAfterSave) {
+                Object.assign(updatePayload, readDailyFinancialSnapshotFromScreen());
                 updatePayload.isFinalized = true;
+                updatePayload.finalizedAt = firebase.firestore.FieldValue.serverTimestamp();
             }
 
             await db.collection('reports').doc(dateString).update(updatePayload);
@@ -6708,6 +7009,10 @@
     }
 
     async function resetTodaysReport() {
+        if (!(await ensureTodayReportIsEditable('reset today'))) {
+            return;
+        }
+
         const { isConfirmed } = await Swal.fire({
             title: 'Are you absolutely sure?',
             html: `This will permanently delete <strong>all entries and expenses for today</strong> and reset the report.<br><br>The beginning stock will be restored from yesterday's ending values. This action cannot be undone.`,
@@ -6771,6 +7076,12 @@
     }
     
     function calculateDailySummaryFromData(report) {
+        const finalExpectedCash = Number(report?.finalExpectedCash);
+        const finalTotalProfit = Number(report?.finalTotalProfit);
+        if (report?.isFinalized && Number.isFinite(finalExpectedCash) && Number.isFinite(finalTotalProfit)) {
+            return { totalSales: finalExpectedCash, totalProfit: finalTotalProfit };
+        }
+
         let totalSales = 0;
         let totalProfit = 0;
         if (report && report.data) {
@@ -6798,7 +7109,7 @@
         const breakdown = [];
 
         if (report && report.data) {
-            shopProducts.forEach(product => {
+            getProductsForReport(report).forEach(product => {
                 const item = report.data[product.id];
                 
                 // Skip if no end stock is recorded
@@ -6875,15 +7186,23 @@
                 const item = report.data[productId]; 
                 const product = getProductById(productId);
                 const metrics = calculateInventorySalesMetrics(item, product);
+                if (!productPerformance[productId]) {
+                    const fallbackProduct = buildReportProductFallback(productId, item);
+                    productPerformance[productId] = {
+                        sold: 0,
+                        sales: 0,
+                        profit: 0,
+                        name: fallbackProduct.name,
+                        category: fallbackProduct.category
+                    };
+                }
 
                 if (metrics.sold > 0) { 
                     totalSales += metrics.sales; 
                     totalProfit += metrics.profit; 
-                    if (productPerformance[productId]) { 
-                        productPerformance[productId].sold += metrics.sold; 
-                        productPerformance[productId].sales += metrics.sales; 
-                        productPerformance[productId].profit += metrics.profit; 
-                    } 
+                    productPerformance[productId].sold += metrics.sold; 
+                    productPerformance[productId].sales += metrics.sales; 
+                    productPerformance[productId].profit += metrics.profit; 
                 } 
             } 
             totalSales -= discount; 
@@ -6896,7 +7215,7 @@
         document.getElementById('analytics-avg-margin').textContent = `${formatForInput((totalSales > 0 ? (totalProfit / totalSales) * 100 : 0))}%`; 
         renderTopPerformingProducts(productPerformance); 
     }
-    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${p.name} <span class="text-sm text-slate-400">(${p.category})</span></div><div class="text-sm text-slate-500">${p.sold} sold</div></div><div class="text-right"><div class="font-semibold">${formatPeso(p.sales)}</div><div class="text-sm text-green-600">${formatPeso(p.profit)} profit</div></div></div>`).join(''); }
+    function renderTopPerformingProducts(productPerformance) { const container = document.getElementById('analytics-top-products'); const topProducts = Object.values(productPerformance).filter(p => p.sales > 0).sort((a, b) => b.sales - a.sales).slice(0, 10); if (topProducts.length === 0) { container.innerHTML = '<p class="text-center text-slate-500 py-4">No sales data for this period.</p>'; return; } container.innerHTML = topProducts.map((p, i) => `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg"><div><div class="font-medium">${escapeHtml(p.name)} <span class="text-sm text-slate-400">(${escapeHtml(p.category)})</span></div><div class="text-sm text-slate-500">${formatQuantity(p.sold)} sold</div></div><div class="text-right"><div class="font-semibold">${formatPeso(p.sales)}</div><div class="text-sm text-green-600">${formatPeso(p.profit)} profit</div></div></div>`).join(''); }
     
     // UPDATED to support new chart
     async function loadFinancialSummary() { 
@@ -7148,6 +7467,8 @@
             openedSacks: 0,
             returns: 0,
             end: 0,
+            name: productData.name,
+            category: productData.category,
             profitMargin: productData.profitMargin,
             cost: productData.cost
         };
@@ -7184,18 +7505,58 @@
             }
         }
 
+        let canUpdateTodayReport = updateTodayReport;
+        let todayReportDoc = null;
         if (updateTodayReport) {
+            todayReportDoc = await db.collection('reports').doc(todayDateString).get();
+            canUpdateTodayReport = !todayReportDoc.exists || !todayReportDoc.data()?.isFinalized;
+        }
+
+        if (canUpdateTodayReport) {
             const reportRef = db.collection('reports').doc(todayDateString);
             const reportPayload = {
-                [`data.${productData.id}`]: buildInitialReportItem(productData)
+                data: {
+                    [productData.id]: buildInitialReportItem(productData)
+                }
             };
+            if (!todayReportDoc?.exists) {
+                Object.assign(reportPayload, {
+                    date: todayDateString,
+                    cashOnHand: 0,
+                    discountAmount: 0,
+                    gcashPayment: 0,
+                    isFinalized: false,
+                    inventoryLocked: true
+                });
+            }
             if (autoCreatedPerKiloProduct) {
-                reportPayload[`data.${autoCreatedPerKiloProduct.id}`] = buildInitialReportItem(autoCreatedPerKiloProduct);
+                reportPayload.data[autoCreatedPerKiloProduct.id] = buildInitialReportItem(autoCreatedPerKiloProduct);
             }
             batch.set(reportRef, reportPayload, { merge: true });
         }
 
         await batch.commit();
+
+        if (canUpdateTodayReport) {
+            const localItems = {
+                [productData.id]: buildInitialReportItem(productData)
+            };
+            if (autoCreatedPerKiloProduct) {
+                localItems[autoCreatedPerKiloProduct.id] = buildInitialReportItem(autoCreatedPerKiloProduct);
+            }
+            mergeTodayReportItemsLocally(localItems);
+            renderDashboardPos(currentDashboardReport);
+            if (activeInventoryDateString === todayDateString && activeInventoryReportData) {
+                renderInventoryTable(activeInventoryDateString, activeInventoryReportData, activeInventoryRenderOptions || {
+                    isEditable: !activeInventoryReportData.isFinalized,
+                    isFinalized: Boolean(activeInventoryReportData.isFinalized),
+                    isEditingPast: false,
+                    isToday: true,
+                    inventoryLocked: activeInventoryReportData.inventoryLocked !== false
+                });
+                updateInventoryTable(activeInventoryReportData);
+            }
+        }
 
         return {
             autoCreatedPerKilo: Boolean(autoCreatedPerKiloProduct),
@@ -7236,10 +7597,11 @@
             const saveResult = await saveProductWithAutoPerKilo(productData, { updateTodayReport: true });
             const successTitle = saveResult.autoCreatedPerKilo
                 ? `${productData.name} added with matching Per Kilo.`
-                : `${productData.name} added! Please refresh the Daily Report to see it.`;
+                : `${productData.name} added and ready for POS sales.`;
             Toast.fire({ icon: 'success', title: successTitle }); 
             invalidateProductsCache();
             await loadProducts({ force: true }); // Reload products globally
+            renderDashboardPos(currentDashboardReport);
             closeQuickAddProductModal();
         } catch(error) { 
             Swal.fire('Error', handleFirestoreError(error), 'error'); 
@@ -7462,6 +7824,10 @@
         const saveBtn = document.querySelector('#add-stock-modal-overlay .btn-primary');
         toggleButtonLoading(saveBtn, true);
         try {
+            if (!(await ensureTodayReportIsEditable('add stock'))) {
+                return;
+            }
+
             cacheAddNewStockDraftValues();
             const updatePayload = {};
             let changeCount = 0;
@@ -7638,6 +8004,7 @@
         toggleButtonLoading(saveBtn, true);
 
         try {
+            const canUpdateTodayReport = await ensureTodayReportIsEditable('update today prices');
             cacheQuickProfitDraftValues();
             let hasErrors = false;
             const errorMessages = [];
@@ -7683,7 +8050,14 @@
 
             if (changedCount > 0) {
                 const reportRef = db.collection('reports').doc(todayDateString);
-                await Promise.all([productBatch.commit(), reportRef.update(reportUpdatePayload)]);
+                const saveTasks = [productBatch.commit()];
+                if (canUpdateTodayReport) {
+                    saveTasks.push(reportRef.update(reportUpdatePayload));
+                }
+                await Promise.all(saveTasks);
+                if (canUpdateTodayReport) {
+                    applyTodayReportPricingPayloadLocally(reportUpdatePayload);
+                }
                 invalidateProductsCache();
                 await loadProducts({ force: true });
                 Toast.fire({ icon: 'success', title: 'Prices updated successfully!' });
@@ -7782,6 +8156,16 @@
                 updateTodayReport: !productId,
                 allowAutoPerKilo: !productId
             }); 
+            if (productId && await ensureTodayReportIsEditable('update today prices')) {
+                const reportUpdatePayload = {
+                    [`data.${productId}.name`]: productData.name,
+                    [`data.${productId}.category`]: productData.category,
+                    [`data.${productId}.cost`]: productData.cost,
+                    [`data.${productId}.profitMargin`]: productData.profitMargin
+                };
+                await db.collection('reports').doc(todayDateString).update(reportUpdatePayload).catch(() => null);
+                applyTodayReportPricingPayloadLocally(reportUpdatePayload);
+            }
             const successTitle = productId
                 ? 'Product updated!'
                 : saveResult.autoCreatedPerKilo
@@ -7790,6 +8174,7 @@
             Toast.fire({ icon: 'success', title: successTitle }); 
             invalidateProductsCache();
             await loadProducts({ force: true }); 
+            renderDashboardPos(currentDashboardReport);
             renderProductList(); 
             clearProductForm(); 
         } catch(error) { 
@@ -7822,7 +8207,7 @@
         
         const { isConfirmed } = await Swal.fire({ 
             title: 'Delete Product?', 
-            text: `This will permanently delete the product: ${name} (${product.category}) and remove its data from all past reports. This cannot be undone.`, 
+            text: `This will permanently delete the product: ${name} (${product.category}) and remove its data from unfinalized reports only. Finalized report totals stay locked. This cannot be undone.`, 
             icon: 'warning', 
             showCancelButton: true,
             confirmButtonColor: '#d33' 
@@ -7837,6 +8222,7 @@
                 const batch = db.batch();
                 reportsSnapshot.docs.forEach(doc => {
                     const reportData = doc.data();
+                    if (reportData.isFinalized) return;
                     if (reportData.data && reportData.data[id]) {
                         batch.update(doc.ref, { 
                             [`data.${id}`]: firebase.firestore.FieldValue.delete() 
@@ -7904,6 +8290,10 @@
         toggleButtonLoading(saveBtn, true);
         
         try {
+            if (!(await ensureTodayReportIsEditable('edit beginning stock'))) {
+                return;
+            }
+
             cacheBeginStockDraftValues();
             const updatePayload = {};
 
@@ -7948,7 +8338,10 @@
                 const summary = calculateDailySummaryFromData(report); 
                 const cashOnHand = report.cashOnHand || 0;
                 const gcashPayment = report.gcashPayment || 0;
-                const difference = (cashOnHand + gcashPayment) - summary.totalSales; 
+                const lockedDifference = Number(report.finalCashDifference);
+                const difference = report.isFinalized && Number.isFinite(lockedDifference)
+                    ? lockedDifference
+                    : (cashOnHand + gcashPayment) - summary.totalSales; 
                 
                 let differenceHtml;
                 if (!report.isFinalized && summary.totalSales === 0 && report.discountAmount === 0) { 
@@ -8012,7 +8405,7 @@
                     return acc;
                 }, {});
 
-                RICE_CATEGORIES.forEach(cat => {
+                Object.keys(groupedBreakdown).forEach(cat => {
                     const products = groupedBreakdown[cat] || [];
                     if (products.length > 0) {
                         const categoryWorth = products.reduce((sum, p) => sum + p.worth, 0);
@@ -8021,7 +8414,7 @@
                         // Category Header Row
                         tableHtml += `
                             <tr class="bg-slate-100 font-bold">
-                                <td class="py-2 px-3">${cat}</td>
+                                <td class="py-2 px-3">${escapeHtml(cat)}</td>
                                 <td class="py-2 px-3 text-right">Total:</td>
                                 <td class="py-2 px-3 text-right">${categoryQty}</td>
                                 <td class="py-2 px-3 text-right">-</td>
@@ -8033,8 +8426,8 @@
                         products.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
                             tableHtml += `
                                 <tr class="bg-white border-b hover:bg-slate-50">
-                                    <td class="py-2 px-3">${p.name}</td>
-                                    <td class="py-2 px-3 text-right text-xs text-slate-400">${p.category}</td>
+                                    <td class="py-2 px-3">${escapeHtml(p.name)}</td>
+                                    <td class="py-2 px-3 text-right text-xs text-slate-400">${escapeHtml(p.category)}</td>
                                     <td class="py-2 px-3 text-right font-medium">${p.endStock}</td>
                                     <td class="py-2 px-3 text-right">${formatPeso(p.costPrice)}</td>
                                     <td class="py-2 px-3 text-right text-red-600 font-semibold">${formatPeso(p.worth)}</td>
@@ -8072,15 +8465,147 @@
         return { orders, ...totals };
     }
 
+    function getReportCashSummary(report, orderTotal = null) {
+        const dailySummary = calculateDailySummaryFromData(report);
+        const finalExpectedCash = Number(report?.finalExpectedCash);
+        const legacyOrderTotal = Number(orderTotal);
+        const shouldUseLockedExpectedCash = report?.isFinalized && Number.isFinite(finalExpectedCash);
+        const shouldUseOrderTotal = !shouldUseLockedExpectedCash && Number.isFinite(legacyOrderTotal) && legacyOrderTotal > 0;
+        const expectedSales = shouldUseLockedExpectedCash
+            ? finalExpectedCash
+            : (shouldUseOrderTotal ? legacyOrderTotal - toNumber(report?.discountAmount) : dailySummary.totalSales);
+        const cashOnHand = toNumber(report?.cashOnHand);
+        const gcashPayment = toNumber(report?.gcashPayment);
+        const collected = cashOnHand + gcashPayment;
+        const lockedDifference = Number(report?.finalCashDifference);
+        const difference = report?.isFinalized && Number.isFinite(lockedDifference)
+            ? lockedDifference
+            : collected - expectedSales;
+
+        return {
+            expectedSales,
+            cashOnHand,
+            gcashPayment,
+            collected,
+            difference
+        };
+    }
+
+    function getCashDifferenceClass(difference) {
+        if (difference < 0) return 'cash-short';
+        if (difference > 0) return 'cash-over';
+        return 'cash-balanced';
+    }
+
+    function formatCashDifference(difference) {
+        if (difference < 0) return `(${formatPeso(Math.abs(difference))})`;
+        if (difference > 0) return `+${formatPeso(difference)}`;
+        return 'Balanced';
+    }
+
+    async function renderNightMonthlySummary() {
+        const monthInput = document.getElementById('night-month-select');
+        const tbody = document.getElementById('night-monthly-tbody');
+        const salesEl = document.getElementById('night-month-sales');
+        const collectedEl = document.getElementById('night-month-collected');
+        const differenceEl = document.getElementById('night-month-difference');
+        if (!monthInput || !tbody || !salesEl || !collectedEl || !differenceEl) return;
+
+        const selectedMonth = monthInput.value || dayjs(todayDateString).format('YYYY-MM');
+        monthInput.value = selectedMonth;
+        const monthStart = dayjs(`${selectedMonth}-01`);
+        if (!monthStart.isValid()) return;
+
+        const monthEnd = monthStart.endOf('month');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4"><div class="loader"></div></td></tr>';
+        salesEl.textContent = 'Loading...';
+        collectedEl.textContent = 'Loading...';
+        differenceEl.textContent = 'Loading...';
+        differenceEl.className = 'text-2xl font-bold';
+
+        try {
+            await loadProducts();
+            const snapshot = await db.collection('reports')
+                .where('date', '>=', monthStart.format('YYYY-MM-DD'))
+                .where('date', '<=', monthEnd.format('YYYY-MM-DD'))
+                .get();
+            const reportsByDate = new Map(snapshot.docs.map(doc => [doc.id, doc.data()]));
+            const ordersSnapshot = await db.collection('orders')
+                .where('date', '>=', monthStart.format('YYYY-MM-DD'))
+                .where('date', '<=', monthEnd.format('YYYY-MM-DD'))
+                .get();
+            const orderTotalsByDate = new Map();
+            ordersSnapshot.docs.forEach(doc => {
+                const order = doc.data();
+                const orderDate = order.date;
+                if (!orderDate) return;
+                orderTotalsByDate.set(orderDate, (orderTotalsByDate.get(orderDate) || 0) + toNumber(order.total));
+            });
+            const rows = [];
+            let monthExpectedSales = 0;
+            let monthCollected = 0;
+            let monthDifference = 0;
+
+            for (let day = monthStart; day.valueOf() <= monthEnd.valueOf(); day = day.add(1, 'day')) {
+                const dateString = day.format('YYYY-MM-DD');
+                const report = reportsByDate.get(dateString);
+                if (!report) {
+                    rows.push(`
+                        <tr>
+                            <td class="font-semibold text-slate-700">${day.format('MMM D')}</td>
+                            <td><span class="text-slate-400">No report</span></td>
+                            <td class="text-right text-slate-400">-</td>
+                            <td class="text-right text-slate-400">-</td>
+                            <td class="text-right text-slate-400">-</td>
+                            <td class="text-right text-slate-400">-</td>
+                        </tr>`);
+                    continue;
+                }
+
+                const cashSummary = getReportCashSummary(report, orderTotalsByDate.get(dateString));
+                monthExpectedSales += cashSummary.expectedSales;
+                monthCollected += cashSummary.collected;
+                monthDifference += cashSummary.difference;
+                const statusText = report.isFinalized ? 'Finalized' : 'In progress';
+                const statusClass = report.isFinalized ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200';
+
+                rows.push(`
+                    <tr>
+                        <td class="font-semibold text-slate-700">${day.format('MMM D')}</td>
+                        <td><span class="inline-flex px-2 py-1 rounded-full border text-xs font-semibold ${statusClass}">${statusText}</span></td>
+                        <td class="text-right">${formatPeso(cashSummary.expectedSales)}</td>
+                        <td class="text-right">${formatPeso(cashSummary.cashOnHand)}</td>
+                        <td class="text-right">${formatPeso(cashSummary.gcashPayment)}</td>
+                        <td class="text-right font-semibold ${getCashDifferenceClass(cashSummary.difference)}">${formatCashDifference(cashSummary.difference)}</td>
+                    </tr>`);
+            }
+
+            tbody.innerHTML = rows.join('');
+            salesEl.textContent = formatPeso(monthExpectedSales);
+            collectedEl.textContent = formatPeso(monthCollected);
+            differenceEl.textContent = formatCashDifference(monthDifference);
+            differenceEl.className = `text-2xl font-bold ${getCashDifferenceClass(monthDifference)}`;
+        } catch (error) {
+            console.error('Error rendering monthly night inventory summary:', error);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-red-500">${handleFirestoreError(error)}</td></tr>`;
+            salesEl.textContent = 'Error';
+            collectedEl.textContent = 'Error';
+            differenceEl.textContent = 'Error';
+            differenceEl.className = 'text-2xl font-bold text-red-500';
+        }
+    }
+
     async function renderNightInventoryView() {
         const tbody = document.getElementById('night-inventory-tbody');
         if (!tbody) return;
+        renderNightMonthlySummary();
         tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="loader"></div></td></tr>';
         try {
             await loadProducts();
             const reportDoc = await db.collection('reports').doc(todayDateString).get();
             const report = reportDoc.exists ? reportDoc.data() : null;
             const orderSummary = await getTodayOrdersSummary();
+            const dailySummary = calculateDailySummaryFromData(report);
             const stockWorth = calculateStockWorth(report);
             const rows = [];
             let totalRemainingUnits = 0;
@@ -8092,7 +8617,7 @@
                 'Per Kilo': 0
             };
 
-            shopProducts.forEach(product => {
+            getProductsForReport(report).forEach(product => {
                 const item = report?.data?.[product.id];
                 if (!item) return;
                 const metrics = calculateInventorySalesMetrics(item, product);
@@ -8116,7 +8641,7 @@
 
             tbody.innerHTML = rows.join('') || '<tr><td colspan="5" class="text-center p-4 text-slate-500">No inventory data for today yet.</td></tr>';
             setElementTextById('night-orders-count', String(orderSummary.count));
-            setElementTextById('night-sales-total', `${String.fromCharCode(8369)}${formatCurrency(orderSummary.sales)}`);
+            setElementTextById('night-sales-total', `${String.fromCharCode(8369)}${formatCurrency(dailySummary.totalSales)}`);
             setElementTextById('night-remaining-units', formatQuantity(totalRemainingUnits));
             setElementTextById('night-opened-sacks', formatQuantity(totalOpenedSacks));
             setElementTextById('night-remaining-value', `${String.fromCharCode(8369)}${formatCurrency(stockWorth.totalRiceWorth)}`);
@@ -8164,6 +8689,7 @@
         const saveBtn = document.getElementById('save-settings-price-btn');
         toggleButtonLoading(saveBtn, true);
         try {
+            const canUpdateTodayReport = await ensureTodayReportIsEditable('update today prices');
             const batch = db.batch();
             const reportUpdatePayload = {};
             document.querySelectorAll('#settings-price-products-container input[data-product-id]').forEach(input => {
@@ -8175,10 +8701,11 @@
                 reportUpdatePayload[`data.${productId}.profitMargin`] = profit;
             });
             await batch.commit();
-            if (Object.keys(reportUpdatePayload).length) {
+            if (canUpdateTodayReport && Object.keys(reportUpdatePayload).length) {
                 await db.collection('reports').doc(todayDateString).update(reportUpdatePayload).catch(() => null);
+                applyTodayReportPricingPayloadLocally(reportUpdatePayload);
             }
-            await loadProducts();
+            await loadProducts({ force: true });
             renderSettingsPriceManager(document.getElementById('settings-price-category-select')?.value || '25 KG');
             renderDashboardPos(currentDashboardReport);
             Toast.fire({ icon: 'success', title: 'Prices updated.' });
@@ -8190,6 +8717,10 @@
     }
 
     async function quickEditPosSellingPrice(productId) {
+        if (!(await ensureTodayReportIsEditable('update today prices'))) {
+            return;
+        }
+
         const product = shopProducts.find(item => item.id === productId);
         if (!product) {
             Toast.fire({ icon: 'error', title: 'Product not found.' });
@@ -8233,12 +8764,7 @@
                 [`data.${productId}.profitMargin`]: nextProfit
             }).catch(() => null);
 
-            const targetProduct = shopProducts.find(item => item.id === productId);
-            if (targetProduct) {
-                targetProduct.profitMargin = nextProfit;
-            }
-
-            renderPosProductGrid();
+            applyTodayReportPricingLocally(productId, product.cost || 0, nextProfit);
             if (document.getElementById('settings-profit-view')?.classList.contains('active')) {
                 renderSettingsPriceManager(document.getElementById('settings-price-category-select')?.value || posSelectedCategory);
             }
