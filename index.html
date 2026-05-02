@@ -3331,6 +3331,12 @@
             : dayjs().format('YYYY-MM-DD');
     }
 
+    function getLongBondReportFilename(dateString) {
+        const reportDate = dayjs(dateString || todayDateString);
+        const safeDate = reportDate.isValid() ? reportDate : dayjs();
+        return `${safeDate.format('MMMM D, YYYY').toUpperCase()}.html`;
+    }
+
     function downloadTextFile(filename, content, mimeType = 'text/html;charset=utf-8') {
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
@@ -3636,8 +3642,7 @@ td.name, th.name { text-align: left; width: 22%; }
                 }
             }
 
-            const safeDate = getSafeFileDate(reportDate);
-            const filename = `daily-report-long-bond-${safeDate}.html`;
+            const filename = getLongBondReportFilename(reportDate);
             const html = buildLongBondDailyReportHtml(report);
             const savedToFolder = await saveTextToLongBondFolder(filename, html, reportDate).catch(error => {
                 console.error('Direct folder save failed:', error);
@@ -9351,8 +9356,4 @@ td.name, th.name { text-align: left; width: 22%; }
     const inventoryTbody = document.getElementById('inventory-tbody');
     inventoryTbody.addEventListener('focusin', (event) => { if (event.target.matches('input')) { event.target.closest('tr')?.classList.add('active-row'); } });
     inventoryTbody.addEventListener('focusout', (event) => { if (event.target.matches('input')) { event.target.closest('tr')?.classList.remove('active-row'); } });
-    inventoryTbody.addEventListener('keydown', (event) => { const target = event.target; if (!target.matches('.new-stock-input, .end-input, .returns-input')) return; const currentTR = target.closest('tr'); let nextTR; let targetClass = 'new-stock-input'; if(target.classList.contains('end-input')) targetClass = 'end-input'; if(target.classList.contains('returns-input')) targetClass = 'returns-input'; if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); nextTR = currentTR.nextElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.nextElementSibling; } else if (event.key === 'ArrowUp') { event.preventDefault(); nextTR = currentTR.previousElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.previousElementSibling; } if (nextTR) { const nextInput = nextTR.querySelector(`.${targetClass}`); if (nextInput && !nextInput.disabled) { nextInput.focus(); nextInput.select(); } } });
-  </script>
-</body>
-</html>
-```
+    inventoryTbody.addEventListener('keydown', (event) => { const target = event.target; if (!target.matches('.new-stock-input, .end-input, .returns-input')) return; const currentTR = target.closest('tr'); let nextTR; let targetClass = 'new-stock-input'; if(target.classList.contains('end-input')) targetClass = 'end-input'; if(target.classList.contains('returns-input')) targetClass = 'returns-input'; if (event.key === 'ArrowDown' || event.key === 'Enter') { event.preventDefault(); nextTR = currentTR.nextElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.nextElementSibling; } else if (event.key === 'ArrowUp') { event.preventDefault(); nextTR = currentTR.previousElementSibling; while(nextTR && (!nextTR.querySelector(`.${targetClass}`) || nextTR.classList.contains('hidden'))) nextTR = nextTR.previousElementSib
