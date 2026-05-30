@@ -2862,14 +2862,21 @@
       <p class="text-sm text-red-600 mb-4 font-medium">Warning: Deleting a product is permanent and will remove it from all past reports. Proceed with caution.</p>
 
       <div class="mb-4">
-        <label for="quick-delete-product-select" class="block text-sm font-medium text-slate-700 mb-1">Select Product to Delete:</label>
-        <select id="quick-delete-product-select" class="w-full border border-slate-300 p-2 rounded-md">
-          <option value="">-- Select a Product --</option>
-        </select>
+        <div class="flex justify-between items-center mb-2">
+          <label class="block text-sm font-medium text-slate-700">Select Product(s) to Delete:</label>
+          <div class="flex gap-2 text-xs">
+            <button onclick="selectAllDeleteProducts(true)" type="button" class="text-blue-600 hover:underline">Select All</button>
+            <span class="text-slate-300">|</span>
+            <button onclick="selectAllDeleteProducts(false)" type="button" class="text-blue-600 hover:underline">Deselect All</button>
+          </div>
+        </div>
+        <div id="quick-delete-product-list" class="border border-slate-300 rounded-md max-h-60 overflow-y-auto p-2 space-y-1">
+          <!-- populated by JS -->
+        </div>
       </div>
 
       <div class="flex justify-center gap-2 mt-6">
-        <button onclick="deleteProductFromModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md" id="delete-product-btn">Delete Product</button>
+        <button onclick="deleteSelectedProducts()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md" id="delete-product-btn">Delete Selected</button>
         <button onclick="closeQuickDeleteProductModal()" class="btn-secondary">Cancel</button>
       </div>
     </div>
@@ -3791,7 +3798,7 @@ td.name, th.name { text-align: left; width: 22%; }
     }
 
     function getQuantityStep(category) {
-        return '1';
+        return category === 'Per Kilo' ? '0.25' : '1';
     }
 
     function getPerKiloInputStep() {
@@ -8438,35 +8445,96 @@ td.name, th.name { text-align: left; width: 22%; }
 
 
     async function openQuickDeleteProductModal() {
-        const select = document.getElementById('quick-delete-product-select');
-        if (!select) return;
+        const container = document.getElementById('quick-delete-product-list');
+        if (!container) return;
 
         await loadProducts();
         const products = [...shopProducts].sort((a, b) => a.name.localeCompare(b.name));
-        select.innerHTML = ['<option value="">-- Select a Product --</option>']
-            .concat(products.map(product => `<option value="${product.id}">${escapeHtml(product.name)} (${escapeHtml(product.category)})</option>`))
-            .join('');
+
+        let reportData = null;
+        try {
+            const reportDoc = await db.collection('reports').doc(todayDateString).get();
+            if (reportDoc.exists) reportData = reportDoc.data();
+        } catch (_) {}
+
+        container.innerHTML = products.map(product => {
+            const stock = reportData?.data?.[product.id]?.end;
+            const stockDisplay = Number.isFinite(stock) ? formatQuantity(stock) : '0';
+            return `
+            <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded cursor-pointer">
+                <input type="checkbox" value="${product.id}" class="product-delete-checkbox rounded border-slate-300">
+                <span class="text-sm flex-1">${escapeHtml(product.name)} <span class="text-xs text-slate-500">(${escapeHtml(product.category)})</span></span>
+                <span class="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">Stock: ${stockDisplay}</span>
+            </label>`
+        }).join('');
 
         document.getElementById('quick-delete-product-modal-overlay')?.classList.add('open');
     }
 
-    function closeQuickDeleteProductModal() {
-        document.getElementById('quick-delete-product-modal-overlay')?.classList.remove('open');
-        const select = document.getElementById('quick-delete-product-select');
-        if (select) select.value = '';
+    function selectAllDeleteProducts(select) {
+        document.querySelectorAll('.product-delete-checkbox').forEach(cb => cb.checked = select);
     }
 
-    async function deleteProductFromModal() {
-        const select = document.getElementById('quick-delete-product-select');
-        const productId = select?.value;
+    function closeQuickDeleteProductModal() {
+        document.getElementById('quick-delete-product-modal-overlay')?.classList.remove('open');
+        const container = document.getElementById('quick-delete-product-list');
+        if (container) container.innerHTML = '';
+    }
 
-        if (!productId) {
-            Toast.fire({ icon: 'warning', title: 'Select a product to delete first.' });
+    async function deleteSelectedProducts() {
+        const checkboxes = document.querySelectorAll('.product-delete-checkbox:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+        if (selectedIds.length === 0) {
+            Toast.fire({ icon: 'warning', title: 'Select at least one product to delete.' });
             return;
         }
 
-        closeQuickDeleteProductModal();
-        await deleteProduct(productId);
+        const selectedProducts = shopProducts.filter(p => selectedIds.includes(p.id));
+        const names = selectedProducts.map(p => `${p.name} (${p.category})`).join(', ');
+
+        const password = await getPassword();
+        if (!password.success) return;
+
+        const { isConfirmed } = await Swal.fire({
+            title: `Delete ${selectedIds.length} Product(s)?`,
+            text: `This will permanently delete: ${names} and remove their data from unfinalized reports only. Finalized report totals stay locked. This cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33'
+        });
+
+        if (isConfirmed) {
+            closeQuickDeleteProductModal();
+
+            const productBatch = db.batch();
+            selectedIds.forEach(id => {
+                productBatch.delete(db.collection('products').doc(id));
+            });
+            await productBatch.commit();
+
+            const reportsSnapshot = await db.collection('reports').get();
+            const reportBatch = db.batch();
+            reportsSnapshot.docs.forEach(doc => {
+                const reportData = doc.data();
+                if (reportData.isFinalized) return;
+                if (!reportData.data) return;
+                selectedIds.forEach(id => {
+                    if (reportData.data[id]) {
+                        reportBatch.update(doc.ref, {
+                            [`data.${id}`]: firebase.firestore.FieldValue.delete()
+                        });
+                    }
+                });
+            });
+            await reportBatch.commit();
+
+            Toast.fire({ icon: 'success', title: `${selectedIds.length} product(s) deleted!` });
+            invalidateProductsCache();
+            await loadProducts({ force: true });
+            renderProductList();
+            initializeListeners(todayDateString);
+        }
     }
     
     function renderProductList() { 
@@ -8971,7 +9039,8 @@ td.name, th.name { text-align: left; width: 22%; }
             const dailySummary = calculateDailySummaryFromData(report);
             const stockWorth = calculateStockWorth(report);
             const rows = [];
-            let totalRemainingUnits = 0;
+            let totalRemainingSacks = 0;
+            let totalRemainingKilos = 0;
             let totalOpenedSacks = 0;
             const profitByCategory = {
                 '25 KG': 0,
@@ -8985,9 +9054,11 @@ td.name, th.name { text-align: left; width: 22%; }
                 if (!item) return;
                 const metrics = calculateInventorySalesMetrics(item, product);
                 const remaining = toNumber(item.end);
-                totalRemainingUnits += remaining;
                 if (product.category === '25 KG') {
+                    totalRemainingSacks += remaining;
                     totalOpenedSacks += toNumber(item.openedSacks);
+                } else {
+                    totalRemainingKilos += remaining;
                 }
                 if (metrics.sold > 0 && Object.prototype.hasOwnProperty.call(profitByCategory, product.category)) {
                     profitByCategory[product.category] += metrics.profit;
@@ -9005,15 +9076,14 @@ td.name, th.name { text-align: left; width: 22%; }
             tbody.innerHTML = rows.join('') || '<tr><td colspan="5" class="text-center p-4 text-slate-500">No inventory data for today yet.</td></tr>';
             setElementTextById('night-orders-count', String(orderSummary.count));
             setElementTextById('night-sales-total', `${String.fromCharCode(8369)}${formatCurrency(dailySummary.totalSales)}`);
-            setElementTextById('night-remaining-units', formatQuantity(totalRemainingUnits));
+            setElementTextById('night-remaining-units', `${formatQuantity(totalRemainingSacks)} sacks / ${formatQuantity(totalRemainingKilos)} kg`);
             setElementTextById('night-opened-sacks', formatQuantity(totalOpenedSacks));
             setElementTextById('night-remaining-value', `${String.fromCharCode(8369)}${formatCurrency(stockWorth.totalRiceWorth)}`);
-            const totalProfitToday = profitByCategory['25 KG'] + profitByCategory['10 KG'] + profitByCategory['5 KG'] + profitByCategory['Per Kilo'];
             setElementTextById('night-profit-25kg', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['25 KG'])}`);
             setElementTextById('night-profit-10kg', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['10 KG'])}`);
             setElementTextById('night-profit-5kg', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['5 KG'])}`);
             setElementTextById('night-profit-perkilo', `${String.fromCharCode(8369)}${formatCurrency(profitByCategory['Per Kilo'])}`);
-            setElementTextById('night-profit-total', `${String.fromCharCode(8369)}${formatCurrency(totalProfitToday)}`);
+            setElementTextById('night-profit-total', `${String.fromCharCode(8369)}${formatCurrency(dailySummary.totalProfit)}`);
             document.getElementById('night-recent-orders').innerHTML = orderSummary.orders.slice(0, 6).map(order => {
                 const created = order.createdAt?.toDate ? dayjs(order.createdAt.toDate()).format('h:mm A') : 'Pending time';
                 return `<div class="p-3 rounded-lg bg-slate-50 border flex justify-between gap-3"><div><div class="font-medium text-slate-800">Order ${escapeHtml(order.id || 'Pending')}</div><div class="text-xs text-slate-500">${created} ? ${order.paymentEntered ? `Paid: &#8369;${formatCurrency(order.amountPaid || 0)}` : 'Payment not entered'}</div></div><div class="font-semibold text-slate-800">&#8369;${formatCurrency(order.total || 0)}</div></div>`;
