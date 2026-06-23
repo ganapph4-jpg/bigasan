@@ -1,4 +1,4 @@
-
+﻿
 <!doctype html>
 <html lang="en">
 <head>
@@ -2139,27 +2139,8 @@
               <span>Total</span>
               <span id="pos-cart-total">&#8369;0.00</span>
             </div>
-            <div class="pos-summary-row">
-              <span>Cash Received</span>
-              <span id="pos-cash-display">&#8369;0.00</span>
-            </div>
-            <div class="pos-summary-row change-row">
-              <span>Change</span>
-              <span id="pos-change-display" class="pos-change-value">&#8369;0.00</span>
-            </div>
-            <div class="pos-payment-shell">
-              <label for="pos-cash-received" class="pos-payment-label">Customer Payment</label>
-              <input id="pos-cash-received" type="number" min="0" step="0.01" placeholder="Optional amount received" oninput="renderPosCart()">
-              <div class="pos-quick-cash-grid">
-                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(300)">300</button>
-                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(500)">500</button>
-                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(1000)">1000</button>
-                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(1500)">1500</button>
-                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(2000)">2000</button>
-                <button type="button" class="pos-quick-cash-btn" onclick="applyQuickCashAmount(3000)">3000</button>
-              </div>
-              <p id="pos-payment-note" class="pos-payment-note hidden"></p>
-            </div>
+
+
             <div class="pos-cart-actions">
               <button id="submit-order-btn" onclick="submitPosOrder()" class="btn-success w-full pos-primary-action">Submit Order & Print</button>
             </div>
@@ -4086,9 +4067,6 @@ td.name, th.name { text-align: left; width: 22%; }
         const cartItemsEl = document.getElementById('pos-cart-items');
         const totalCountEl = document.getElementById('pos-cart-count');
         const totalAmountEl = document.getElementById('pos-cart-total');
-        const cashDisplayEl = document.getElementById('pos-cash-display');
-        const changeDisplayEl = document.getElementById('pos-change-display');
-        const paymentNoteEl = document.getElementById('pos-payment-note');
         const submitBtn = document.getElementById('submit-order-btn');
         if (!cartItemsEl || !totalCountEl || !totalAmountEl) return;
 
@@ -4122,27 +4100,6 @@ td.name, th.name { text-align: left; width: 22%; }
         totalCountEl.textContent = formatQuantity(summary.quantity);
         totalAmountEl.textContent = `${String.fromCharCode(8369)}${formatCurrency(summary.total)}`;
 
-        if (cashDisplayEl) {
-            cashDisplayEl.textContent = summary.paymentEntered ? `${String.fromCharCode(8369)}${formatCurrency(summary.amountPaid)}` : 'Optional';
-        }
-        if (changeDisplayEl) {
-            changeDisplayEl.textContent = `${String.fromCharCode(8369)}${formatCurrency(summary.changeDue)}`;
-        }
-        if (paymentNoteEl) {
-            if (isTodayReportFinalized()) {
-                paymentNoteEl.textContent = 'Today is finalized. Orders are locked for this report.';
-                paymentNoteEl.className = 'pos-payment-note text-xs font-semibold text-amber-700';
-            } else if (!summary.paymentEntered) {
-                paymentNoteEl.textContent = '';
-                paymentNoteEl.className = 'pos-payment-note hidden';
-            } else if (summary.balanceDue > 0) {
-                paymentNoteEl.textContent = `Need ${String.fromCharCode(8369)}${formatCurrency(summary.balanceDue)} more to complete the payment.`;
-                paymentNoteEl.className = 'pos-payment-note text-xs font-semibold text-red-600';
-            } else {
-                paymentNoteEl.textContent = 'Payment is enough. Change is ready for the customer.';
-                paymentNoteEl.className = 'pos-payment-note text-xs text-emerald-600';
-            }
-        }
         if (submitBtn) {
             submitBtn.disabled = isTodayReportFinalized();
             submitBtn.textContent = isTodayReportFinalized() ? 'Report Finalized' : 'Submit Order & Print';
@@ -5243,23 +5200,112 @@ td.name, th.name { text-align: left; width: 22%; }
             return;
         }
 
+        printerSettings = getPrinterSettingsFromForm();
+        await startDay(todayDateString);
+
+        const orderTotals = getPosCartTotals();
+        const paymentSummary = getPosPaymentSummary();
+
+        const itemRows = posCart.map(item =>
+            `<tr>
+                <td style="padding:6px 0;font-size:15px;font-weight:600;color:#111">${escapeHtml(item.name)}</td>
+                <td style="padding:6px 0;text-align:center;font-size:14px;font-weight:600;color:#111">${formatQuantity(item.quantity)}</td>
+                <td style="padding:6px 0;text-align:right;font-size:14px;font-weight:600;color:#111">${String.fromCharCode(8369)}${formatCurrency(item.price)}</td>
+                <td style="padding:6px 0;text-align:right;font-size:14px;font-weight:600;color:#111">${String.fromCharCode(8369)}${formatCurrency(item.total)}</td>
+            </tr>
+            <tr><td colspan="4" style="padding:0;border-bottom:1px solid #e5e7eb;height:1px"></td></tr>`
+        ).join('');
+
+        const startingAmount = paymentSummary.paymentEntered ? paymentSummary.amountPaid : 0;
+
+        const confirmResult = await Swal.fire({
+            title: 'Complete Order',
+            html: `<div style="font-family:system-ui,-apple-system,sans-serif">
+                <div style="background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:14px;max-height:240px;overflow-y:auto">
+                    <table style="width:100%;border-collapse:collapse">
+                        <thead>
+                            <tr>
+                                <th style="padding:0 0 6px 0;text-align:left;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px">Item</th>
+                                <th style="padding:0 0 6px 0;text-align:center;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px">Qty</th>
+                                <th style="padding:0 0 6px 0;text-align:right;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px">Price</th>
+                                <th style="padding:0 0 6px 0;text-align:right;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemRows}</tbody>
+                    </table>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:14px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                        <span style="font-size:16px;font-weight:600;color:#374151">Total</span>
+                        <span style="font-size:22px;font-weight:700;color:#059669">${String.fromCharCode(8369)}${formatCurrency(orderTotals.amount)}</span>
+                    </div>
+                    <div style="margin-bottom:10px">
+                        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px">Customer Payment</label>
+                        <input type="number" id="swal-payment-input" value="${startingAmount}" step="0.01" min="0"
+                            style="width:100%;padding:12px 14px;font-size:22px;font-weight:700;color:#111;border:2px solid #d1d5db;border-radius:8px;box-sizing:border-box;outline:none">
+                    </div>
+                    <div id="swal-change-area" style="text-align:center;padding:14px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0">
+                        <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Change</div>
+                        <div id="swal-change-display" style="font-size:38px;font-weight:800;color:#dc2626">${String.fromCharCode(8369)}${formatCurrency(paymentSummary.changeDue)}</div>
+                    </div>
+                </div>
+            </div>`,
+            showCancelButton: true,
+            confirmButtonText: 'Confirm & Submit',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#64748b',
+            didOpen: () => {
+                const input = document.getElementById('swal-payment-input');
+                const total = orderTotals.amount;
+                const pesoSign = String.fromCharCode(8369);
+                if (input) {
+                    input.focus();
+                    input.select();
+                    input.addEventListener('focus', function() { this.style.borderColor = '#059669'; });
+                    input.addEventListener('blur', function() { this.style.borderColor = '#d1d5db'; });
+                    input.addEventListener('input', function() {
+                        const paid = parseFloat(this.value) || 0;
+                        const change = Math.max(paid - total, 0);
+                        const changeDisplay = document.getElementById('swal-change-display');
+                        const changeArea = document.getElementById('swal-change-area');
+                        if (changeDisplay) {
+                            changeDisplay.textContent = pesoSign + change.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                        }
+                        if (changeArea) {
+                            changeArea.style.background = paid >= total ? '#f0fdf4' : '#fef2f2';
+                        }
+                    });
+                }
+            },
+            preConfirm: () => {
+                const input = document.getElementById('swal-payment-input');
+                const paid = parseFloat(input?.value) || 0;
+                if (paid < orderTotals.amount) {
+                    Swal.showValidationMessage('Payment must be at least ' + String.fromCharCode(8369) + orderTotals.amount.toFixed(2));
+                    return false;
+                }
+                return { amountPaid: paid, changeDue: paid - orderTotals.amount };
+            }
+        });
+
+        if (!confirmResult.isConfirmed) {
+            return;
+        }
+
+        const submitPayment = confirmResult.value;
         const submitBtn = document.getElementById('submit-order-btn');
         isSubmittingPosOrder = true;
         toggleButtonLoading(submitBtn, true);
+        if (!(await ensurePrinterConnection())) {
+            isSubmittingPosOrder = false;
+            toggleButtonLoading(submitBtn, false);
+            return;
+        }
         try {
-            if (!(await ensurePrinterConnection())) return;
-
-            printerSettings = getPrinterSettingsFromForm();
-            await startDay(todayDateString);
-
             const orderCounterRef = db.collection('settings').doc('orderCounter');
             const reportRef = db.collection('reports').doc(todayDateString);
-            const orderTotals = getPosCartTotals();
-            const paymentSummary = getPosPaymentSummary();
             let orderId = '';
-            if (paymentSummary.paymentEntered && paymentSummary.amountPaid < orderTotals.amount) {
-                throw new Error(`Customer payment is short by ${String.fromCharCode(8369)}${formatCurrency(paymentSummary.balanceDue)}.`);
-            }
 
             await db.runTransaction(async transaction => {
                 const reportDoc = await transaction.get(reportRef);
@@ -5307,9 +5353,9 @@ td.name, th.name { text-align: left; width: 22%; }
                     id: orderId,
                     date: todayDateString,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    amountPaid: paymentSummary.paymentEntered ? paymentSummary.amountPaid : 0,
-                    paymentEntered: paymentSummary.paymentEntered,
-                    changeDue: paymentSummary.changeDue,
+                    amountPaid: submitPayment.amountPaid,
+                    paymentEntered: true,
+                    changeDue: submitPayment.changeDue,
                     items: posCart.map(item => ({
                         productId: item.productId,
                         name: item.name,
@@ -5332,9 +5378,9 @@ td.name, th.name { text-align: left; width: 22%; }
                 createdAt: new Date().toISOString(),
                 items: posCart.map(item => ({ ...item })),
                 total: orderTotals.amount,
-                amountPaid: paymentSummary.paymentEntered ? paymentSummary.amountPaid : 0,
-                paymentEntered: paymentSummary.paymentEntered,
-                changeDue: paymentSummary.changeDue,
+                amountPaid: submitPayment.amountPaid,
+                paymentEntered: true,
+                changeDue: submitPayment.changeDue,
                 storeName: printerSettings.storeName,
                 printerName: printerSettings.printerName,
                 paperWidth: printerSettings.paperWidth,
@@ -5342,8 +5388,6 @@ td.name, th.name { text-align: left; width: 22%; }
             };
 
             clearPosCart();
-            const cashReceivedInput = document.getElementById('pos-cash-received');
-            if (cashReceivedInput) cashReceivedInput.value = '';
             schedulePosRender({ grid: true, cart: true });
             Toast.fire({ icon: 'success', title: `Order ${orderId} saved.` });
 
