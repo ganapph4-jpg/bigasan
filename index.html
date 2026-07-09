@@ -3052,7 +3052,7 @@
     let activeInventoryDateString = '';
     let activeInventoryReportData = null;
     let activeInventoryRenderOptions = null;
-    let activeInventoryIsEditingPast = false;
+
     let futureReportSyncTimeout = null;
     let inventoryDraftValues = {};
     let currentDailyGuideReportData = null;
@@ -3847,6 +3847,23 @@ td.name, th.name { text-align: left; width: 22%; }
             return parseFloat(editInput.value) || 0;
         }
         return toNumber(activeInventoryReportData?.data?.[productId]?.openedSacks, toNumber(row.dataset.openedSacks));
+    }
+
+    function onOpenSacksEditChange(inputElement) {
+        validateNumberInput(inputElement);
+        const row = inputElement.closest('tr');
+        if (!row) return;
+        const originalOpenedSacks = parseFloat(row.dataset.originalOpenedSacks) || 0;
+        const originalEnd = parseFloat(row.dataset.originalEnd) || 0;
+        const newOpenedSacks = parseFloat(inputElement.value) || 0;
+        const delta = newOpenedSacks - originalOpenedSacks;
+        const newEnd = originalEnd - delta;
+        const endInput = row.querySelector('.end-input');
+        if (endInput && !endInput.disabled) {
+            endInput.value = newEnd;
+            endInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        debouncedCalculate(inputElement, activeInventoryDateString);
     }
 
     function ensureLocalTodayReportShell() {
@@ -6146,7 +6163,6 @@ td.name, th.name { text-align: left; width: 22%; }
         activeInventoryDateString = dateString;
         activeInventoryReportData = null;
         activeInventoryRenderOptions = null;
-        activeInventoryIsEditingPast = false;
         clearInventoryDrafts();
         try {
             await startDay(dateString);
@@ -6167,7 +6183,6 @@ td.name, th.name { text-align: left; width: 22%; }
                     const isEditable = true;
                     const inventoryLocked = false;
                     activeInventoryRenderOptions = { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked };
-                    activeInventoryIsEditingPast = true;
                     renderInventoryTable(dateString, reportData, { isEditable, isFinalized, isEditingPast, isToday, inventoryLocked });
                     updateInventoryTable(reportData);
                 } else {
@@ -6290,7 +6305,7 @@ td.name, th.name { text-align: left; width: 22%; }
                         <td><input type="number" class="returns-input" ${!manualInputsEditable ? 'disabled' : ''} oninput="trackInventoryDraft(this, '${dateString}', 'returns'); validateNumberInput(this); debouncedCalculate(this, '${dateString}');"/></td>
                         <td class="!p-1">
                             ${product.category === '25 KG' ? (isEditingPast
-                                ? `<div class="flex flex-col gap-1"><input type="number" min="0" step="1" class="open-sacks-edit-input w-full text-sm" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><div class="text-[11px] text-slate-500">sacks opened</div></div>`
+                                ? `<div class="flex flex-col gap-1"><input type="number" min="0" step="1" class="open-sacks-edit-input w-full text-sm" ${!manualInputsEditable ? 'disabled' : ''} oninput="onOpenSacksEditChange(this);"/><div class="text-[11px] text-slate-500">sacks opened</div></div>`
                                 : `<div class="flex flex-col gap-1"><div class="flex items-center gap-1"><input type="number" min="0" step="1" placeholder="Add" class="open-sacks-add-input flex-grow" ${!manualInputsEditable ? 'disabled' : ''} oninput="validateNumberInput(this);"/><button class="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs no-print" ${!manualInputsEditable ? 'disabled' : ''} onclick="submitOpenSack(this, '${product.id}', '${dateString}')" title="Add to Per Kilo">&rarr;</button></div><div class="text-[11px] text-slate-500">Opened: <span class="open-sacks-total">0</span></div></div>`
                             ) : `<span class="text-slate-400">-</span>`}
                         </td>
@@ -6380,6 +6395,8 @@ td.name, th.name { text-align: left; width: 22%; }
             }
             const openSacksEditInput = row.querySelector('.open-sacks-edit-input');
             if (openSacksEditInput) {
+                row.dataset.originalOpenedSacks = String(toNumber(data.openedSacks, 0));
+                row.dataset.originalEnd = String(toNumber(data.end, 0));
                 updateInputValue(row, '.open-sacks-edit-input', toNumber(data.openedSacks, 0));
             }
             
@@ -6819,9 +6836,7 @@ td.name, th.name { text-align: left; width: 22%; }
         const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
         const end = parseFloat(row.querySelector('.end-input').value) || 0;
 
-        const currentOpenedSacks = activeInventoryDateString === dateString
-            ? (activeInventoryReportData?.data?.[productId]?.openedSacks || 0)
-            : ((await db.collection('reports').doc(dateString).get()).data()?.data?.[productId]?.openedSacks || 0);
+        const currentOpenedSacks = getOpenedSacksForInventoryRow(row);
 
 
         const availableStockIncludingNew = begin + newStock - currentOpenedSacks - returns;
@@ -7142,19 +7157,19 @@ td.name, th.name { text-align: left; width: 22%; }
                     }
 
                     const currentEnd = parseFloat(updatePayload[`data.${productId}.end`]) || 0;
-                    updatePayload[`data.${productId}.end`] = parseFloat((currentEnd + delta).toFixed(2));
+                    updatePayload[`data.${productId}.end`] = parseFloat((currentEnd - delta).toFixed(2));
 
                     const targetNewStock = parseFloat(updatePayload[`data.${targetProduct.id}.newStock`]) || toNumber(activeInventoryReportData.data[targetProduct.id]?.newStock, 0);
                     const targetEnd = parseFloat(updatePayload[`data.${targetProduct.id}.end`]) || toNumber(activeInventoryReportData.data[targetProduct.id]?.end, 0);
 
                     const kiloDelta = delta * 25;
-                    if (targetNewStock - kiloDelta < 0 || targetEnd - kiloDelta < 0) {
-                        await Swal.fire('Error', `Cannot reduce opened sacks for ${product.name} by ${Math.abs(delta)} — Per Kilo stock would go negative.`, 'error');
+                    if (currentEnd - delta < 0) {
+                        await Swal.fire('Error', `Cannot open ${formatQuantity(Math.abs(delta))} more sack(s) for ${product.name} — only ${formatQuantity(currentEnd)} sack(s) available.`, 'error');
                         return;
                     }
 
-                    updatePayload[`data.${targetProduct.id}.newStock`] = parseFloat((targetNewStock - kiloDelta).toFixed(2));
-                    updatePayload[`data.${targetProduct.id}.end`] = parseFloat((targetEnd - kiloDelta).toFixed(2));
+                    updatePayload[`data.${targetProduct.id}.newStock`] = parseFloat((targetNewStock + kiloDelta).toFixed(2));
+                    updatePayload[`data.${targetProduct.id}.end`] = parseFloat((targetEnd + kiloDelta).toFixed(2));
                 }
             }
 
@@ -7173,9 +7188,9 @@ td.name, th.name { text-align: left; width: 22%; }
                     const editInput = row.querySelector('.open-sacks-edit-input');
                     activeInventoryReportData.data[productId] = {
                         ...currentItem,
-                        newStock: parseFloat(row.querySelector('.new-stock-input')?.value) || 0,
-                        returns: parseFloat(row.querySelector('.returns-input')?.value) || 0,
-                        end: parseFloat(row.querySelector('.end-input')?.value) || 0,
+                        newStock: parseFloat(updatePayload[`data.${productId}.newStock`]) ?? parseFloat(row.querySelector('.new-stock-input')?.value) || 0,
+                        returns: parseFloat(updatePayload[`data.${productId}.returns`]) ?? parseFloat(row.querySelector('.returns-input')?.value) || 0,
+                        end: parseFloat(updatePayload[`data.${productId}.end`]) ?? parseFloat(row.querySelector('.end-input')?.value) || 0,
                         openedSacks: editInput && !editInput.disabled ? parseFloat(editInput.value) || 0 : currentItem.openedSacks
                     };
                 });
