@@ -3861,9 +3861,15 @@ td.name, th.name { text-align: left; width: 22%; }
         const endInput = row.querySelector('.end-input');
         if (endInput && !endInput.disabled) {
             endInput.value = newEnd;
-            endInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        debouncedCalculate(inputElement, activeInventoryDateString);
+        const begin = parseFloat(row.querySelector('.begin-val').value) || 0;
+        const newStock = parseFloat(row.querySelector('.new-stock-input').value) || 0;
+        const returns = parseFloat(row.querySelector('.returns-input').value) || 0;
+        const sold = begin + newStock - newOpenedSacks - returns - newEnd;
+        const soldInput = row.querySelector('.sold-val');
+        if (soldInput) soldInput.value = sold;
+        row.dataset.openedSacks = String(newOpenedSacks);
+        recalculateAndRenderAllTotals();
     }
 
     function ensureLocalTodayReportShell() {
@@ -7188,9 +7194,9 @@ td.name, th.name { text-align: left; width: 22%; }
                     const editInput = row.querySelector('.open-sacks-edit-input');
                     activeInventoryReportData.data[productId] = {
                         ...currentItem,
-                        newStock: parseFloat(updatePayload[`data.${productId}.newStock`]) ?? parseFloat(row.querySelector('.new-stock-input')?.value) || 0,
-                        returns: parseFloat(updatePayload[`data.${productId}.returns`]) ?? parseFloat(row.querySelector('.returns-input')?.value) || 0,
-                        end: parseFloat(updatePayload[`data.${productId}.end`]) ?? parseFloat(row.querySelector('.end-input')?.value) || 0,
+                        newStock: parseFloat(updatePayload[`data.${productId}.newStock`]) ?? (parseFloat(row.querySelector('.new-stock-input')?.value) || 0),
+                        returns: parseFloat(updatePayload[`data.${productId}.returns`]) ?? (parseFloat(row.querySelector('.returns-input')?.value) || 0),
+                        end: parseFloat(updatePayload[`data.${productId}.end`]) ?? (parseFloat(row.querySelector('.end-input')?.value) || 0),
                         openedSacks: editInput && !editInput.disabled ? parseFloat(editInput.value) || 0 : currentItem.openedSacks
                     };
                 });
