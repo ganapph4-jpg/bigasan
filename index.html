@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-dayjs-3@latest/dist/chartjs-adapter-dayjs-3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 
+
   <!-- FIREBASE SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -811,21 +812,21 @@
 
     .pos-category-tabs {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.75rem;
-      margin-bottom: 1rem;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
     }
 
     .pos-category-btn {
       border: 1px solid #cbd5e1;
       background: #fff;
       color: #334155;
-      border-radius: 14px;
-      padding: 1rem 1.05rem;
-      font-size: 0.98rem;
-      font-weight: 800;
+      border-radius: 10px;
+      padding: 0.45rem 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 700;
       line-height: 1.15;
-      min-height: 54px;
+      min-height: 34px;
       transition: all 0.2s ease;
     }
 
@@ -855,6 +856,78 @@
       opacity: 0.6;
       border-style: dashed;
     }
+
+    .pos-category-btn--open-sacks {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: #fcd34d;
+    }
+    .pos-category-btn--open-sacks.active {
+      background: #f59e0b;
+      color: #fff;
+      border-color: #f59e0b;
+    }
+
+    .pos-opensacks-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .pos-opensacks-form {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pos-opensacks-input {
+      flex: 1;
+      min-width: 0;
+      padding: 4px 6px;
+      font-size: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      outline: none;
+      text-align: center;
+    }
+    .pos-opensacks-input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+
+    .pos-opensacks-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      background: #f59e0b;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .pos-opensacks-btn:hover { background: #d97706; }
+    .pos-opensacks-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pos-opensacks-btn--done {
+      background: #16a34a !important;
+      pointer-events: none;
+    }
+
+    .pos-opensacks-edit-btn {
+      width: 100%;
+      padding: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #64748b;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .pos-opensacks-edit-btn:hover { background: #e2e8f0; color: #334155; }
+    .pos-opensacks-edit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .open-sacks-grid {
       display: grid;
@@ -933,6 +1006,43 @@
       color: #1d4ed8;
       font-size: 0.75rem;
       font-weight: 800;
+      transition: background 0.15s, color 0.15s;
+    }
+    .pos-stock-pill--added {
+      background: transparent !important;
+      color: #16a34a !important;
+      border: 1px solid #16a34a !important;
+    }
+
+    .pos-added-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 16px;
+      z-index: 10;
+      pointer-events: none;
+      animation: pos-added-fade 0.7s ease forwards;
+    }
+    .pos-added-overlay span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #16a34a;
+      background: #fff;
+      border: 2px solid #16a34a;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.2);
+    }
+    @keyframes pos-added-fade {
+      0% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; }
     }
 
     .rice-name-badge {
@@ -991,14 +1101,14 @@
     }
 
     .pos-cart-header-title {
-      font-size: 1rem;
+      font-size: 1.2rem;
       font-weight: 800;
       color: #0f172a;
       line-height: 1.2;
     }
 
     .pos-cart-header-note {
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       color: #64748b;
       margin-top: 0.2rem;
     }
@@ -1023,20 +1133,20 @@
     }
 
     .pos-cart-item-name {
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       font-weight: 900;
       color: #0f172a;
       letter-spacing: 0.01em;
     }
 
     .pos-cart-item-meta {
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: #2563eb;
     }
 
     .pos-cart-item-total {
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 900;
       color: #dc2626;
     }
@@ -1065,18 +1175,18 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-      font-size: 0.82rem;
+      font-size: 0.92rem;
       color: #64748b;
     }
 
     .pos-summary-row.total-row {
-      font-size: 1rem;
+      font-size: 1.15rem;
       font-weight: 800;
       color: #0f172a;
     }
 
     .pos-summary-row.change-row {
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: #047857;
     }
@@ -1145,8 +1255,8 @@
     }
 
     .pos-primary-action {
-      min-height: 42px;
-      font-size: 0.92rem;
+      min-height: 52px;
+      font-size: 1.05rem;
       font-weight: 800;
     }
 
@@ -1209,25 +1319,139 @@
     }
 
     body.pos-focus-mode {
-      padding: 0.45rem;
+      padding: 0;
+      overflow: hidden;
     }
 
     body.pos-focus-mode #dashboard-view {
-      max-width: calc(100vw - 8px) !important;
-      margin: 0 auto;
+      max-width: 100vw !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      margin: 0 !important;
+      padding: 0.5rem !important;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
 
     body.pos-focus-mode #dashboard-view .pos-layout {
-      grid-template-columns: minmax(0, 1fr) 285px;
-      gap: 0.75rem;
+      display: grid;
+      grid-template-columns: 1fr clamp(260px, 28vw, 380px);
+      gap: 0.6rem;
+      flex: 1;
+      min-height: 0;
+      height: 0;
     }
 
     body.pos-focus-mode #dashboard-view .pos-stage {
-      padding: 0.85rem;
+      padding: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-stage > *:not(.pos-product-grid) {
+      flex-shrink: 0;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-product-grid {
+      flex: 1;
+      min-height: 0;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(160px, 20vw, 240px), 1fr));
+      gap: 0.6rem;
+      align-content: start;
+      padding-bottom: 0.5rem;
+      scrollbar-width: thin;
+      scrollbar-color: #94a3b8 #f1f5f9;
+    }
+    body.pos-focus-mode #dashboard-view .pos-product-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+    body.pos-focus-mode #dashboard-view .pos-product-grid::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+    body.pos-focus-mode #dashboard-view .pos-product-grid::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 3px;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-product-card {
+      padding: 0.65rem;
+      border-radius: 14px;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-tap-shell {
+      padding: 0.65rem;
+    }
+
+    body.pos-focus-mode #dashboard-view .rice-name-badge {
+      font-size: clamp(0.95rem, 1.6vw, 1.3rem);
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-selling-price-value {
+      font-size: clamp(1rem, 1.8vw, 1.4rem);
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-stock-pill,
+    body.pos-focus-mode #dashboard-view .pos-card-category,
+    body.pos-focus-mode #dashboard-view .pos-cart-count {
+      font-size: clamp(0.6rem, 0.9vw, 0.75rem);
     }
 
     body.pos-focus-mode #dashboard-view .pos-cart {
       top: 0;
+      display: flex;
+      flex-direction: column;
+      max-height: 100vh;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-cart-items {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      max-height: none;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-cart-summary {
+      flex-shrink: 0;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-live-note {
+      display: none;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-toolbar {
+      flex-shrink: 0;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-focus-btn {
+      min-width: 90px;
+      min-height: 36px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 8px;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-category-tabs {
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    body.pos-focus-mode #dashboard-view .pos-category-btn {
+      padding: 0.65rem 0.6rem;
+      font-size: clamp(0.85rem, 1.3vw, 1.1rem);
+      min-height: 50px;
+      font-weight: 800;
+      border-radius: 12px;
     }
 
     .pos-search-shell {
@@ -1776,158 +2000,38 @@
 
     @media (min-width: 900px) and (orientation: landscape) {
       body.pos-focus-mode #dashboard-view .pos-layout {
-        grid-template-columns: minmax(0, 1fr) 320px;
-        gap: 1rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-stage {
-        padding: 1rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-cart {
-        padding: 0.95rem;
-        border-radius: 18px;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-toolbar {
-        gap: 0.8rem;
-        margin-bottom: 0.8rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-search-shell {
-        padding: 0.78rem 0.95rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-search-shell input,
-      body.pos-focus-mode #dashboard-view .pos-search-hint {
-        font-size: 0.92rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-category-tabs {
-        gap: 0.6rem;
-        margin-bottom: 0.8rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-category-btn {
-        padding: 0.92rem 0.72rem;
-        font-size: 0.98rem;
-        min-height: 54px;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-product-grid {
-        grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
-        gap: 0.62rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-product-card {
-        min-height: 148px;
-        padding: 0.62rem;
-        border-radius: 16px;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-tap-shell {
-        padding: 0.62rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .rice-name-badge {
-        font-size: 1.18rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-selling-price-value {
-        font-size: 1.28rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-stock-pill,
-      body.pos-focus-mode #dashboard-view .pos-card-category,
-      body.pos-focus-mode #dashboard-view .pos-cart-count {
-        font-size: 0.68rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-live-note {
-        margin-top: 0.8rem;
-        padding: 0.72rem 0.82rem;
-        font-size: 0.82rem;
+        grid-template-columns: 1fr clamp(280px, 28vw, 400px);
+        gap: 0.7rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-cart-header-title {
-        font-size: 1rem;
+        font-size: 1.2rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-cart-header-note,
       body.pos-focus-mode #dashboard-view .pos-cart-clear-btn {
-        font-size: 0.78rem;
+        font-size: 0.85rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-cart-items {
-        max-height: 250px;
-        gap: 0.55rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-cart-item {
-        padding: 0.68rem;
+        gap: 0.5rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-cart-item-name {
-        font-size: 0.92rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-cart-item-meta {
-        font-size: 0.76rem;
+        font-size: 1.05rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-cart-item-total {
-        font-size: 1rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-cart-qty-input {
-        width: 70px;
-        min-height: 34px;
-        font-size: 0.9rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-summary-row {
-        font-size: 0.8rem;
+        font-size: 1.1rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-summary-row.total-row {
-        font-size: 0.96rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-summary-row.change-row {
-        font-size: 0.92rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-change-value {
-        font-size: 1.28rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-payment-shell {
-        padding: 0.68rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-payment-label,
-      body.pos-focus-mode #dashboard-view .pos-payment-note {
-        font-size: 0.76rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-quick-cash-btn {
-        min-height: 36px;
-        font-size: 0.8rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-payment-shell input {
-        min-height: 38px;
-        font-size: 0.88rem;
+        font-size: 1.15rem;
       }
 
       body.pos-focus-mode #dashboard-view .pos-primary-action {
-        min-height: 42px;
-        font-size: 0.9rem;
-      }
-
-      body.pos-focus-mode #dashboard-view .pos-secondary-action {
-        min-height: 36px;
-        font-size: 0.78rem;
+        min-height: 52px;
+        font-size: 1.05rem;
       }
     }
 
@@ -1985,6 +2089,23 @@
       
       .card {
         margin-bottom: 16px;
+      }
+
+      body.pos-focus-mode #dashboard-view .pos-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+
+      body.pos-focus-mode #dashboard-view .pos-product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      }
+
+      body.pos-focus-mode #dashboard-view .pos-category-tabs {
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      body.pos-focus-mode #dashboard-view .pos-cart {
+        max-height: 40vh;
       }
     }
     
@@ -2090,12 +2211,6 @@
       <div class="pos-layout">
         <section class="pos-stage">
           <div class="pos-toolbar">
-            <div class="pos-search-shell">
-              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <input id="pos-search-input" type="text" placeholder="Search rice name" oninput="setPosSearchQuery(this.value)">
-              <button onclick="clearPosSearch()" class="text-sm text-slate-500 hover:text-red-600">Clear</button>
-              <span class="pos-search-hint">Touch a product to add it fast</span>
-            </div>
             <div class="pos-view-controls" aria-label="Ordering display controls">
               <button type="button" id="pos-focus-toggle-btn" class="pos-focus-btn" onclick="togglePosFocusMode()" title="Show only ordering screen">Focus Mode</button>
             </div>
@@ -2106,6 +2221,7 @@
             <button id="pos-category-10 KG" class="pos-category-btn" onclick="setPosCategory('10 KG')">10 KG</button>
             <button id="pos-category-5 KG" class="pos-category-btn" onclick="setPosCategory('5 KG')">5 KG</button>
             <button id="pos-category-Per Kilo" class="pos-category-btn" onclick="setPosCategory('Per Kilo')">Per Kilo</button>
+            <button id="pos-category-Open Sacks" class="pos-category-btn pos-category-btn--open-sacks" onclick="setPosCategory('Open Sacks')">Open Sacks</button>
           </div>
 
           <div id="pos-products-grid" class="pos-product-grid">
@@ -2424,7 +2540,7 @@
       <div class="p-4 text-center text-slate-500"><div class="loader" role="status" aria-label="Loading orders"></div></div>
     </div>
   </div>
-  
+
   <!-- Settings Panel -->
   <div id="settings-panel" class="fixed top-0 right-0 h-full w-full max-w-5xl bg-white shadow-lg z-50 overflow-hidden no-print" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
     <div class="flex justify-between items-center mb-2 p-4 border-b">
@@ -2934,7 +3050,49 @@
       </div>
       <div class="flex justify-center gap-2 mt-6">
         <button id="receipt-preview-reprint-btn" onclick="reprintReceiptFromPreview()" class="btn-primary">Reprint to Thermal Printer</button>
+        <button onclick="printQrReceiptFromPreview()" class="btn-secondary bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100">Print QR Receipt</button>
         <button onclick="closeReceiptPreviewModal()" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cash Pull-out Modal -->
+  <div id="cash-pullout-modal-overlay" class="quick-modal-overlay no-print">
+    <div class="quick-modal-content max-w-md">
+      <div class="text-center mb-4">
+        <h3 id="cash-pullout-modal-title" class="text-xl font-bold text-slate-800">Cash Pull-out</h3>
+        <p class="text-sm text-slate-500">Please count money.</p>
+      </div>
+      <div class="space-y-4">
+        <div class="p-3 bg-slate-50 rounded-lg border">
+          <div class="text-sm text-slate-500">Total Sales (system)</div>
+          <div id="cash-pullout-total-sales" class="text-2xl font-bold text-slate-800">₱0.00</div>
+        </div>
+        <div id="cash-pullout-previous-section" class="hidden p-3 bg-slate-50 rounded-lg border">
+          <div class="text-sm text-slate-500">Already pulled out (10:00 AM)</div>
+          <div id="cash-pullout-previous-amount" class="text-xl font-bold text-slate-800">₱0.00</div>
+        </div>
+        <div id="cash-pullout-since-last-section" class="hidden p-3 bg-slate-50 rounded-lg border">
+          <div class="text-sm text-slate-500">Sales since last pull-out</div>
+          <div id="cash-pullout-sales-since-last" class="text-xl font-bold text-slate-800">₱0.00</div>
+        </div>
+        <div>
+          <label for="cash-pullout-actual-money" class="block text-sm font-medium text-slate-700 mb-1">Actual money counted</label>
+          <input id="cash-pullout-actual-money" type="number" step="0.01" min="0" class="border border-slate-300 p-2.5 rounded-md w-full text-base" placeholder="0.00" oninput="updateCashPulloutRemaining()">
+        </div>
+        <div id="cash-pullout-discrepancy" class="hidden p-3 rounded-lg border text-sm font-medium"></div>
+        <div>
+          <label for="cash-pullout-amount-input" class="block text-sm font-medium text-slate-700 mb-1">Amount to pull out</label>
+          <input id="cash-pullout-amount-input" type="number" step="0.01" min="0" class="border border-slate-300 p-2.5 rounded-md w-full text-base" placeholder="0.00" oninput="updateCashPulloutRemaining()">
+        </div>
+        <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+          <div class="text-sm text-green-700 font-medium">Remaining money</div>
+          <div id="cash-pullout-remaining" class="text-xl font-bold text-green-700">₱0.00</div>
+        </div>
+      </div>
+      <div class="flex justify-center gap-2 mt-6">
+        <button id="cash-pullout-confirm-btn" onclick="confirmCashPullout()" class="btn-primary">Confirm Pull-out</button>
+        <button onclick="closeCashPulloutModal()" class="btn-secondary">Cancel</button>
       </div>
     </div>
   </div>
@@ -3002,7 +3160,7 @@
 
     // --- GLOBAL CONSTANTS & VARIABLES ---
 
-    const APP_VERSION = 1.4; // Updated version for new UI
+    const APP_VERSION = 1.5;
     const RICE_CATEGORIES = ['25 KG', '10 KG', '5 KG', 'Per Kilo'];
     const HASH_SALT = 'rice-inventory-management-salt'; 
     const COLLECTIONS_TO_BACKUP = ['products', 'reports', 'expenses', 'settings'];
@@ -3046,6 +3204,13 @@
     let productsRealtimeListener = null;
     let orderLogsRealtimeListener = null;
     let nightOrdersRealtimeListener = null;
+
+    let cashPulloutCheckInterval = null;
+    let activeCashPulloutTime = null;
+    const CASH_PULLOUT_SCHEDULES = [
+        { time: '10:00', label: '10:00 AM' },
+        { time: '16:00', label: '4:00 PM' }
+    ];
     let dashboardListeners = [];
     let currentDashboardReport = null;
     let selectedOrderLogsDate = '';
@@ -3126,6 +3291,15 @@
                 return 'Could not find the requested document.';
             default:
                 return 'An unexpected error occurred. Please try again.';
+        }
+    }
+
+    async function deleteDocsInBatches(docs) {
+        const batchSize = 500;
+        for (let i = 0; i < docs.length; i += batchSize) {
+            const batch = db.batch();
+            docs.slice(i, i + batchSize).forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
         }
     }
 
@@ -3226,6 +3400,9 @@
 
             // Start midnight check
             setInterval(checkMidnightAndRefresh, 60000); // Check every minute
+
+            // Start cash pull-out scheduler
+            startCashPulloutScheduler();
             
             showView('dashboard-view');
             applyPosFocusMode();
@@ -3801,8 +3978,9 @@ td.name, th.name { text-align: left; width: 22%; }
     }
 
     function getPosProductsByCategory() {
+        const targetCategory = posSelectedCategory === 'Open Sacks' ? '25 KG' : posSelectedCategory;
         return shopProducts
-            .filter(product => product.category === posSelectedCategory)
+            .filter(product => product.category === targetCategory)
             .filter(product => !posSearchQuery || product.name.toLowerCase().includes(posSearchQuery))
             .sort((a, b) => a.name.localeCompare(b.name));
     }
@@ -3881,6 +4059,7 @@ td.name, th.name { text-align: left; width: 22%; }
                 cashOnHand: 0,
                 discountAmount: 0,
                 gcashPayment: 0,
+                expensesAmount: 0,
                 isFinalized: false,
                 inventoryLocked: true
             };
@@ -4030,6 +4209,37 @@ td.name, th.name { text-align: left; width: 22%; }
             const price = getProductSellingPrice(product);
             const isOutOfStock = freeStock <= 0;
             const categoryColorClass = getCategoryColorClass(product.category);
+
+            if (posSelectedCategory === 'Open Sacks') {
+                const report = currentDashboardReport;
+                const productReport = report?.data?.[product.id] || {};
+                const matchingPerKilo = findMatchingPerKiloProduct(product);
+                const perKiloReport = matchingPerKilo ? (report?.data?.[matchingPerKilo.id] || {}) : null;
+                const openedSacks = productReport.openedSacks || 0;
+                return `
+                    <div class="pos-product-card pos-product-card--open-sacks">
+                        <div class="pos-tap-shell category-25kg">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <div class="rice-name-badge category-25kg">${escapeHtml(product.name)}</div>
+                                <div class="text-right text-xs text-slate-500">
+                                    <div>Available: <span class="font-semibold text-slate-700">${formatQuantity(freeStock)}</span></div>
+                                    <div>Opened: <span class="font-semibold text-slate-700">${formatQuantity(openedSacks)}</span></div>
+                                </div>
+                            </div>
+                            <div class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 mb-2 text-xs">
+                                ${matchingPerKilo
+                                    ? `Per Kilo stock: <span class="font-bold text-slate-900">${formatQuantity(perKiloReport?.end || 0)} kg</span>`
+                                    : '<span class="text-red-600 font-semibold">No matching Per Kilo product found.</span>'}
+                            </div>
+                            <div class="flex items-center gap-1 mb-1">
+                                <input id="pos-opensacks-${product.id}" type="number" min="1" step="1" placeholder="How many sacks to open" class="pos-opensacks-input" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()" />
+                                <button class="pos-opensacks-btn" id="pos-opensacks-btn-${product.id}" onclick="event.stopPropagation(); submitOpenSackFromPos('${product.id}')" ${!matchingPerKilo ? 'disabled' : ''}>Open Sack</button>
+                            </div>
+                            <button class="pos-opensacks-edit-btn" onclick="event.stopPropagation(); editOpenSacksEntry('${product.id}')" ${!matchingPerKilo ? 'disabled' : ''}>Edit</button>
+                        </div>
+                    </div>`;
+            }
+
             return `
                 <div class="pos-product-card ${isOutOfStock ? 'out-of-stock' : ''}">
                     <div class="pos-tap-shell ${categoryColorClass}" role="button" tabindex="0" onclick="quickAddPosProduct('${product.id}', this)" onkeydown="handlePosProductCardKey(event, '${product.id}', this)">
@@ -4163,6 +4373,23 @@ td.name, th.name { text-align: left; width: 22%; }
         }
 
         addProductToPosCart(productId);
+        flashPosCardAdded(productId);
+    }
+
+    function flashPosCardAdded(productId) {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const card = document.querySelector(`#pos-products-grid .pos-tap-shell[onclick*="'${productId}'"]`);
+                if (!card) return;
+                const parent = card.closest('.pos-product-card');
+                if (parent) parent.style.position = 'relative';
+                const overlay = document.createElement('div');
+                overlay.className = 'pos-added-overlay';
+                overlay.innerHTML = '<span>\u2713 Added</span>';
+                card.appendChild(overlay);
+                setTimeout(() => overlay.remove(), 750);
+            });
+        });
     }
 
     function handlePosProductCardKey(event, productId, element = null) {
@@ -4989,13 +5216,17 @@ td.name, th.name { text-align: left; width: 22%; }
         return storeName && storeName !== DEFAULT_PRINTER_SETTINGS.storeName ? storeName : '';
     }
 
-    function buildBluetoothReceiptText(order) {
+    function buildBluetoothReceiptText(order, copyLabel = '') {
         const lines = [];
         const storeName = getCompactReceiptStoreName(order);
+        if (copyLabel) {
+            lines.push(`*** ${copyLabel} ***`);
+        }
         if (storeName) {
             lines.push(storeName);
         }
         lines.push(dayjs(order.createdAt).format('MM/DD/YYYY h:mm A'));
+        lines.push(`ORDER ID: ${order.id}`);
         lines.push('------------------------');
 
         order.items.forEach(item => {
@@ -5009,11 +5240,6 @@ td.name, th.name { text-align: left; width: 22%; }
         if (order.paymentEntered) {
             lines.push(`CASH ${formatCurrency(order.amountPaid)}`);
             lines.push(`CHANGE ${formatCurrency(order.changeDue || 0)}`);
-        }
-        const footerNote = order.footerNote || printerSettings.footerNote || 'Thank you';
-        if (footerNote) {
-            lines.push('------------------------');
-            lines.push(footerNote);
         }
         lines.push('');
         return lines.join('\n');
@@ -5051,8 +5277,8 @@ td.name, th.name { text-align: left; width: 22%; }
         }
     }
 
-    async function printReceiptViaBluetooth(order) {
-        const text = buildBluetoothReceiptText(order);
+    async function printReceiptViaBluetooth(order, copyLabel = '') {
+        const text = buildBluetoothReceiptText(order, copyLabel);
 
         if (hasAndroidPrinterBridge()) {
             const bridge = getAndroidPrinterBridge();
@@ -5086,10 +5312,12 @@ td.name, th.name { text-align: left; width: 22%; }
     async function printSavedOrderInBackground(order) {
         if (!printerSettings.autoPrint) return;
         try {
-            const printed = await printReceiptViaBluetooth(order);
-            if (!printed) {
+            const printed1 = await printReceiptViaBluetooth(order, 'CUSTOMER');
+            if (!printed1) {
                 throw new Error('Printer is not ready.');
             }
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            await printReceiptViaBluetooth(order, 'BANTAY');
         } catch (error) {
             console.error('Bluetooth print failed:', error);
             printerConnectionStatus = 'Order saved, but printer needs reconnect before the next print.';
@@ -5139,6 +5367,7 @@ td.name, th.name { text-align: left; width: 22%; }
     <div class="center">
       ${compactStoreName ? `<div style="font-size:11px;font-weight:bold;">${escapeHtml(compactStoreName)}</div>` : ''}
       <div class="muted">${escapeHtml(dayjs(order.createdAt).format('MM/DD/YYYY h:mm A'))}</div>
+      <div class="muted" style="font-size:8px;">ORDER ${escapeHtml(order.id)}</div>
     </div>
     <div class="divider"></div>
     ${itemsHtml}
@@ -5264,18 +5493,18 @@ td.name, th.name { text-align: left; width: 22%; }
                     </table>
                 </div>
                 <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:14px">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-                        <span style="font-size:16px;font-weight:600;color:#374151">Total</span>
-                        <span style="font-size:22px;font-weight:700;color:#059669">${String.fromCharCode(8369)}${formatCurrency(orderTotals.amount)}</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <span style="font-size:20px;font-weight:700;color:#374151">Total</span>
+                        <span style="font-size:30px;font-weight:800;color:#059669">${String.fromCharCode(8369)}${formatCurrency(orderTotals.amount)}</span>
                     </div>
                     <div style="margin-bottom:10px">
-                        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px">Customer Payment</label>
-                        <input type="number" id="swal-payment-input" value="${startingAmount}" step="0.01" min="0"
-                            style="width:100%;padding:12px 14px;font-size:22px;font-weight:700;color:#111;border:2px solid #d1d5db;border-radius:8px;box-sizing:border-box;outline:none">
+                        <label style="display:block;font-size:16px;font-weight:700;color:#374151;margin-bottom:8px">Customer Payment</label>
+                        <input type="number" id="swal-payment-input" value="" placeholder="0.00" step="0.01" min="0"
+                            style="width:100%;padding:16px 18px;font-size:32px;font-weight:800;color:#111;border:3px solid #d1d5db;border-radius:12px;box-sizing:border-box;outline:none;text-align:right">
                     </div>
-                    <div id="swal-change-area" style="text-align:center;padding:14px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0">
-                        <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Change</div>
-                        <div id="swal-change-display" style="font-size:38px;font-weight:800;color:#dc2626">${String.fromCharCode(8369)}${formatCurrency(paymentSummary.changeDue)}</div>
+                    <div id="swal-change-area" style="text-align:center;padding:20px;border-radius:12px;background:#f0fdf4;border:2px solid #bbf7d0">
+                        <div style="font-size:16px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Change</div>
+                        <div id="swal-change-display" style="font-size:52px;font-weight:900;color:#dc2626">${String.fromCharCode(8369)}${formatCurrency(paymentSummary.changeDue)}</div>
                     </div>
                 </div>
             </div>`,
@@ -5473,6 +5702,33 @@ td.name, th.name { text-align: left; width: 22%; }
         loaderStatus.textContent = 'Loading application...';
     }
 
+    function startCashPulloutScheduler() {
+        if (cashPulloutCheckInterval) return;
+        cashPulloutCheckInterval = setInterval(() => {
+            checkCashPulloutSchedule();
+        }, 60000);
+        checkCashPulloutSchedule();
+    }
+
+    function checkCashPulloutSchedule() {
+        if (!todayDateString) return;
+        const now = dayjs();
+        const currentTime = now.format('HH:mm');
+        const reportRef = db.collection('reports').doc(todayDateString);
+        reportRef.get().then(doc => {
+            const report = doc.exists ? doc.data() : null;
+            const pullouts = Array.isArray(report?.cashPullouts) ? report.cashPullouts : [];
+            for (const schedule of CASH_PULLOUT_SCHEDULES) {
+                if (currentTime === schedule.time && !pullouts.some(p => p.time === schedule.time)) {
+                    openCashPulloutModal(schedule.time);
+                    break;
+                }
+            }
+        }).catch(error => {
+            console.error('Cash pull-out schedule check failed:', error);
+        });
+    }
+
     function syncProductsIntoActiveViews() {
         renderDashboardPos(currentDashboardReport);
 
@@ -5601,7 +5857,7 @@ td.name, th.name { text-align: left; width: 22%; }
             };
         });
 
-        const report = { date: dateString, data: newReportData, cashOnHand: 0, discountAmount: 0, gcashPayment: 0, isFinalized: false, inventoryLocked: true };
+        const report = { date: dateString, data: newReportData, cashOnHand: 0, discountAmount: 0, gcashPayment: 0, expensesAmount: 0, isFinalized: false, inventoryLocked: true };
         await reportRef.set(report);
         Toast.fire({ icon: 'info', title: `Started new report for ${dayjs(dateString).format('MMM D')}` });
         return report;
@@ -6544,6 +6800,29 @@ td.name, th.name { text-align: left; width: 22%; }
         if (input) input.value = '';
     }
 
+    async function submitOpenSackFromPos(productId) {
+        const input = document.getElementById(`pos-opensacks-${productId}`);
+        const btn = document.getElementById(`pos-opensacks-btn-${productId}`);
+        const sacksToAdd = parseInt(input?.value, 10) || 0;
+
+        if (sacksToAdd <= 0) {
+            Toast.fire({ icon: 'info', title: 'Enter a positive number of sacks.' });
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '\u2713 Added';
+            btn.classList.add('pos-opensacks-btn--done');
+        }
+
+        await transferOpenSacks(productId, sacksToAdd);
+        if (input) input.value = '';
+
+        await new Promise(r => setTimeout(r, 800));
+        schedulePosRender({ grid: true });
+    }
+
     async function saveOpenSacksCorrection(productId, desiredOpenedSacks, dateString = todayDateString) {
         if (dateString === todayDateString && !(await ensureTodayReportIsEditable('edit opened sacks'))) {
             return false;
@@ -7181,15 +7460,19 @@ td.name, th.name { text-align: left; width: 22%; }
                         continue;
                     }
 
-                    const currentEnd = parseFloat(updatePayload[`data.${productId}.end`]) || 0;
-                    updatePayload[`data.${productId}.end`] = parseFloat((currentEnd - delta).toFixed(2));
-
-                    const targetNewStock = parseFloat(updatePayload[`data.${targetProduct.id}.newStock`]) || toNumber(activeInventoryReportData.data[targetProduct.id]?.newStock, 0);
-                    const targetEnd = parseFloat(updatePayload[`data.${targetProduct.id}.end`]) || toNumber(activeInventoryReportData.data[targetProduct.id]?.end, 0);
+                    const currentEnd = toNumber(updatePayload[`data.${productId}.end`], toNumber(activeInventoryReportData.data[productId]?.end, 0));
+                    const targetNewStock = toNumber(updatePayload[`data.${targetProduct.id}.newStock`], toNumber(activeInventoryReportData.data[targetProduct.id]?.newStock, 0));
+                    const targetEnd = toNumber(updatePayload[`data.${targetProduct.id}.end`], toNumber(activeInventoryReportData.data[targetProduct.id]?.end, 0));
 
                     const kiloDelta = delta * 25;
-                    if (currentEnd - delta < 0) {
-                        await Swal.fire('Error', `Cannot open ${formatQuantity(Math.abs(delta))} more sack(s) for ${product.name} — only ${formatQuantity(currentEnd)} sack(s) available.`, 'error');
+                    if (currentEnd < 0) {
+                        await Swal.fire('Error', `Ending stock for ${product.name} cannot be negative.`, 'error');
+                        return;
+                    }
+
+                    if (targetNewStock + kiloDelta < 0 || targetEnd + kiloDelta < 0) {
+                        const action = delta < 0 ? 'reduce opened sacks' : 'open more sacks';
+                        await Swal.fire('Error', `Cannot ${action} for ${product.name} — not enough Per Kilo stock.`, 'error');
                         return;
                     }
 
@@ -7213,9 +7496,9 @@ td.name, th.name { text-align: left; width: 22%; }
                     const editInput = row.querySelector('.open-sacks-edit-input');
                     activeInventoryReportData.data[productId] = {
                         ...currentItem,
-                        newStock: parseFloat(updatePayload[`data.${productId}.newStock`]) ?? (parseFloat(row.querySelector('.new-stock-input')?.value) || 0),
-                        returns: parseFloat(updatePayload[`data.${productId}.returns`]) ?? (parseFloat(row.querySelector('.returns-input')?.value) || 0),
-                        end: parseFloat(updatePayload[`data.${productId}.end`]) ?? (parseFloat(row.querySelector('.end-input')?.value) || 0),
+                        newStock: toNumber(updatePayload[`data.${productId}.newStock`], parseFloat(row.querySelector('.new-stock-input')?.value) || 0),
+                        returns: toNumber(updatePayload[`data.${productId}.returns`], parseFloat(row.querySelector('.returns-input')?.value) || 0),
+                        end: toNumber(updatePayload[`data.${productId}.end`], parseFloat(row.querySelector('.end-input')?.value) || 0),
                         openedSacks: editInput && !editInput.disabled ? parseFloat(editInput.value) || 0 : currentItem.openedSacks
                     };
                 });
@@ -7285,6 +7568,7 @@ td.name, th.name { text-align: left; width: 22%; }
                 <div class="text-center border-b border-dashed border-slate-300 pb-2 mb-2">
                     ${compactStoreName ? `<div class="text-sm font-bold">${escapeHtml(compactStoreName)}</div>` : ''}
                     <div class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(createdAtLabel)}</div>
+                    <div class="text-[9px] text-slate-500">ORDER ${escapeHtml(order.id)}</div>
                 </div>
                 <div>${itemsHtml}</div>
                 <div class="border-t border-dashed border-slate-300 mt-2 pt-2 space-y-0.5 text-[11px]">
@@ -7333,11 +7617,10 @@ td.name, th.name { text-align: left; width: 22%; }
             }
             const order = normalizeSavedOrderForReceipt(orderDoc.data());
             if (!(await ensurePrinterConnection())) return;
-            const printed = await printReceiptViaBluetooth(order);
-            if (!printed) {
-                throw new Error('Printer is not ready.');
-            }
-            Toast.fire({ icon: 'success', title: `Order ${order.id} reprinted.` });
+            await printReceiptViaBluetooth(order, 'CUSTOMER');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            await printReceiptViaBluetooth(order, 'BANTAY');
+            Toast.fire({ icon: 'success', title: `Order ${order.id} reprinted (2 copies).` });
         } catch (error) {
             console.error('Saved order reprint failed:', error);
             Swal.fire('Reprint Failed', error.message || handleFirestoreError(error), 'error');
@@ -7352,15 +7635,22 @@ td.name, th.name { text-align: left; width: 22%; }
         try {
             await loadPrinterSettings();
             if (!(await ensurePrinterConnection())) return;
-            const printed = await printReceiptViaBluetooth(activeReceiptPreviewOrder);
-            if (!printed) {
-                throw new Error('Printer is not ready.');
-            }
-            Toast.fire({ icon: 'success', title: `Order ${activeReceiptPreviewOrder.id} reprinted.` });
+            await printReceiptViaBluetooth(activeReceiptPreviewOrder, 'CUSTOMER');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            await printReceiptViaBluetooth(activeReceiptPreviewOrder, 'BANTAY');
+            Toast.fire({ icon: 'success', title: `Order ${activeReceiptPreviewOrder.id} reprinted (2 copies).` });
         } catch (error) {
             console.error('Preview reprint failed:', error);
             Swal.fire('Reprint Failed', error.message || handleFirestoreError(error), 'error');
         }
+    }
+
+    function printQrReceiptFromPreview() {
+        if (!activeReceiptPreviewOrder) {
+            Toast.fire({ icon: 'info', title: 'Open a receipt first.' });
+            return;
+        }
+        openReceiptWindow(activeReceiptPreviewOrder, true);
     }
 
     function ensureNightOrdersRealtimeSync() {
@@ -7432,6 +7722,199 @@ td.name, th.name { text-align: left; width: 22%; }
     function showOrderLogs() {
         selectedOrderLogsDate = todayDateString || dayjs().format('YYYY-MM-DD');
         showView('order-logs-view');
+    }
+
+    function calculateTotalCashSales(report) {
+        const dailySummary = calculateDailySummaryFromData(report);
+        return toNumber(dailySummary.totalSales);
+    }
+
+    async function openCashPulloutModal(scheduleTime) {
+        activeCashPulloutTime = scheduleTime;
+        const overlay = document.getElementById('cash-pullout-modal-overlay');
+        const titleEl = document.getElementById('cash-pullout-modal-title');
+        const totalSalesEl = document.getElementById('cash-pullout-total-sales');
+        const previousSection = document.getElementById('cash-pullout-previous-section');
+        const previousAmountEl = document.getElementById('cash-pullout-previous-amount');
+        const sinceLastSection = document.getElementById('cash-pullout-since-last-section');
+        const sinceLastEl = document.getElementById('cash-pullout-sales-since-last');
+        const amountInput = document.getElementById('cash-pullout-amount-input');
+        const remainingEl = document.getElementById('cash-pullout-remaining');
+        if (!overlay) return;
+
+        const schedule = CASH_PULLOUT_SCHEDULES.find(s => s.time === scheduleTime);
+        if (titleEl) titleEl.textContent = `Cash Pull-out — ${schedule?.label || scheduleTime}`;
+
+        try {
+            await startDay(todayDateString);
+            const reportDoc = await db.collection('reports').doc(todayDateString).get();
+            const report = reportDoc.exists ? reportDoc.data() : null;
+            const pullouts = Array.isArray(report?.cashPullouts) ? report.cashPullouts : [];
+            const totalCashSales = calculateTotalCashSales(report);
+            const previousPullout = pullouts.find(p => p.time === '10:00');
+            const previousPulloutAmount = previousPullout ? toNumber(previousPullout.pullOutAmount) : 0;
+            const previousTotalSales = previousPullout ? toNumber(previousPullout.totalCashSales) : 0;
+            const salesSinceLast = Math.max(0, totalCashSales - previousTotalSales);
+
+            if (totalSalesEl) totalSalesEl.textContent = formatPeso(totalCashSales);
+            if (scheduleTime === '16:00') {
+                previousSection?.classList.remove('hidden');
+                if (previousAmountEl) previousAmountEl.textContent = formatPeso(previousPulloutAmount);
+                sinceLastSection?.classList.remove('hidden');
+                if (sinceLastEl) sinceLastEl.textContent = formatPeso(salesSinceLast);
+            } else {
+                previousSection?.classList.add('hidden');
+                sinceLastSection?.classList.add('hidden');
+            }
+
+            const actualMoneyInput = document.getElementById('cash-pullout-actual-money');
+            const discrepancyEl = document.getElementById('cash-pullout-discrepancy');
+            if (actualMoneyInput) {
+                actualMoneyInput.value = '';
+            }
+            if (discrepancyEl) {
+                discrepancyEl.classList.add('hidden');
+                discrepancyEl.textContent = '';
+            }
+            if (amountInput) {
+                amountInput.value = '';
+            }
+            updateCashPulloutRemaining();
+            overlay.classList.add('open');
+        } catch (error) {
+            console.error('Failed to open cash pull-out modal:', error);
+            Swal.fire('Error', 'Failed to load cash pull-out data.', 'error');
+        }
+    }
+
+    function closeCashPulloutModal() {
+        activeCashPulloutTime = null;
+        document.getElementById('cash-pullout-modal-overlay')?.classList.remove('open');
+    }
+
+    function updateCashPulloutRemaining() {
+        const amountInput = document.getElementById('cash-pullout-amount-input');
+        const remainingEl = document.getElementById('cash-pullout-remaining');
+        const totalSalesEl = document.getElementById('cash-pullout-total-sales');
+        const sinceLastEl = document.getElementById('cash-pullout-sales-since-last');
+        const sinceLastSection = document.getElementById('cash-pullout-since-last-section');
+        const actualMoneyInput = document.getElementById('cash-pullout-actual-money');
+        const discrepancyEl = document.getElementById('cash-pullout-discrepancy');
+        if (!amountInput || !remainingEl || !totalSalesEl) return;
+
+        const totalSales = parseMoneyValue(totalSalesEl.textContent);
+        const baseAmount = sinceLastSection && !sinceLastSection.classList.contains('hidden')
+            ? (Number.isFinite(parseMoneyValue(sinceLastEl?.textContent || '0')) ? parseMoneyValue(sinceLastEl?.textContent || '0') : totalSales)
+            : totalSales;
+        const pullOutAmount = parseFloat(amountInput.value) || 0;
+        const remaining = Math.max(0, baseAmount - pullOutAmount);
+        remainingEl.textContent = formatPeso(remaining);
+
+        if (actualMoneyInput && discrepancyEl) {
+            const actualMoney = parseFloat(actualMoneyInput.value);
+            if (!isNaN(actualMoney) && actualMoney > 0) {
+                const diff = actualMoney - baseAmount;
+                discrepancyEl.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-700', 'bg-yellow-50', 'border-yellow-200', 'text-yellow-700', 'bg-green-50', 'border-green-200', 'text-green-700');
+                if (diff === 0) {
+                    discrepancyEl.classList.add('bg-green-50', 'border-green-200', 'text-green-700');
+                    discrepancyEl.textContent = `Intact — system and actual money match (${formatPeso(baseAmount)})`;
+                } else if (diff < 0) {
+                    discrepancyEl.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
+                    discrepancyEl.textContent = `Shortage of ${formatPeso(Math.abs(diff))} — actual money is less than system`;
+                } else {
+                    discrepancyEl.classList.add('bg-yellow-50', 'border-yellow-200', 'text-yellow-700');
+                    discrepancyEl.textContent = `Overage of ${formatPeso(diff)} — actual money is more than system`;
+                }
+            } else {
+                discrepancyEl.classList.add('hidden');
+                discrepancyEl.textContent = '';
+            }
+        }
+    }
+
+    async function confirmCashPullout() {
+        if (!activeCashPulloutTime) return;
+        const amountInput = document.getElementById('cash-pullout-amount-input');
+        const actualMoneyInput = document.getElementById('cash-pullout-actual-money');
+        const pullOutAmount = parseFloat(amountInput?.value) || 0;
+        const actualMoneyCounted = parseFloat(actualMoneyInput?.value) || 0;
+
+        if (actualMoneyCounted <= 0) {
+            Swal.fire('Money Not Counted', 'Please enter the actual money counted before confirming.', 'warning');
+            return;
+        }
+        if (pullOutAmount <= 0) {
+            Swal.fire('Invalid Amount', 'Please enter a valid amount to pull out.', 'warning');
+            return;
+        }
+
+        const totalSalesEl = document.getElementById('cash-pullout-total-sales');
+        const sinceLastEl = document.getElementById('cash-pullout-sales-since-last');
+        const sinceLastSection = document.getElementById('cash-pullout-since-last-section');
+        const totalCashSales = parseMoneyValue(totalSalesEl.textContent);
+        const salesSinceLast = sinceLastSection && !sinceLastSection.classList.contains('hidden')
+            ? parseMoneyValue(sinceLastEl.textContent)
+            : totalCashSales;
+        const baseAmount = salesSinceLast;
+
+        const discrepancy = actualMoneyCounted - baseAmount;
+        if (discrepancy < 0) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Shortage Detected',
+                text: `System says ${formatPeso(baseAmount)} but actual money is ${formatPeso(actualMoneyCounted)}. Shortage of ${formatPeso(Math.abs(discrepancy))}. Proceed anyway?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Proceed',
+                cancelButtonText: 'Cancel'
+            });
+            if (!isConfirmed) return;
+        }
+
+        if (pullOutAmount > actualMoneyCounted) {
+            Swal.fire('Amount Too High', `Pull-out amount (${formatPeso(pullOutAmount)}) cannot exceed actual money counted (${formatPeso(actualMoneyCounted)}).`, 'warning');
+            return;
+        }
+
+        const remaining = Math.max(0, actualMoneyCounted - pullOutAmount);
+
+        try {
+            const reportRef = db.collection('reports').doc(todayDateString);
+            const reportDoc = await reportRef.get();
+            const report = reportDoc.exists ? reportDoc.data() : null;
+            const existingPullouts = Array.isArray(report?.cashPullouts) ? report.cashPullouts : [];
+            if (existingPullouts.some(p => p.time === activeCashPulloutTime)) {
+                const { isConfirmed } = await Swal.fire({
+                    title: 'Replace existing pull-out?',
+                    text: `A ${activeCashPulloutTime} pull-out already exists. Do you want to replace it?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Replace',
+                    cancelButtonText: 'Cancel'
+                });
+                if (!isConfirmed) return;
+            }
+            const newPullout = {
+                time: activeCashPulloutTime,
+                totalCashSales: totalCashSales,
+                salesSinceLastPullOut: activeCashPulloutTime === '16:00' ? salesSinceLast : null,
+                actualMoneyCounted: actualMoneyCounted,
+                discrepancy: discrepancy,
+                pullOutAmount: pullOutAmount,
+                remainingAmount: remaining,
+                pulledBy: 'Owner',
+                verifiedBy: 'Cashier',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            const updatedPullouts = existingPullouts.filter(p => p.time !== activeCashPulloutTime);
+            updatedPullouts.push(newPullout);
+            await reportRef.update({ cashPullouts: updatedPullouts });
+            const pulloutTime = activeCashPulloutTime;
+            closeCashPulloutModal();
+            Toast.fire({ icon: 'success', title: `Cash pull-out ${pulloutTime} recorded.` });
+        } catch (error) {
+            console.error('Cash pull-out save failed:', error);
+            Swal.fire('Error', handleFirestoreError(error), 'error');
+        }
     }
 
     function renderOrderLogsList(orderDocs, dateString = selectedOrderLogsDate) {
@@ -7512,11 +7995,8 @@ td.name, th.name { text-align: left; width: 22%; }
         if (isConfirmed) {
             try {
                 await db.collection('reports').doc(dateString).delete();
-                await db.collection('expenses').where('date', '==', dateString).get().then(snap => {
-                    const batch = db.batch();
-                    snap.forEach(doc => batch.delete(doc.ref));
-                    return batch.commit();
-                });
+                const expensesSnap = await db.collection('expenses').where('date', '==', dateString).get();
+                await deleteDocsInBatches(expensesSnap.docs);
                 Toast.fire({ icon: 'success', title: 'Report deleted!' });
                 showHistory();
             } catch (error) {
@@ -7554,11 +8034,7 @@ td.name, th.name { text-align: left; width: 22%; }
                 const expensesQuery = db.collection('expenses').where('date', '==', todayDateString);
                 const expensesSnapshot = await expensesQuery.get();
                 
-                const batch = db.batch();
-                expensesSnapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                await batch.commit(); 
+                await deleteDocsInBatches(expensesSnapshot.docs);
 
                 await reportRef.delete(); 
                 
@@ -7611,7 +8087,8 @@ td.name, th.name { text-align: left; width: 22%; }
             }
         }
         const discount = toNumber(report?.discountAmount);
-        return { totalSales: totalSales - discount, totalProfit: totalProfit - discount };
+        const expenses = toNumber(report?.expensesAmount);
+        return { totalSales: totalSales - discount - expenses, totalProfit: totalProfit - discount - expenses };
     }
 
     /**
@@ -7698,6 +8175,7 @@ td.name, th.name { text-align: left; width: 22%; }
         reportsSnapshot.forEach(doc => { 
             const report = doc.data(); 
             const discount = report?.discountAmount || 0; 
+            const expenses = report?.expensesAmount || 0;
             
             for (const productId in report.data) { 
                 const item = report.data[productId]; 
@@ -7722,9 +8200,9 @@ td.name, th.name { text-align: left; width: 22%; }
                     productPerformance[productId].profit += metrics.profit; 
                 } 
             } 
-            totalSales -= discount; 
-            totalProfit -= discount; 
-        }); 
+            totalSales -= discount + expenses; 
+            totalProfit -= discount + expenses; 
+        });
         numDays = numDays || 1; 
         document.getElementById('analytics-total-sales').textContent = formatPeso(totalSales); 
         document.getElementById('analytics-total-profit').textContent = formatPeso(totalProfit); 
@@ -7895,6 +8373,7 @@ td.name, th.name { text-align: left; width: 22%; }
         } else if (targetId === 'settings-profit-view') { // NEW LOGIC
             renderSettingsProfitDetails();
             renderSettingsPriceManager(document.getElementById('settings-price-category-select')?.value || '25 KG');
+        } else {
         }
     }
 
@@ -7904,7 +8383,9 @@ td.name, th.name { text-align: left; width: 22%; }
         // Default to showing the first settings view
         showSettingsView('settings-products-view', document.querySelector('.settings-nav-link'));
     }
-    function closeSettingsPanel() { document.getElementById('settings-panel').classList.remove('open'); }
+    function closeSettingsPanel() {
+        document.getElementById('settings-panel').classList.remove('open');
+    }
     function hasAddProductAccess() {
         return addProductAccessExpiresAt > Date.now();
     }
@@ -9233,7 +9714,8 @@ td.name, th.name { text-align: left; width: 22%; }
             setElementTextById('night-profit-total', `${String.fromCharCode(8369)}${formatCurrency(dailySummary.totalProfit)}`);
             document.getElementById('night-recent-orders').innerHTML = orderSummary.orders.slice(0, 6).map(order => {
                 const created = order.createdAt?.toDate ? dayjs(order.createdAt.toDate()).format('h:mm A') : 'Pending time';
-                return `<div class="p-3 rounded-lg bg-slate-50 border flex justify-between gap-3"><div><div class="font-medium text-slate-800">Order ${escapeHtml(order.id || 'Pending')}</div><div class="text-xs text-slate-500">${created} ? ${order.paymentEntered ? `Paid: &#8369;${formatCurrency(order.amountPaid || 0)}` : 'Payment not entered'}</div></div><div class="font-semibold text-slate-800">&#8369;${formatCurrency(order.total || 0)}</div></div>`;
+                const paymentLine = order.paymentEntered ? `Paid: &#8369;${formatCurrency(order.amountPaid || 0)}` : 'Payment not entered';
+                return `<div class="p-3 rounded-lg bg-slate-50 border flex justify-between gap-3"><div><div class="font-medium text-slate-800">Order ${escapeHtml(order.id || 'Pending')}</div><div class="text-xs text-slate-500">${created} | ${paymentLine}</div></div><div class="font-semibold text-slate-800">&#8369;${formatCurrency(order.total || 0)}</div></div>`;
             }).join('') || '<div class="text-slate-400">No orders saved today.</div>';
         } catch (error) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">${handleFirestoreError(error)}</td></tr>`;
@@ -9370,21 +9852,18 @@ td.name, th.name { text-align: left; width: 22%; }
             const todayReportDoc = await db.collection('reports').doc(todayDateString).get();
             const todayReport = todayReportDoc.exists ? todayReportDoc.data() : null;
             const todaySummary = calculateDailySummaryFromData(todayReport);
-            const todayExpenses = await getExpensesForDate(todayDateString);
-            const todayNetProfit = todaySummary.totalProfit - todayExpenses;
+            const todayNetProfit = todaySummary.totalProfit;
             
             // 2. Yesterday's Data
             let yesterdaySummary = { totalProfit: 0 };
-            let yesterdayExpenses = 0;
             const yesterdayReportQuery = db.collection('reports').where('isFinalized', '==', true).orderBy('date', 'desc').limit(1);
             const yesterdaySnapshot = await yesterdayReportQuery.get();
             const yesterdayReport = yesterdaySnapshot.docs[0]?.data();
 
             if (yesterdayReport) {
                 yesterdaySummary = calculateDailySummaryFromData(yesterdayReport);
-                yesterdayExpenses = await getExpensesForDate(yesterdayReport.date);
             }
-            const yesterdayNetProfit = yesterdaySummary.totalProfit - yesterdayExpenses;
+            const yesterdayNetProfit = yesterdaySummary.totalProfit;
 
             // 3. Monthly Net Profit
             const monthlyData = await getMonthlySummary(todayDateString);
@@ -9471,11 +9950,7 @@ td.name, th.name { text-align: left; width: 22%; }
                 
                 for (const collectionName of COLLECTIONS_TO_BACKUP) { 
                     const snapshot = await db.collection(collectionName).get(); 
-                    if (!snapshot.empty) { 
-                        const batch = db.batch(); 
-                        snapshot.docs.forEach(doc => batch.delete(doc.ref)); 
-                        await batch.commit(); 
-                    } 
+                    await deleteDocsInBatches(snapshot.docs);
                 } 
                 
                 Swal.update({ text: 'Uploading new data...' }); 
@@ -9483,11 +9958,15 @@ td.name, th.name { text-align: left; width: 22%; }
                 for (const collectionName of COLLECTIONS_TO_BACKUP) { 
                     const collectionData = backupData[collectionName]; 
                     if (collectionData && Object.keys(collectionData).length > 0) { 
-                        const batch = db.batch(); 
-                        for (const docId in collectionData) { 
-                            batch.set(db.collection(collectionName).doc(docId), collectionData[docId]); 
-                        } 
-                        await batch.commit(); 
+                        const docIds = Object.keys(collectionData);
+                        const batchSize = 500;
+                        for (let i = 0; i < docIds.length; i += batchSize) {
+                            const batch = db.batch();
+                            docIds.slice(i, i + batchSize).forEach(docId => {
+                                batch.set(db.collection(collectionName).doc(docId), collectionData[docId]);
+                            });
+                            await batch.commit();
+                        }
                     } 
                 } 
                 await Swal.fire('Restore Complete', 'Page will now reload.', 'success'); 
@@ -9516,11 +9995,7 @@ td.name, th.name { text-align: left; width: 22%; }
             try {
                 for (const collectionName of COLLECTIONS_TO_BACKUP) { 
                     const snapshot = await db.collection(collectionName).get(); 
-                    if (!snapshot.empty) { 
-                        const batch = db.batch(); 
-                        snapshot.docs.forEach(doc => batch.delete(doc.ref)); 
-                        await batch.commit(); 
-                    } 
+                    await deleteDocsInBatches(snapshot.docs);
                 } 
                 await Swal.fire('Factory Reset Complete', 'All data has been deleted. The page will reload.', 'success'); 
                 location.reload(); 
@@ -9531,14 +10006,13 @@ td.name, th.name { text-align: left; width: 22%; }
         } 
     }
 
-    async function resetSalesData() { const { isConfirmed } = await Swal.fire({ title: 'Reset Sales Data?', html: `Deletes all <strong>reports</strong> and <strong>expenses</strong>. Products and settings are kept.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }); if (isConfirmed) { Swal.fire({ title: 'Resetting...', didOpen: () => Swal.showLoading() }); for (const collectionName of ['reports', 'expenses']) { const snapshot = await db.collection(collectionName).get(); if (!snapshot.empty) { const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } } await Swal.fire('Reset Complete', 'Page will reload.', 'success'); location.reload(); } }
+    async function resetSalesData() { const { isConfirmed } = await Swal.fire({ title: 'Reset Sales Data?', html: `Deletes all <strong>reports</strong> and <strong>expenses</strong>. Products and settings are kept.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }); if (isConfirmed) { Swal.fire({ title: 'Resetting...', didOpen: () => Swal.showLoading() }); for (const collectionName of ['reports', 'expenses']) { const snapshot = await db.collection(collectionName).get(); await deleteDocsInBatches(snapshot.docs); } await Swal.fire('Reset Complete', 'Page will reload.', 'success'); location.reload(); } }
     
     async function getExpensesForDate(dateString) { const expensesSnapshot = await db.collection('expenses').where('date', '==', dateString).get(); return expensesSnapshot.docs.reduce((acc, doc) => acc + doc.data().amount, 0); }
     async function getMonthlySummary(dateString) { 
         const startOfMonth = dayjs(dateString).startOf('month').format('YYYY-MM-DD'); 
         const endOfMonth = dayjs(dateString).endOf('month').format('YYYY-MM-DD'); 
         let totalProfit = 0; 
-        let totalExpenses = 0; 
         
         const reportsSnapshot = await db.collection('reports').where('date', '>=', startOfMonth).where('date', '<=', endOfMonth).get(); 
         
@@ -9547,13 +10021,8 @@ td.name, th.name { text-align: left; width: 22%; }
             const dailySummary = calculateDailySummaryFromData(reportData); 
             totalProfit += dailySummary.totalProfit;
         }); 
-
-        const expensesSnapshot = await db.collection('expenses').where('date', '>=', startOfMonth).where('date', '<=', endOfMonth).get(); 
-        expensesSnapshot.forEach(doc => { 
-            totalExpenses += doc.data().amount; 
-        }); 
         
-        return { monthlyNetProfit: totalProfit - totalExpenses }; 
+        return { monthlyNetProfit: totalProfit }; 
     }
 
     function toggleCategoryRows(categoryId) {
