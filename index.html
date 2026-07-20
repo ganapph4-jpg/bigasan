@@ -5312,11 +5312,7 @@ td.name, th.name { text-align: left; width: 22%; }
     async function printSavedOrderInBackground(order) {
         if (!printerSettings.autoPrint) return;
         try {
-            const printed1 = await printReceiptViaBluetooth(order, 'CUSTOMER');
-            if (!printed1) {
-                throw new Error('Printer is not ready.');
-            }
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await printReceiptViaBluetooth(order, 'CUSTOMER');
             await printReceiptViaBluetooth(order, 'BANTAY');
         } catch (error) {
             console.error('Bluetooth print failed:', error);
